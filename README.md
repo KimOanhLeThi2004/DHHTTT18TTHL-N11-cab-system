@@ -31,6 +31,7 @@ taxi-booking-system/
 │   ├── payment-service/     # Thanh toán
 │   ├── pricing-service/     # Tính giá
 │   └── notification-service/# Thông báo
+|   |__ review-service/      # Danh gia
 ├── events/                  # Kafka / RabbitMQ (event-driven)
 ├── database/                # Cấu hình database
 ├── libs/                    # Thư viện dùng chung
