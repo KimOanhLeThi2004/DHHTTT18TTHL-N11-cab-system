@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 #  Taxi Booking System – Microservices Architecture
 
 Hệ thống đặt xe taxi được xây dựng theo kiến trúc **Microservices**, hướng **cloud-native**, hỗ trợ
@@ -41,3 +42,6 @@ taxi-booking-system/
 ├── scripts/                 # Script hỗ trợ
 ├── docker-compose.yml       # Chạy local
 └── README.md
+=======
+# ride_service
+>>>>>>> da37fe2 (Initial commit)
