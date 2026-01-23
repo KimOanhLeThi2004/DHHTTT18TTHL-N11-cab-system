@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 <p align="center">
   <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
 </p>
@@ -97,48 +96,3 @@ Nest is an MIT-licensed open source project. It can grow thanks to the sponsors 
 ## License
 
 Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
-=======
-#  Taxi Booking System – Microservices Architecture
-
-Hệ thống đặt xe taxi được xây dựng theo kiến trúc **Microservices**, hướng **cloud-native**, hỗ trợ
-**real-time**, **event-driven**, **Zero Trust Architecture** và có khả năng mở rộng cao.
-
----
-
-##  Kiến trúc tổng thể
-- Client: ReactJS / NextJS
-- Backend: Node.js (ExpressJS)
-- Communication: REST API, gRPC, WebSocket
-- Event-driven: Kafka / RabbitMQ
-- Deployment: Docker, Kubernetes, AWS
-- Monitoring & Logging: Prometheus, Grafana, ELK
-
----
-
-##  Cấu trúc thư mục dự án
-
-```text
-taxi-booking-system/
-├── docs/                    # Tài liệu phân tích & thiết kế
-├── frontend/                # Ứng dụng client (Customer / Driver / Admin)
-├── api-gateway/             # API Gateway (Node.js)
-├── services/                # Các microservices backend
-│   ├── auth-service/        # Xác thực & phân quyền
-│   ├── user-service/        # Quản lý người dùng
-│   ├── driver-service/      # Quản lý tài xế
-│   ├── booking-service/     # Đặt xe
-│   ├── ride-service/        # Quản lý chuyến đi
-│   ├── payment-service/     # Thanh toán
-│   ├── pricing-service/     # Tính giá
-│   └── notification-service/# Thông báo
-|   |__ review-service/      # Danh gia
-├── events/                  # Kafka / RabbitMQ (event-driven)
-├── database/                # Cấu hình database
-├── libs/                    # Thư viện dùng chung
-├── observability/           # Monitoring & Logging
-├── security/                # Zero Trust, RBAC, mTLS
-├── infra/                   # Terraform, Kubernetes
-├── scripts/                 # Script hỗ trợ
-├── docker-compose.yml       # Chạy local
-└── README.md
->>>>>>> 147cca76143740d19cc7a4cf24cfa4ecb57d2e67
