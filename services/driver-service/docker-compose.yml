@@ -1,0 +1,65 @@
+version: '3.9'
+
+services:
+  postgres:
+    image: postgres:15
+    container_name: driver-postgres
+    environment:
+      POSTGRES_DB: driver_service
+      POSTGRES_USER: driver
+      POSTGRES_PASSWORD: driver
+    ports:
+      - '5432:5432'
+    volumes:
+      - driver_pg:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7
+    container_name: driver-redis
+    ports:
+      - '6379:6379'
+
+  mongo:
+    image: mongo:6
+    container_name: driver-mongo
+    ports:
+      - '27017:27017'
+    volumes:
+      - driver_mongo:/data/db
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: driver-rabbitmq
+    ports:
+      - '5672:5672'
+      - '15672:15672'
+    profiles: ["rabbitmq"]
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.5.3
+    container_name: driver-zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - '2181:2181'
+    profiles: ["kafka"]
+
+  kafka:
+    image: confluentinc/cp-kafka:7.5.3
+    container_name: driver-kafka
+    depends_on:
+      - zookeeper
+    ports:
+      - '9092:9092'
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    profiles: ["kafka"]
+
+volumes:
+  driver_pg:
+  driver_mongo:
