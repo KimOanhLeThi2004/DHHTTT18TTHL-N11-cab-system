@@ -1,10 +1,3 @@
-# CAB BOOKING SYSTEM – RIDE SERVICE  
-**Môn học:** Nhập môn Dữ liệu lớn  
-**Lớp:** DHHTTT18TTHL – N11  
-**Giảng viên:** ………………………  
-**Nhóm:** ………………………  
-
----
 
 ## 1. Giới thiệu
 `RIDE_SERVICE` là microservice trong hệ thống Cab Booking System, phụ trách xử lý các chức năng liên quan đến **chuyến đi (ride)**.  
@@ -108,3 +101,4 @@ curl -X POST http://localhost:3000/api/rides \
   -H "Content-Type: application/json" \
   -d @ride_service_module/body.json
 ```
+
