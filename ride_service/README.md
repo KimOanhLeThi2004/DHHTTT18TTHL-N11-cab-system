@@ -1,5 +1,5 @@
 
-## 1. Giới thiệu
+## 1. cab Booking
 `RIDE_SERVICE` là microservice trong hệ thống Cab Booking System, phụ trách xử lý các chức năng liên quan đến **chuyến đi (ride)**.  
 Service sử dụng:
 - **MongoDB** để lưu trữ dữ liệu (NoSQL)
@@ -101,4 +101,5 @@ curl -X POST http://localhost:3000/api/rides \
   -H "Content-Type: application/json" \
   -d @ride_service_module/body.json
 ```
+
 
