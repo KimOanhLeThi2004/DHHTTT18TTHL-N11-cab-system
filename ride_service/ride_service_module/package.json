@@ -1,0 +1,17 @@
+{
+    "name": "ride-service-module",
+    "version": "1.0.0",
+    "type": "module",
+    "main": "server.js",
+    "scripts": {
+        "dev": "node server.js"
+    },
+    "dependencies": {
+        "amqplib": "^0.10.4",
+        "dotenv": "^16.6.1",
+        "express": "^4.22.1",
+        "mongodb": "^7.0.0",
+        "pg": "^8.11.5",
+        "redis": "^4.7.1"
+    }
+}
