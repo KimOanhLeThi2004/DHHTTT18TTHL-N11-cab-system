@@ -41,7 +41,7 @@ import { CorrelationIdMiddleware } from './common/middleware/correlation-id.midd
     MongooseModule.forRootAsync({
       inject: [ConfigService],
       useFactory: (config: ConfigService) => ({
-        uri: config.get<string>('mongo.uri')
+        uri: config.getOrThrow<string>('mongo.uri')
       })
     }),
     ThrottlerModule.forRoot({

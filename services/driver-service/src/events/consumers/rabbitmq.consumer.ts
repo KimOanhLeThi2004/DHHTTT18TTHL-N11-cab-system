@@ -1,14 +1,14 @@
 import { Injectable, Logger, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as amqp from 'amqplib';
-import { Channel, Connection, ConsumeMessage } from 'amqplib';
+import { Channel, ChannelModel, ConsumeMessage } from 'amqplib';
 import { EventEnvelope } from '../event.types';
 import { IdempotencyService } from '../idempotency.service';
 import { RideEventsHandler } from '../handlers/ride-events.handler';
 
 @Injectable()
 export class RabbitMQConsumer implements OnModuleInit, OnModuleDestroy {
-  private connection?: Connection;
+  private connection?: ChannelModel;
   private channel?: Channel;
   private readonly logger = new Logger(RabbitMQConsumer.name);
   private readonly maxRetries = 3;
@@ -20,26 +20,28 @@ export class RabbitMQConsumer implements OnModuleInit, OnModuleDestroy {
   ) {}
 
   async onModuleInit(): Promise<void> {
-    if (this.config.get<string>('broker.type') !== 'rabbitmq') {
+    if (this.config.getOrThrow<string>('broker.type') !== 'rabbitmq') {
       this.logger.log('Bo qua RabbitMQ consumer vi broker dang dung Kafka');
       return;
     }
-    const url = this.config.get<string>('broker.rabbit.url');
-    const exchange = this.config.get<string>('broker.rabbit.exchange');
-    const queue = this.config.get<string>('broker.rabbit.queue');
-    const dlq = this.config.get<string>('broker.rabbit.dlq');
+    const url = this.config.getOrThrow<string>('broker.rabbit.url');
+    const exchange = this.config.getOrThrow<string>('broker.rabbit.exchange');
+    const queue = this.config.getOrThrow<string>('broker.rabbit.queue');
+    const dlq = this.config.getOrThrow<string>('broker.rabbit.dlq');
 
-    this.connection = await amqp.connect(url);
-    this.channel = await this.connection.createChannel();
-    await this.channel.assertExchange(exchange, 'topic', { durable: true });
+    const connection = await amqp.connect(url);
+    const channel = await connection.createChannel();
+    this.connection = connection;
+    this.channel = channel;
+    await channel.assertExchange(exchange, 'topic', { durable: true });
 
-    await this.channel.assertQueue(queue, {
+    await channel.assertQueue(queue, {
       durable: true,
       deadLetterExchange: exchange,
       deadLetterRoutingKey: dlq
     });
 
-    await this.channel.assertQueue(dlq, { durable: true });
+    await channel.assertQueue(dlq, { durable: true });
 
     const keys = [
       'RideOfferCreated',
@@ -51,10 +53,10 @@ export class RabbitMQConsumer implements OnModuleInit, OnModuleDestroy {
     ];
 
     for (const key of keys) {
-      await this.channel.bindQueue(queue, exchange, key);
+      await channel.bindQueue(queue, exchange, key);
     }
 
-    await this.channel.consume(queue, (msg) => this.onMessage(msg), { noAck: false });
+    await channel.consume(queue, (msg) => this.onMessage(msg), { noAck: false });
   }
 
   private async onMessage(msg: ConsumeMessage | null): Promise<void> {
@@ -77,15 +79,15 @@ export class RabbitMQConsumer implements OnModuleInit, OnModuleDestroy {
     } catch (error) {
       const retries = (msg.properties.headers?.['x-retry-count'] as number) || 0;
       if (retries < this.maxRetries) {
-        const exchange = this.config.get<string>('broker.rabbit.exchange');
+        const exchange = this.config.getOrThrow<string>('broker.rabbit.exchange');
         this.channel.publish(exchange, msg.fields.routingKey, msg.content, {
           headers: { 'x-retry-count': retries + 1 }
         });
         this.channel.ack(msg);
       } else {
         this.logger.error('Su kien that bai, day vao DLQ', error as Error);
-        const dlq = this.config.get<string>('broker.rabbit.dlq');
-        const exchange = this.config.get<string>('broker.rabbit.exchange');
+        const dlq = this.config.getOrThrow<string>('broker.rabbit.dlq');
+        const exchange = this.config.getOrThrow<string>('broker.rabbit.exchange');
         this.channel.publish(exchange, dlq, msg.content, { persistent: true });
         this.channel.ack(msg);
       }

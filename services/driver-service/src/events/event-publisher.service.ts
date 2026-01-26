@@ -23,7 +23,7 @@ export class EventPublisherService {
       payload
     };
 
-    const brokerType = this.config.get<string>('broker.type');
+    const brokerType = this.config.getOrThrow<string>('broker.type');
     if (brokerType === 'kafka') {
       await this.kafkaPublisher.publish(envelope);
       return;

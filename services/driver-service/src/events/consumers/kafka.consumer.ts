@@ -18,22 +18,24 @@ export class KafkaConsumer implements OnModuleInit, OnModuleDestroy {
   ) {}
 
   async onModuleInit(): Promise<void> {
-    if (this.config.get<string>('broker.type') !== 'kafka') {
+    if (this.config.getOrThrow<string>('broker.type') !== 'kafka') {
       this.logger.log('Bo qua Kafka consumer vi broker dang dung RabbitMQ');
       return;
     }
     const kafka = new Kafka({
-      clientId: this.config.get<string>('broker.kafka.clientId'),
-      brokers: this.config.get<string[]>('broker.kafka.brokers')
+      clientId: this.config.getOrThrow<string>('broker.kafka.clientId'),
+      brokers: this.config.getOrThrow<string[]>('broker.kafka.brokers')
     });
 
-    this.consumer = kafka.consumer({ groupId: this.config.get<string>('broker.kafka.groupId') });
+    this.consumer = kafka.consumer({
+      groupId: this.config.getOrThrow<string>('broker.kafka.groupId')
+    });
     this.dlqProducer = kafka.producer();
 
     await this.consumer.connect();
     await this.dlqProducer.connect();
 
-    const topic = this.config.get<string>('broker.kafka.topic');
+    const topic = this.config.getOrThrow<string>('broker.kafka.topic');
     await this.consumer.subscribe({ topic, fromBeginning: false });
 
     await this.consumer.run({
@@ -71,7 +73,7 @@ export class KafkaConsumer implements OnModuleInit, OnModuleDestroy {
           ]);
         } catch (error) {
           this.logger.error('Xu ly su kien Kafka that bai', error as Error);
-          const dlqTopic = `${this.config.get<string>('broker.kafka.topic')}.dlq`;
+          const dlqTopic = `${this.config.getOrThrow<string>('broker.kafka.topic')}.dlq`;
           await this.dlqProducer?.send({
             topic: dlqTopic,
             messages: [

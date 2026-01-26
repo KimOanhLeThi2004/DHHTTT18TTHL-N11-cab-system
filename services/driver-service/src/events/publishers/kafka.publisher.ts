@@ -12,8 +12,8 @@ export class KafkaPublisher implements OnModuleInit, OnModuleDestroy {
 
   async onModuleInit(): Promise<void> {
     const kafka = new Kafka({
-      clientId: this.config.get<string>('broker.kafka.clientId'),
-      brokers: this.config.get<string[]>('broker.kafka.brokers')
+      clientId: this.config.getOrThrow<string>('broker.kafka.clientId'),
+      brokers: this.config.getOrThrow<string[]>('broker.kafka.brokers')
     });
     this.producer = kafka.producer();
     await this.producer.connect();
@@ -23,7 +23,7 @@ export class KafkaPublisher implements OnModuleInit, OnModuleDestroy {
     if (!this.producer) {
       throw new Error('Ket noi Kafka chua san sang');
     }
-    const topic = this.config.get<string>('broker.kafka.topic');
+    const topic = this.config.getOrThrow<string>('broker.kafka.topic');
     await this.producer.send({
       topic,
       messages: [
