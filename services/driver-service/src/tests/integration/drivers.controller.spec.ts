@@ -16,7 +16,8 @@ class AllowAllGuard {
 describe('Kiem thu tich hop DriversController', () => {
   let app: INestApplication;
   const service = {
-    getDriver: jest.fn().mockResolvedValue({ id: 'd1', name: 'A' })
+    getDriver: jest.fn().mockResolvedValue({ id: 'd1', name: 'A' }),
+    updateLocation: jest.fn()
   };
 
   beforeAll(async () => {
@@ -42,5 +43,14 @@ describe('Kiem thu tich hop DriversController', () => {
 
   it('GET /drivers/:driverId tra ve du lieu', async () => {
     await request(app.getHttpServer()).get('/drivers/d1').expect(200);
+  });
+
+  it('POST /drivers/:driverId/location cap nhat vi tri', async () => {
+    await request(app.getHttpServer())
+      .post('/drivers/d1/location')
+      .send({ lat: 10.1234, lng: 106.1234 })
+      .expect(201);
+
+    expect(service.updateLocation).toHaveBeenCalledWith('d1', 10.1234, 106.1234, undefined);
   });
 });

@@ -46,7 +46,8 @@ export class RabbitMQConsumer implements OnModuleInit, OnModuleDestroy {
       'RideStatusChanged',
       'TripStarted',
       'TripEnded',
-      'DriverSuspended'
+      'DriverSuspended',
+      'DriverAssigned'
     ];
 
     for (const key of keys) {

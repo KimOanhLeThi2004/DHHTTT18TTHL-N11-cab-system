@@ -14,7 +14,15 @@ describe('Kiem thu DriversService', () => {
   const redisService = {
     setOnlineStatus: jest.fn(),
     setState: jest.fn(),
-    setLocation: jest.fn()
+    setLocation: jest.fn(),
+    tryAcquireLocationPublishLock: jest.fn(),
+    tryMarkOfferAction: jest.fn(),
+    getState: jest.fn(),
+    getOnlineStatus: jest.fn()
+  };
+  const redisGeoService = {
+    upsertDriverLocation: jest.fn(),
+    syncGeoByState: jest.fn()
   };
   const logsService = {
     logActivity: jest.fn(),
@@ -29,6 +37,7 @@ describe('Kiem thu DriversService', () => {
     driverRepo as any,
     vehicleRepo as any,
     redisService as any,
+    redisGeoService as any,
     logsService as any,
     publisher as any
   );

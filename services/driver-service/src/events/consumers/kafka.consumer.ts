@@ -57,7 +57,8 @@ export class KafkaConsumer implements OnModuleInit, OnModuleDestroy {
             'RideStatusChanged',
             'TripStarted',
             'TripEnded',
-            'DriverSuspended'
+            'DriverSuspended',
+            'DriverAssigned'
           ];
 
           if (acceptedTypes.includes(event.type)) {

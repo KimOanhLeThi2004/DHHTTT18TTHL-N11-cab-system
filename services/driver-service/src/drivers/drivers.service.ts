@@ -1,8 +1,4 @@
-import {
-  BadRequestException,
-  Injectable,
-  NotFoundException
-} from '@nestjs/common';
+import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Driver } from './driver.entity';
@@ -11,16 +7,20 @@ import { CreateDriverDto } from './dto/create-driver.dto';
 import { UpdateDriverDto } from './dto/update-driver.dto';
 import { UpdateStateDto } from './dto/update-state.dto';
 import { RedisService } from '../redis/redis.service';
+import { RedisGeoService } from '../redis/redis-geo.service';
 import { LogsService } from '../logs/logs.service';
 import { EventPublisherService } from '../events/event-publisher.service';
 import { DriverState, DriverStatus, OnlineStatus } from '../common/utils/constants';
 
 @Injectable()
 export class DriversService {
+  private readonly logger = new Logger(DriversService.name);
+
   constructor(
     @InjectRepository(Driver) private readonly driverRepo: Repository<Driver>,
     @InjectRepository(Vehicle) private readonly vehicleRepo: Repository<Vehicle>,
     private readonly redisService: RedisService,
+    private readonly redisGeoService: RedisGeoService,
     private readonly logsService: LogsService,
     private readonly eventPublisher: EventPublisherService
   ) {}
@@ -117,16 +117,34 @@ export class DriversService {
     await this.ensureActive(driverId);
     await this.redisService.setOnlineStatus(driverId, OnlineStatus.ONLINE);
     await this.redisService.setState(driverId, DriverState.AVAILABLE);
+    await this.redisGeoService.syncGeoByState(
+      driverId,
+      DriverState.AVAILABLE,
+      OnlineStatus.ONLINE
+    );
     await this.logsService.logActivity(driverId, 'ONLINE');
     await this.eventPublisher.publish('DriverOnline', { driverId }, correlationId);
+    this.logger.log(
+      'Tai xe da online',
+      JSON.stringify({ correlationId, driverId })
+    );
   }
 
   async goOffline(driverId: string, correlationId?: string): Promise<void> {
     await this.ensureActive(driverId);
     await this.redisService.setOnlineStatus(driverId, OnlineStatus.OFFLINE);
     await this.redisService.setState(driverId, DriverState.AVAILABLE);
+    await this.redisGeoService.syncGeoByState(
+      driverId,
+      DriverState.AVAILABLE,
+      OnlineStatus.OFFLINE
+    );
     await this.logsService.logActivity(driverId, 'OFFLINE');
     await this.eventPublisher.publish('DriverOffline', { driverId }, correlationId);
+    this.logger.log(
+      'Tai xe da offline',
+      JSON.stringify({ correlationId, driverId })
+    );
   }
 
   async updateState(
@@ -136,16 +154,46 @@ export class DriversService {
   ): Promise<void> {
     await this.ensureActive(driverId);
     await this.redisService.setState(driverId, dto.state);
+    await this.redisGeoService.syncGeoByState(driverId, dto.state);
     await this.eventPublisher.publish(
       'DriverAvailabilityChanged',
       { driverId, state: dto.state },
       correlationId
     );
+    this.logger.log(
+      'Cap nhat trang thai tai xe',
+      JSON.stringify({ correlationId, driverId, state: dto.state })
+    );
   }
 
-  async updateLocation(driverId: string, lat: number, lng: number): Promise<void> {
+  async updateLocation(
+    driverId: string,
+    lat: number,
+    lng: number,
+    correlationId?: string
+  ): Promise<void> {
     await this.ensureActive(driverId);
-    await this.redisService.setLocation(driverId, lat, lng);
+    const { state, updatedAt } = await this.redisGeoService.upsertDriverLocation(
+      driverId,
+      lat,
+      lng
+    );
+
+    if (state === DriverState.ON_TRIP) {
+      const canPublish = await this.redisService.tryAcquireLocationPublishLock(driverId, 3);
+      if (canPublish) {
+        await this.eventPublisher.publish(
+          'DriverLocationUpdated',
+          { driverId, lat, lng, updatedAt },
+          correlationId
+        );
+      }
+    }
+
+    this.logger.log(
+      'Cap nhat vi tri tai xe',
+      JSON.stringify({ correlationId, driverId, lat, lng })
+    );
   }
 
   async acceptOffer(
@@ -155,12 +203,25 @@ export class DriversService {
     correlationId?: string
   ): Promise<void> {
     await this.ensureActive(driverId);
+    const isFirstAction = await this.redisService.tryMarkOfferAction(offerId, 'ACCEPTED');
+    if (!isFirstAction) {
+      this.logger.log(
+        'Bo qua chap nhan de xuat do trung lap',
+        JSON.stringify({ correlationId, driverId, offerId })
+      );
+      return;
+    }
     await this.redisService.setState(driverId, DriverState.BUSY);
+    await this.redisGeoService.syncGeoByState(driverId, DriverState.BUSY);
     await this.logsService.logOfferAction(driverId, rideId, offerId, 'ACCEPTED');
     await this.eventPublisher.publish(
       'DriverAcceptedOffer',
       { driverId, rideId, offerId },
       correlationId
+    );
+    this.logger.log(
+      'Tai xe da chap nhan de xuat cuoc xe',
+      JSON.stringify({ correlationId, driverId, rideId, offerId })
     );
   }
 
@@ -171,11 +232,23 @@ export class DriversService {
     correlationId?: string
   ): Promise<void> {
     await this.ensureActive(driverId);
+    const isFirstAction = await this.redisService.tryMarkOfferAction(offerId, 'REJECTED');
+    if (!isFirstAction) {
+      this.logger.log(
+        'Bo qua tu choi de xuat do trung lap',
+        JSON.stringify({ correlationId, driverId, offerId })
+      );
+      return;
+    }
     await this.logsService.logOfferAction(driverId, rideId, offerId, 'REJECTED');
     await this.eventPublisher.publish(
       'DriverRejectedOffer',
       { driverId, rideId, offerId },
       correlationId
+    );
+    this.logger.log(
+      'Tai xe da tu choi de xuat cuoc xe',
+      JSON.stringify({ correlationId, driverId, rideId, offerId })
     );
   }
 

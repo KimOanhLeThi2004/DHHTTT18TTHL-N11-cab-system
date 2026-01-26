@@ -2,6 +2,7 @@ import { Global, Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import Redis from 'ioredis';
 import { RedisService } from './redis.service';
+import { RedisGeoService } from './redis-geo.service';
 
 @Global()
 @Module({
@@ -16,8 +17,9 @@ import { RedisService } from './redis.service';
         });
       }
     },
-    RedisService
+    RedisService,
+    RedisGeoService
   ],
-  exports: [RedisService, 'REDIS_CLIENT']
+  exports: [RedisService, RedisGeoService, 'REDIS_CLIENT']
 })
 export class RedisModule {}

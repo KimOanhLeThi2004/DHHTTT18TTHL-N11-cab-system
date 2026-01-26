@@ -82,10 +82,11 @@ export class DriversController {
     ttl: Number(process.env.LOCATION_RATE_LIMIT_TTL) || 3
   })
   async updateLocation(
+    @Req() req: Request,
     @Param('driverId') driverId: string,
     @Body() dto: UpdateLocationDto
   ) {
-    await this.driversService.updateLocation(driverId, dto.lat, dto.lng);
+    await this.driversService.updateLocation(driverId, dto.lat, dto.lng, (req as any).id);
     return { message: 'Cap nhat vi tri thanh cong' };
   }
 
