@@ -1,0 +1,137 @@
+version: "3.9"
+
+services:
+  auth-postgres:
+    image: postgres:15
+    container_name: auth-postgres
+    environment:
+      POSTGRES_DB: auth_db
+      POSTGRES_USER: auth_user
+      POSTGRES_PASSWORD: auth_password
+    ports:
+      - "5432:5432"
+
+    networks:
+      - cab-network
+
+  user-postgres:
+    image: postgres:15
+    container_name: user-postgres
+    environment:
+      POSTGRES_DB: user_db
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: user_password
+    ports:
+      - "5433:5432"
+
+    networks:
+      - cab-network
+  driver-postgres:
+    image: postgres:15
+    container_name: driver-postgres
+    environment:
+      POSTGRES_DB: driver_db
+      POSTGRES_USER: driver_user
+      POSTGRES_PASSWORD: driver_pass
+    ports:
+      - "5434:5432"
+
+    networks:
+      - cab-network
+
+  payment-postgres:
+    image: postgres:15
+    container_name: payment-postgres
+    environment:
+      POSTGRES_DB: payment_db
+      POSTGRES_USER: payment_user
+      POSTGRES_PASSWORD: payment_pass
+    ports:
+      - "5435:5432"
+
+    networks:
+      - cab-network
+
+  ride-postgres:
+    image: postgres:15
+    container_name: ride-postgres
+    environment:
+      POSTGRES_DB: ride_db
+      POSTGRES_USER: ride_user
+      POSTGRES_PASSWORD: ride_pass
+    ports:
+      - "5436:5432"
+
+    networks:
+      - cab-network
+
+  review-postgres:
+    image: postgres:15
+    container_name: review-postgres
+    environment:
+      POSTGRES_DB: review_db
+      POSTGRES_USER: review_user
+      POSTGRES_PASSWORD: review_pass
+    ports:
+      - "5437:5432"
+
+    networks:
+      - cab-network      
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: a1
+    ports:
+      - "5050:80"
+    networks:
+      - cab-network
+  kafka:
+      image: apache/kafka:4.2.0-rc2
+      container_name: kafka
+      ports:
+        - "9092:9092"
+      environment:
+        KAFKA_NODE_ID: 1
+        KAFKA_PROCESS_ROLES: broker,controller
+        KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,INTERNAL://0.0.0.0:29092,CONTROLLER://0.0.0.0:9093
+        KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092,INTERNAL://kafka:29092
+        KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,INTERNAL:PLAINTEXT,CONTROLLER:PLAINTEXT
+        KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+        KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+        KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+        KAFKA_LOG_DIRS: /var/lib/kafka/data
+        KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+        KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+        KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+        KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      networks:
+        - cab-network
+
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    container_name: kafka-ui
+    ports:
+      - "8080:8080"
+    environment:
+      KAFKA_CLUSTERS_0_NAME: taxi-cluster
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:29092
+      KAFKA_CLUSTERS_0_READONLY: "false"
+    depends_on:
+      - kafka
+    networks:
+      - cab-network
+
+  redis:
+    image: redis
+    container_name: redis
+    ports:
+      - "6379:6379"
+    networks:
+      - cab-network
+
+
+networks:
+  cab-network:
+    driver: bridge
