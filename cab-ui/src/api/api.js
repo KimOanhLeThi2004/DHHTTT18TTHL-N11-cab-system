@@ -42,6 +42,9 @@ export const updateMe = (data) =>
 export const createBooking = (payload) =>
   api.post("/booking", payload);
 
+export const cancelBooking = (bookingId) =>
+  api.patch(`/booking/${bookingId}/cancel`);
+
 
 
 /* ================= DRIVER ================= */
@@ -72,5 +75,31 @@ export const updateRideStatus = (rideId, status) => {
   return api.put(`/rides/${rideId}/status`, {
     status: status
   });
+};
+
+export const getRideByBookingId = (bookingId) => {
+  return api.get(`/rides/booking/${bookingId}`);
+};
+
+// payment
+export const createPayment = (payload) => {
+  return api.post("/payments/pay", payload);
+};
+
+// review
+export const createReview = (payload) => {
+  return api.post("/reviews", payload);
+};
+
+export const getDriverReviews = (driverId) => {
+  return api.get(`/reviews/driver/${driverId}`);
+};
+
+export const getDriverRating = (driverId) => {
+  return api.get(`/reviews/driver/${driverId}/rating`);
+};
+
+export const getDriverRevenue = () => {
+  return api.get("/payments/driver/total");
 };
 export default api;

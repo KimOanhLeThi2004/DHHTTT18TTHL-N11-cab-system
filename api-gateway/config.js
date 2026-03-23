@@ -6,5 +6,7 @@ module.exports = {
     PRICING_SERVICE_URL: "http://localhost:3003",
     BOOKING_SERVICE_URL: "http://localhost:3004",
     DRIVER_SERVICE_URL: "http://localhost:3005",
-    RIDE_SERVICE_URL: "http://localhost:3007"
+    RIDE_SERVICE_URL: "http://localhost:3007",
+    PAYMENT_SERVICE_URL: "http://localhost:3006",
+    REVIEW_SERVICE_URL: "http://localhost:3009"
 };

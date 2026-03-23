@@ -13,4 +13,16 @@ router.post('/', async (req, res) => {
   }
 });
 
+router.patch('/:bookingId/cancel', async (req, res) => {
+  const userId = req.user.id;
+  const { bookingId } = req.params;
+
+  try {
+    const booking = await bookingService.cancelBooking(userId, bookingId);
+    res.json(booking);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+});
+
 module.exports = router;

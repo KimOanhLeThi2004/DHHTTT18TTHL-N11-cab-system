@@ -4,6 +4,7 @@ const jwt = require("../middlewares/verifyServiceToken")
 const router = express.Router();
 
 router.post("/", controller.createRide);
-router.put("/:rideId/status", jwt,controller.updateStatus);
+router.get("/booking/:bookingId", jwt, controller.getRideByBookingId);
+router.put("/:rideId/status", jwt, controller.updateStatus);
 
 module.exports = router;

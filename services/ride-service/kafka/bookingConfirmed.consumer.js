@@ -60,7 +60,7 @@ async function startBookingConfirmedConsumer() {
           driverId,
           pickup,
           dropoff,
-          // pricing,
+          estimatedPrice,
           confirmedAt,
         } = event;
         console.log("hello 2")
@@ -97,7 +97,7 @@ async function startBookingConfirmedConsumer() {
           },
           pickup,
           dropoff,
-          // pricing,
+          price: estimatedPrice,
           status: "ONGOING",
           confirmedAt: confirmedAt ? new Date(confirmedAt) : new Date(),
         });

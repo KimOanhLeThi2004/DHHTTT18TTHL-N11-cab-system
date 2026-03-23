@@ -2,7 +2,7 @@ const { Kafka } = require("kafkajs");
 const Notification = require("../models/notification.model");
 require("dotenv").config();
 
-let sendToUser; // sẽ nhận function
+let sendToUser; // inject function
 
 const kafka = new Kafka({
   clientId: "notification-service",
@@ -14,7 +14,7 @@ const consumer = kafka.consumer({
 });
 
 const startConsumer = async (sendFn) => {
-  sendToUser = sendFn; // inject function
+  sendToUser = sendFn;
 
   await consumer.connect();
 
@@ -23,7 +23,7 @@ const startConsumer = async (sendFn) => {
     fromBeginning: false,
   });
 
-  console.log("✅ Notification consumer started");
+  console.log("Notification consumer started");
 
   await consumer.run({
     eachMessage: async ({ topic, message }) => {
@@ -36,40 +36,53 @@ const startConsumer = async (sendFn) => {
         return;
       }
 
-      console.log("📥 Received:", topic, data);
+      console.log("Received:", topic, data);
 
       try {
         switch (topic) {
-          case "ride.status.changed":
+          case "ride.status.changed": {
+            const targetUserId = data.user?.id || data.userId;
+            if (!targetUserId) {
+              console.log("Missing userId in ride.status.changed");
+              break;
+            }
+
             await Notification.create({
-              userId: data.user.id,
+              userId: targetUserId,
               type: "RIDE_STATUS",
               title: "Ride status updated",
               message: `Ride ${data.rideId} is now ${data.status}`,
               payload: data,
             });
 
-            // ✅ GỌI FUNCTION
-            sendToUser(data.user.id, {
+            sendToUser(targetUserId, {
               type: "RIDE_STATUS",
               ...data,
             });
             break;
+          }
 
-          case "payment.success":
+          case "payment.success": {
+            const targetUserId = data.user?.id || data.userId;
+            if (!targetUserId) {
+              console.log("Missing userId in payment.success");
+              break;
+            }
+
             await Notification.create({
-              userId: data.user.id,
+              userId: targetUserId,
               type: "PAYMENT",
               title: "Payment success",
               message: `Payment for booking ${data.bookingId} completed`,
               payload: data,
             });
 
-            sendToUser(data.user.id, {
+            sendToUser(targetUserId, {
               type: "PAYMENT_SUCCESS",
               ...data,
             });
             break;
+          }
 
           default:
             break;

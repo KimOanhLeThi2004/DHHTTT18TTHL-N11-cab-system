@@ -26,8 +26,24 @@ function notifyDriverAssignment({ bookingId, driverId, pickup, dropoff, distance
   return true;
 }
 
+function notifyBookingCancelled(driverId, bookingId) {
+  const ws = driverSockets.get(driverId);
+
+  if (!ws) {
+    return false;
+  }
+
+  ws.send(JSON.stringify({
+    type: "BOOKING_CANCELLED",
+    data: { bookingId }
+  }));
+
+  return true;
+}
+
 module.exports = {
   registerDriverSocket,
   removeDriverSocket,
   notifyDriverAssignment,
+  notifyBookingCancelled,
 };

@@ -28,6 +28,10 @@ const RideSchema = new mongoose.Schema(
       lng: Number,
     },
 
+    price: {
+      type: Number,
+    },
+
     status: {
       type: String,
       enum: ["ONGOING", "COMPLETED", "CANCELLED"],

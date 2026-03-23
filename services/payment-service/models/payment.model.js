@@ -18,6 +18,11 @@ const Payment = sequelize.define("Payment", {
     allowNull: false
   },
 
+  driverId: {
+    type: DataTypes.UUID,
+    allowNull: false
+  },
+
   amount: {
     type: DataTypes.FLOAT,
     allowNull: false

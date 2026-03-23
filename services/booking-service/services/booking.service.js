@@ -25,4 +25,30 @@ async function createBooking(userId, data) {
   return booking;
 }
 
-module.exports = { createBooking };
+async function cancelBooking(userId, bookingId) {
+  const booking = await Booking.findOneAndUpdate(
+    {
+      _id: bookingId,
+      userId,
+      status: { $in: ["PENDING", "CONFIRMED", "ACCEPTED"] }
+    },
+    {
+      $set: { status: "CANCELLED" }
+    },
+    { new: true }
+  );
+
+  if (!booking) {
+    throw new Error("Booking not found or cannot cancel");
+  }
+
+  await emitEvent("BOOKING_CANCELLED", {
+    bookingId: booking._id,
+    userId: booking.userId,
+    cancelledAt: new Date().toISOString()
+  });
+
+  return booking;
+}
+
+module.exports = { createBooking, cancelBooking };

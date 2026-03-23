@@ -17,7 +17,8 @@ module.exports = function verifyServiceToken(req, res, next) {
 
 
     // whitelist caller
-    if (decoded.service !== "api-gateway") {
+    const allowed = ["api-gateway", "payment-service"];
+    if (!allowed.includes(decoded.service)) {
       return res.status(403).json({ message: "Invalid service" });
     }
 

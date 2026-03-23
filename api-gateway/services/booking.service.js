@@ -15,4 +15,18 @@ async function createBooking(payload, token) {
   return res.data;
 }
 
-module.exports = { createBooking };
+async function cancelBooking(bookingId, token) {
+  const res = await axios.patch(
+    `${BOOKING_SERVICE_URL}/bookings/${bookingId}/cancel`,
+    {},
+    {
+      headers: {
+        Authorization: token
+      }
+    }
+  );
+
+  return res.data;
+}
+
+module.exports = { createBooking, cancelBooking };

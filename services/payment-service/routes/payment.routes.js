@@ -1,8 +1,10 @@
 const express = require("express");
-const { pay } = require("../controllers/payment.controller");
+const { pay, getDriverRevenue } = require("../controllers/payment.controller");
+const authMiddleware = require("../middlewares/auth.middleware");
 
 const router = express.Router();
 
-router.post("/pay", pay);
+router.post("/pay", authMiddleware, pay);
+router.get("/driver/total", authMiddleware, getDriverRevenue);
 
 module.exports = router;

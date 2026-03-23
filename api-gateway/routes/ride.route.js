@@ -19,4 +19,15 @@ router.put("/:rideId/status", async (req, res) => {
   }
 });
 
+router.get("/booking/:bookingId", async (req, res) => {
+  try {
+    const { bookingId } = req.params;
+    const ride = await rideService.getRideByBookingId(bookingId);
+    res.json(ride);
+  } catch (err) {
+    console.error("Ride get error:", err.message);
+    res.status(500).json({ message: "Ride get failed" });
+  }
+});
+
 module.exports = router;

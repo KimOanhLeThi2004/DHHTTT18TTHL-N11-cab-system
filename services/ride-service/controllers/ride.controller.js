@@ -47,7 +47,19 @@ async function updateStatus(req, res) {
   res.json(ride);
 }
 
+async function getRideByBookingId(req, res) {
+  const { bookingId } = req.params;
+
+  const ride = await Ride.findOne({ bookingId });
+  if (!ride) {
+    return res.status(404).json({ message: "Ride not found" });
+  }
+
+  return res.json(ride);
+}
+
 module.exports = {
   createRide,
-  updateStatus
+  updateStatus,
+  getRideByBookingId
 };

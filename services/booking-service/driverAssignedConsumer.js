@@ -57,7 +57,7 @@ async function startDriverAcceptedConsumer() {
                 driverId,
                 pickup: updatedBooking.pickup,
                 dropoff: updatedBooking.dropoff,
-                // pricing,
+                estimatedPrice: updatedBooking.estimatedPrice,
                 confirmedAt: new Date().toISOString(),
               }),
             },

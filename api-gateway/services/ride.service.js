@@ -18,7 +18,22 @@ async function updateRideStatus(rideId, status) {
   return res.data;
 }
 
+async function getRideByBookingId(bookingId) {
+  const jwt = "Bear " + token();
+
+  const res = await axios.get(
+    `${RIDE_SERVICE_URL}/rides/booking/${bookingId}`,
+    {
+      headers: {
+        Authorization: jwt
+      }
+    }
+  );
+
+  return res.data;
+}
 
 module.exports = {
-  updateRideStatus
+  updateRideStatus,
+  getRideByBookingId
 };
