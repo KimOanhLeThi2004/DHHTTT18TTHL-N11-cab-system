@@ -1,6 +1,5 @@
 const axios = require("axios");
-
-const USER_SERVICE_URL = "http://localhost:3002";
+const { USER_SERVICE_URL } = require("../config");
 
 async function getUserProfile(jwt) {
   const res = await axios.get(

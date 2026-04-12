@@ -18,15 +18,17 @@ import {
 import { getRouteInfo, reverseGeocode } from "../../services/osrm";
 
 const driverIcon = new L.Icon({
-  iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
-  shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
+  iconRetinaUrl: "/marker-icon-2x.png",
+  iconUrl: "/marker-icon.png",
+  shadowUrl: "/marker-shadow.png",
   iconSize: [25, 41],
   iconAnchor: [12, 41],
 });
 
 const pickupIcon = new L.Icon({
-  iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
-  shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
+  iconRetinaUrl: "/marker-icon-2x.png",
+  iconUrl: "/marker-icon.png",
+  shadowUrl: "/marker-shadow.png",
   iconSize: [25, 41],
   iconAnchor: [12, 41],
 });
@@ -382,6 +384,9 @@ export default function DriverDashboard() {
         bookingId: activeRide.bookingId,
         method: "CASH",
       });
+      if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+        wsRef.current.send(JSON.stringify({ type: "CLEAR_ASSIGNMENT" }));
+      }
       setPaymentDone(true);
       if (driverId) {
         setTimeout(() => loadReviewData(driverId), 3000);

@@ -6,13 +6,20 @@ const kafka = new Kafka({
 });
 
 const producer = kafka.producer();
+let producerConnected = false;
+
+async function ensureConnected() {
+  if (producerConnected) return;
+  await producer.connect();
+  producerConnected = true;
+}
 
 async function emitEvent(topic, payload) {
-  await producer.connect();
+  await ensureConnected();
   await producer.send({
     topic,
     messages: [{ value: JSON.stringify(payload) }]
   });
 }
 
-module.exports = { producer,emitEvent };
+module.exports = { producer, emitEvent, ensureConnected };

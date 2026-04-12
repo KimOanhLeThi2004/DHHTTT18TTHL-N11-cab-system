@@ -1,8 +1,10 @@
 // src/api/index.js
 import axios from "axios";
 
+const baseURL = (import.meta.env.VITE_API_URL || "http://localhost:3000").replace(/\/$/, "");
+
 const api = axios.create({
-  baseURL: "http://localhost:3000", // API Gateway
+  baseURL,
   headers: {
     "Content-Type": "application/json",
   },
@@ -22,8 +24,8 @@ api.interceptors.request.use((config) => {
 export const login = (email, password, role) =>
   api.post("/auth/login", { email, password, role });
 
-export const register = (email, password) =>
-  api.post("/auth/register", { email, password });
+export const register = (data) =>
+  api.post("/auth/register",  data );
 
 export const logout = (refreshToken) =>
   api.post("/auth/logout", { refreshToken });
@@ -64,6 +66,11 @@ export const rejectRide = (bookingId) =>
 export const getDriver = () =>{
   return api.get("/drivers/me");
 }
+
+export const getDriverLocation = (driverId) => {
+  return api.get(`/drivers/location/${driverId}`);
+};
+
   // -------- PRICING --------
 export const calculatePrice = (payload) => {
 

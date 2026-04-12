@@ -8,15 +8,17 @@ module.exports = async function authMiddleware(req, res, next) {
     }
 
     const result = await introspectToken(authHeader);
-    if (!result.message) {
-      return res.status(401).json({ message: "Invalid token" });
+    if (!result.active) {
+      return res.status(401).json({ message: result.reason || "Invalid token" });
     }
 
-    // Inject identity
-
+    req.user = result.user || null;
     next();
   } catch (err) {
+    if (err.status) {
+      return res.status(err.status).json({ message: err.message || "Unauthorized" });
+    }
     console.error("Auth error:", err.message);
-    res.status(401).json({ message: "Unauthorized" });
+    return res.status(401).json({ message: "Unauthorized" });
   }
 };

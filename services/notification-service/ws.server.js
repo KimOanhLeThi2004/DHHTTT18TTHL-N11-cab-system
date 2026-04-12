@@ -3,6 +3,25 @@ const jwt = require("jsonwebtoken");
 
 const clients = new Map();
 
+function verifyAccessToken(token) {
+  const secrets = [
+    process.env.JWT_SECRET,
+    process.env.JWT_SECRETKEY,
+    process.env.ACCESS_JWT_SECRET,
+  ].filter(Boolean);
+
+  let payload = null;
+  for (const secret of secrets) {
+    try {
+      payload = jwt.verify(token, secret);
+      break;
+    } catch (err) {
+      payload = null;
+    }
+  }
+  return payload;
+}
+
 const initWebSocket = (server) => {
   const wss = new WebSocket.Server({ server });
 
@@ -14,10 +33,18 @@ const initWebSocket = (server) => {
 
       console.log("Token received:", token);
 
-        const payload = jwt.verify(token, process.env.JWT_SECRETKEY);
+        const payload = verifyAccessToken(token);
+        if (!payload) {
+          ws.close();
+          return;
+        }
         console.log("Token decoded:", payload);
 
-        const userId = payload.userId;
+        const userId = payload.userId || payload.sub;
+        if (!userId) {
+          ws.close();
+          return;
+        }
         console.log("User connected:", userId);
       
 

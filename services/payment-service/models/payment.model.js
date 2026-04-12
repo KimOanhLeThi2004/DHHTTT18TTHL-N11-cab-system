@@ -14,12 +14,12 @@ const Payment = sequelize.define("Payment", {
   },
 
   userId: {
-    type: DataTypes.UUID,
+    type: DataTypes.STRING,
     allowNull: false
   },
 
   driverId: {
-    type: DataTypes.UUID,
+    type: DataTypes.STRING,
     allowNull: false
   },
 

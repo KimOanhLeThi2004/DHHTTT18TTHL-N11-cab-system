@@ -25,6 +25,10 @@ const RefreshToken = sequelize.define(
       type: DataTypes.BOOLEAN,
       defaultValue: false,
     },
+    expiresAt: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
   },
   {
     tableName: "refresh_tokens",

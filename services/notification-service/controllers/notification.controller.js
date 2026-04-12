@@ -1,5 +1,22 @@
 const Notification = require("../models/notification.model");
 
+exports.create = async (req, res) => {
+  const { userId, message, title = "Notification", type = "SYSTEM", payload = {} } = req.body;
+  if (!userId || !message) {
+    return res.status(400).json({ message: "userId and message are required" });
+  }
+
+  const notification = await Notification.create({
+    userId,
+    type,
+    title,
+    message,
+    payload,
+  });
+
+  return res.status(200).json(notification);
+};
+
 exports.getByUser = async (req, res) => {
   const { userId } = req.params;
 

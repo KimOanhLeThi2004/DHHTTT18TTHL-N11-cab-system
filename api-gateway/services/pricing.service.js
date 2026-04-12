@@ -1,17 +1,17 @@
 const axios = require("axios");
-const { PRICING_SERVICE_URL} = require("../config");
-const token = require('../middlewares/pricing.middleware');
-
+const { PRICING_SERVICE_URL } = require("../config");
+const signServiceToken = require("../middlewares/pricing.middleware");
 
 async function calculatePrice(payload) {
-  const jwt = "Bear "+ token();
+  const jwtToken = `Bearer ${signServiceToken()}`;
   const res = await axios.post(
     `${PRICING_SERVICE_URL}/pricing/calculate`,
     payload,
     {
       headers: {
-        Authorization: jwt
-      }
+        Authorization: jwtToken,
+      },
+      timeout: 5000,
     }
   );
 

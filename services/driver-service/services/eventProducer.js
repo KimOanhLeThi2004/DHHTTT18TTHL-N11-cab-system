@@ -1,7 +1,14 @@
 const { producer } = require("./kafka");
+let connected = false;
+
+async function ensureConnected() {
+  if (connected) return;
+  await producer.connect();
+  connected = true;
+}
 
 async function publishAccepted(bookingId, driverId) {
-    await producer.connect();
+  await ensureConnected();
   await producer.send({
     topic: "driver.accepted",
     messages: [
@@ -18,7 +25,7 @@ async function publishAccepted(bookingId, driverId) {
 }
 
 async function publishRejected(bookingId, driverId, reason) {
-    await producer.connect();
+  await ensureConnected();
   await producer.send({
     topic: "driver.rejected",
     messages: [
@@ -34,4 +41,34 @@ async function publishRejected(bookingId, driverId, reason) {
   });
 }
 
-module.exports = { publishAccepted, publishRejected };
+async function publishDriverLocation({
+  bookingId,
+  userId,
+  driverId,
+  lat,
+  lng,
+  heading = null,
+  speedKph = null,
+}) {
+  await ensureConnected();
+  await producer.send({
+    topic: "driver.location.updated",
+    messages: [
+      {
+        key: bookingId,
+        value: JSON.stringify({
+          bookingId,
+          userId,
+          driverId,
+          lat: Number(lat),
+          lng: Number(lng),
+          heading,
+          speedKph,
+          timestamp: new Date().toISOString(),
+        }),
+      },
+    ],
+  });
+}
+
+module.exports = { publishAccepted, publishRejected, publishDriverLocation };

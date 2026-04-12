@@ -1,10 +1,10 @@
-const { consumer } = require("./infra/kafka.consumer"); 
-const { producer } = require("./infra/kafka.producer"); 
+const { consumer } = require("./infra/kafka.consumer");
+const { producer, ensureConnected } = require("./infra/kafka.producer");
 const Booking = require("./models/booking.model");
 
 async function startDriverAcceptedConsumer() {
   await consumer.connect();
-  await producer.connect(); // nếu chưa connect ở app start
+  await ensureConnected();
 
   await consumer.subscribe({
     topic: "driver.accepted",
@@ -17,13 +17,10 @@ async function startDriverAcceptedConsumer() {
         const data = JSON.parse(message.value.toString());
         const { bookingId, driverId, acceptedAt } = data;
 
-        console.log("Received driver.accepted:", data);
-
-        // ✅ Atomic update + state validation
         const updatedBooking = await Booking.findOneAndUpdate(
           {
             _id: bookingId,
-            status: "PENDING", // hoặc PENDING -> nên thống nhất 1 state
+            status: { $in: ["REQUESTED", "CONFIRMED"] },
           },
           {
             $set: {
@@ -36,21 +33,15 @@ async function startDriverAcceptedConsumer() {
         );
 
         if (!updatedBooking) {
-          console.log(
-            "Booking not found or invalid state transition:",
-            bookingId
-          );
+          console.log("Booking not found or invalid state transition:", bookingId);
           return;
         }
 
-        console.log("Booking updated to ACCEPTED:", updatedBooking._id);
-
-        // 🔥 Publish event cho Ride service
         await producer.send({
           topic: "booking.confirmed",
           messages: [
             {
-              key: bookingId, // rất quan trọng để tránh race condition
+              key: bookingId,
               value: JSON.stringify({
                 bookingId,
                 userId: updatedBooking.userId,
@@ -64,9 +55,23 @@ async function startDriverAcceptedConsumer() {
           ],
         });
 
-        console.log("Published booking.confirmed:", bookingId);
+        await producer.send({
+          topic: "ride_events",
+          messages: [
+            {
+              key: bookingId,
+              value: JSON.stringify({
+                event_type: "ride_accepted",
+                booking_id: bookingId,
+                user_id: updatedBooking.userId,
+                driver_id: driverId,
+                timestamp: new Date().toISOString(),
+              }),
+            },
+          ],
+        });
       } catch (err) {
-        console.error("Error processing driver.accepted:", err);
+        console.error("Error processing driver.accepted:", err.message);
       }
     },
   });

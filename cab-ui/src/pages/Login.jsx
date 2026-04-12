@@ -20,10 +20,9 @@ export default function CustomerLogin() {
       localStorage.setItem("accessToken", accessToken);
       localStorage.setItem("refreshToken", refreshToken);
       localStorage.setItem("role", "CUSTOMER");
-
-      navigate("/"); // trang khách hàng
+      navigate("/");
     } catch (err) {
-      setError(err.response?.data?.message || "Đăng nhập thất bại");
+      setError(err.response?.data?.message || "Dang nhap that bai");
     } finally {
       setLoading(false);
     }
@@ -32,9 +31,7 @@ export default function CustomerLogin() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
       <form onSubmit={handleSubmit} className="bg-white p-6 rounded shadow w-80">
-        <h1 className="text-xl font-semibold mb-4 text-center">
-          Đăng nhập khách hàng
-        </h1>
+        <h1 className="text-xl font-semibold mb-4 text-center">Dang nhap khach hang</h1>
 
         {error && (
           <div className="bg-red-100 text-red-600 p-2 mb-3 text-sm rounded">
@@ -52,7 +49,7 @@ export default function CustomerLogin() {
         <input
           type="password"
           className="border p-2 w-full mb-4 rounded"
-          placeholder="Mật khẩu"
+          placeholder="Mat khau"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
         />
@@ -61,8 +58,30 @@ export default function CustomerLogin() {
           disabled={loading}
           className="bg-blue-600 text-white w-full py-2 rounded hover:bg-blue-700 disabled:opacity-50"
         >
-          {loading ? "Đang đăng nhập..." : "Đăng nhập"}
+          {loading ? "Dang dang nhap..." : "Dang nhap"}
         </button>
+
+        <p className="text-sm text-center mt-3">
+          Chua co tai khoan?{" "}
+          <button
+            type="button"
+            className="text-blue-600"
+            onClick={() => navigate("/register")}
+          >
+            Dang ky khach hang
+          </button>
+        </p>
+
+        <p className="text-sm text-center mt-2">
+          Muon lam tai xe?{" "}
+          <button
+            type="button"
+            className="text-green-600"
+            onClick={() => navigate("/driver/register")}
+          >
+            Dang ky tai xe
+          </button>
+        </p>
       </form>
     </div>
   );

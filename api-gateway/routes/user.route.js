@@ -1,12 +1,13 @@
 // api-gateway/routes/users.route.js
 const express = require("express");
 const axios = require("axios");
+const { USER_SERVICE_URL } = require("../config");
 
 const router = express.Router();
 
 router.get("/me", async (req, res) => {
   try {
-    const response = await axios.get("http://localhost:3002/users/me", {
+    const response = await axios.get(`${USER_SERVICE_URL}/users/me`, {
       headers: {
         Authorization: req.headers.authorization, // forward JWT
       },

@@ -3,7 +3,7 @@ const { RIDE_SERVICE_URL } = require("../config");
 const token = require("../middlewares/pricing.middleware");
 
 async function updateRideStatus(rideId, status) {
-  const jwt = "Bear " + token();
+  const jwt = "Bearer " + token();
 
   const res = await axios.put(
     `${RIDE_SERVICE_URL}/rides/${rideId}/status`,
@@ -19,7 +19,7 @@ async function updateRideStatus(rideId, status) {
 }
 
 async function getRideByBookingId(bookingId) {
-  const jwt = "Bear " + token();
+  const jwt = "Bearer " + token();
 
   const res = await axios.get(
     `${RIDE_SERVICE_URL}/rides/booking/${bookingId}`,

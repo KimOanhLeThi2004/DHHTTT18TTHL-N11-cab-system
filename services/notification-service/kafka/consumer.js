@@ -19,7 +19,7 @@ const startConsumer = async (sendFn) => {
   await consumer.connect();
 
   await consumer.subscribe({
-    topics: ["ride.status.changed", "payment.success"],
+    topics: ["ride.status.changed", "payment.success", "driver.location.updated"],
     fromBeginning: false,
   });
 
@@ -80,6 +80,25 @@ const startConsumer = async (sendFn) => {
             sendToUser(targetUserId, {
               type: "PAYMENT_SUCCESS",
               ...data,
+            });
+            break;
+          }
+
+          case "driver.location.updated": {
+            const targetUserId = data.userId || data.user?.id;
+            if (!targetUserId || !data.bookingId) {
+              break;
+            }
+
+            sendToUser(targetUserId, {
+              type: "DRIVER_LOCATION",
+              bookingId: data.bookingId,
+              driverId: data.driverId || null,
+              lat: Number(data.lat),
+              lng: Number(data.lng),
+              heading: data.heading ?? null,
+              speedKph: data.speedKph ?? null,
+              timestamp: data.timestamp || new Date().toISOString(),
             });
             break;
           }

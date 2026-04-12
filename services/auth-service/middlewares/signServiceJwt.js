@@ -9,7 +9,9 @@ module.exports = function signServiceJwt(options = {}) {
     expiresIn = "5m",   // token nội bộ ngắn hạn
   } = options;
 
-  if (!process.env.SERVICE_JWT_SECRET) {
+  const secret = process.env.SERVICE_JWT_SECRET || process.env.INTERNAL_JWT_SECRET;
+
+  if (!secret) {
     throw new Error("Missing SERVICE_JWT_SECRET");
   }
 
@@ -19,7 +21,7 @@ module.exports = function signServiceJwt(options = {}) {
       aud,
       scope,
     },
-    process.env.SERVICE_JWT_SECRET,
+    secret,
     { expiresIn }
   );
 };

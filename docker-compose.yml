@@ -10,7 +10,6 @@ services:
       POSTGRES_PASSWORD: auth_password
     ports:
       - "5432:5432"
-
     networks:
       - cab-network
 
@@ -23,9 +22,9 @@ services:
       POSTGRES_PASSWORD: user_password
     ports:
       - "5433:5432"
-
     networks:
       - cab-network
+
   driver-postgres:
     image: postgres:15
     container_name: driver-postgres
@@ -35,7 +34,6 @@ services:
       POSTGRES_PASSWORD: driver_pass
     ports:
       - "5434:5432"
-
     networks:
       - cab-network
 
@@ -48,7 +46,6 @@ services:
       POSTGRES_PASSWORD: payment_pass
     ports:
       - "5435:5432"
-
     networks:
       - cab-network
 
@@ -61,7 +58,6 @@ services:
       POSTGRES_PASSWORD: ride_pass
     ports:
       - "5436:5432"
-
     networks:
       - cab-network
 
@@ -74,9 +70,17 @@ services:
       POSTGRES_PASSWORD: review_pass
     ports:
       - "5437:5432"
-
     networks:
-      - cab-network      
+      - cab-network
+
+  mongo:
+    image: mongo:7
+    container_name: mongo
+    ports:
+      - "27017:27017"
+    networks:
+      - cab-network
+
   pgadmin:
     image: dpage/pgadmin4:latest
     container_name: pgadmin
@@ -87,27 +91,28 @@ services:
       - "5050:80"
     networks:
       - cab-network
+
   kafka:
-      image: apache/kafka:4.2.0-rc2
-      container_name: kafka
-      ports:
-        - "9092:9092"
-      environment:
-        KAFKA_NODE_ID: 1
-        KAFKA_PROCESS_ROLES: broker,controller
-        KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,INTERNAL://0.0.0.0:29092,CONTROLLER://0.0.0.0:9093
-        KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092,INTERNAL://kafka:29092
-        KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,INTERNAL:PLAINTEXT,CONTROLLER:PLAINTEXT
-        KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
-        KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
-        KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
-        KAFKA_LOG_DIRS: /var/lib/kafka/data
-        KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-        KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
-        KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
-        KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
-      networks:
-        - cab-network
+    image: apache/kafka:4.2.0-rc2
+    container_name: kafka
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,INTERNAL://0.0.0.0:29092,CONTROLLER://0.0.0.0:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092,INTERNAL://kafka:29092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,INTERNAL:PLAINTEXT,CONTROLLER:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_LOG_DIRS: /var/lib/kafka/data
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+    networks:
+      - cab-network
 
   kafka-ui:
     image: provectuslabs/kafka-ui:latest
@@ -131,6 +136,218 @@ services:
     networks:
       - cab-network
 
+  auth-service:
+    build: ./services/auth-service
+    container_name: auth-service
+    ports:
+      - "3001:3001"
+    env_file:
+      - ./services/auth-service/.env
+    environment:
+      DB_HOST: auth-postgres
+      DB_PORT: 5432
+      USER_SERVICE_URL: http://user-service:3002
+      DRIVER_SERVICE_URL: http://driver-service:3005
+    depends_on:
+      - auth-postgres
+      - user-service
+      - driver-service
+    networks:
+      - cab-network
+
+  user-service:
+    build: ./services/user-service
+    container_name: user-service
+    ports:
+      - "3002:3002"
+    env_file:
+      - ./services/user-service/.env
+    environment:
+      DB_HOST: user-postgres
+      DB_PORT: 5432
+    depends_on:
+      - user-postgres
+    networks:
+      - cab-network
+
+  pricing-service:
+    build: ./services/pricing-service
+    container_name: pricing-service
+    ports:
+      - "3003:3003"
+    env_file:
+      - ./services/pricing-service/.env
+    networks:
+      - cab-network
+
+  booking-service:
+    build: ./services/booking-service
+    container_name: booking-service
+    ports:
+      - "3004:3004"
+    env_file:
+      - ./services/booking-service/.env
+    environment:
+      MONGO_URI: mongodb://mongo:27017/booking_db
+      PRICING_SERVICE_URL: http://pricing-service:3003
+      KAFKA_BROKERS: kafka:29092
+    depends_on:
+      - mongo
+      - kafka
+      - pricing-service
+    networks:
+      - cab-network
+
+  driver-service:
+    build: ./services/driver-service
+    container_name: driver-service
+    ports:
+      - "3005:3005"
+    env_file:
+      - ./services/driver-service/.env
+    environment:
+      POSTGRES_URL: postgres://driver_user:driver_pass@driver-postgres:5432/driver_db
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      KAFKA_BROKER: kafka:29092
+    depends_on:
+      - driver-postgres
+      - redis
+      - kafka
+    networks:
+      - cab-network
+
+  payment-service:
+    build: ./services/payment-service
+    container_name: payment-service
+    ports:
+      - "3006:3006"
+    env_file:
+      - ./services/payment-service/.env
+    environment:
+      POSTGRES_URL: postgres://payment_user:payment_pass@payment-postgres:5432/payment_db
+      KAFKA_BROKER: kafka:29092
+      RIDE_SERVICE_URL: http://ride-service:3007
+    depends_on:
+      - payment-postgres
+      - kafka
+      - ride-service
+    networks:
+      - cab-network
+
+  ride-service:
+    build: ./services/ride-service
+    container_name: ride-service
+    ports:
+      - "3007:3007"
+    env_file:
+      - ./services/ride-service/.env
+    environment:
+      MONGO_URI: mongodb://mongo:27017/ride_db
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      KAFKA_BROKER: kafka:29092
+      USER_SERVICE_URL: http://user-service:3002
+      DRIVER_SERVICE_URL: http://driver-service:3005
+    depends_on:
+      - mongo
+      - redis
+      - kafka
+      - user-service
+      - driver-service
+    networks:
+      - cab-network
+
+  notification-service:
+    build: ./services/notification-service
+    container_name: notification-service
+    ports:
+      - "3008:3008"
+    env_file:
+      - ./services/notification-service/.env
+    environment:
+      MONGO_URI: mongodb://mongo:27017/notification_db
+      KAFKA_BROKER: kafka:29092
+    depends_on:
+      - mongo
+      - kafka
+    networks:
+      - cab-network
+
+  review-service:
+    build: ./services/review-service
+    container_name: review-service
+    ports:
+      - "3009:3009"
+    env_file:
+      - ./services/review-service/.env
+    environment:
+      DB_HOST: review-postgres
+      DB_PORT: 5432
+    depends_on:
+      - review-postgres
+    networks:
+      - cab-network
+
+  ai-matching-service:
+    build: ./services/ai-matching-service
+    container_name: ai-matching-service
+    ports:
+      - "3010:3010"
+    environment:
+      PORT: 3010
+      KAFKA_BROKERS: kafka:29092
+      REDIS_URL: redis://redis:6379
+    depends_on:
+      - kafka
+      - redis
+    networks:
+      - cab-network
+
+  api-gateway:
+    build: ./api-gateway
+    container_name: api-gateway
+    ports:
+      - "3000:3000"
+    env_file:
+      - ./api-gateway/.env
+    environment:
+      PORT: 3000
+      AUTH_SERVICE_URL: http://auth-service:3001
+      USER_SERVICE_URL: http://user-service:3002
+      PRICING_SERVICE_URL: http://pricing-service:3003
+      BOOKING_SERVICE_URL: http://booking-service:3004
+      DRIVER_SERVICE_URL: http://driver-service:3005
+      RIDE_SERVICE_URL: http://ride-service:3007
+      PAYMENT_SERVICE_URL: http://payment-service:3006
+      REVIEW_SERVICE_URL: http://review-service:3009
+      NOTIFICATION_SERVICE_URL: http://notification-service:3008
+      AI_SERVICE_URL: http://ai-matching-service:3010
+    depends_on:
+      - auth-service
+      - user-service
+      - pricing-service
+      - booking-service
+      - driver-service
+      - ride-service
+      - payment-service
+      - review-service
+      - ai-matching-service
+    networks:
+      - cab-network
+
+  cab-ui:
+    build:
+      context: ./cab-ui
+      args:
+        VITE_API_URL: http://localhost:3000
+    container_name: cab-ui
+    ports:
+      - "5173:80"
+    depends_on:
+      - api-gateway
+    networks:
+      - cab-network
 
 networks:
   cab-network:

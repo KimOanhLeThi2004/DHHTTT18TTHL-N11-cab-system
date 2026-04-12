@@ -17,8 +17,9 @@ async function acceptRide(data, token) {
 
     return response.data;
   } catch (error) {
-    console.error("Gateway ACCEPT ERROR:", error.response?.data || error.message);
-    throw error.response?.data || { message: "Driver service error" };
+    const e = new Error(error.response?.data?.message || "Driver service error");
+    e.status = error.response?.status || 500;
+    throw e;
   }
 }
 
@@ -37,8 +38,9 @@ async function rejectRide(data, token) {
 
     return response.data;
   } catch (error) {
-    console.error("Gateway REJECT ERROR:", error.response?.data || error.message);
-    throw error.response?.data || { message: "Driver service error" };
+    const e = new Error(error.response?.data?.message || "Driver service error");
+    e.status = error.response?.status || 500;
+    throw e;
   }
 }
 
@@ -56,8 +58,9 @@ async function getDriver(token) {
 
     return response.data;
   } catch (error) {
-    console.error("Gateway REJECT ERROR:", error.response?.data || error.message);
-    throw error.response?.data || { message: "Driver service error" };
+    const e = new Error(error.response?.data?.message || "Driver service error");
+    e.status = error.response?.status || 500;
+    throw e;
   }
 }
 

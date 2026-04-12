@@ -2,17 +2,19 @@ const axios = require("axios");
 const { AUTH_SERVICE_URL } = require("../config");
 
 async function introspectToken(token) {
-  const res = await axios.get(
-    `${AUTH_SERVICE_URL}/auth/isLogin`,
-    {
+  try {
+    const res = await axios.get(`${AUTH_SERVICE_URL}/auth/isLogin`, {
       headers: {
-        Authorization: token
-      }
-    }
-  );
-
-
-  return res.data; // { active, user }
+        Authorization: token,
+      },
+      timeout: 5000,
+    });
+    return res.data;
+  } catch (err) {
+    const e = new Error(err.response?.data?.message || "Unauthorized");
+    e.status = err.response?.status || 401;
+    throw e;
+  }
 }
 
 async function login(email, password, role) {
@@ -52,15 +54,13 @@ async function login(email, password, role) {
 async function register(email, password, role, name, phone, vehicleType) {
   const res = await axios.post(
     `${AUTH_SERVICE_URL}/auth/register`,
-    {email, password, role, name, phone, vehicleType},
+    { email, password, role, name, phone, vehicleType },
     {
       headers: {
-         "Content-Type": "application/json"
+        "Content-Type": "application/json",
       },
-      
     }
   );
-
 
   return res.data;
 }
@@ -68,18 +68,15 @@ async function register(email, password, role, name, phone, vehicleType) {
 async function logout(refreshToken) {
   const res = await axios.post(
     `${AUTH_SERVICE_URL}/auth/logout`,
-{ refreshToken },
+    { refreshToken },
     {
       headers: {
-         "Content-Type": "application/json"
+        "Content-Type": "application/json",
       },
-      
     }
   );
 
-
   return res.data;
 }
-
 
 module.exports = { introspectToken, login, register, logout };

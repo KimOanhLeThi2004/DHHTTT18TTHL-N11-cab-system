@@ -17,14 +17,12 @@ export default function DriverLogin() {
     try {
       const res = await login(email, password, "DRIVER");
       const { accessToken, refreshToken } = res.data;
-
       localStorage.setItem("accessToken", accessToken);
       localStorage.setItem("refreshToken", refreshToken);
       localStorage.setItem("role", "DRIVER");
-
       navigate("/driver/dashboard");
     } catch (err) {
-      setError(err.response?.data?.message || "Tài khoản tài xế không hợp lệ");
+      setError(err.response?.data?.message || "Tai khoan tai xe khong hop le");
     } finally {
       setLoading(false);
     }
@@ -33,9 +31,7 @@ export default function DriverLogin() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-900">
       <form onSubmit={handleSubmit} className="bg-white p-6 rounded shadow w-80">
-        <h1 className="text-xl font-semibold mb-4 text-center">
-          Đăng nhập tài xế
-        </h1>
+        <h1 className="text-xl font-semibold mb-4 text-center">Dang nhap tai xe</h1>
 
         {error && (
           <div className="bg-red-100 text-red-600 p-2 mb-3 text-sm rounded">
@@ -53,7 +49,7 @@ export default function DriverLogin() {
         <input
           type="password"
           className="border p-2 w-full mb-4 rounded"
-          placeholder="Mật khẩu"
+          placeholder="Mat khau"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
         />
@@ -62,8 +58,19 @@ export default function DriverLogin() {
           disabled={loading}
           className="bg-green-600 text-white w-full py-2 rounded hover:bg-green-700 disabled:opacity-50"
         >
-          {loading ? "Đang đăng nhập..." : "Đăng nhập tài xế"}
+          {loading ? "Dang dang nhap..." : "Dang nhap tai xe"}
         </button>
+
+        <p className="text-sm text-center mt-3">
+          Chua co tai khoan tai xe?{" "}
+          <button
+            type="button"
+            className="text-blue-600"
+            onClick={() => navigate("/driver/register")}
+          >
+            Dang ky tai xe
+          </button>
+        </p>
       </form>
     </div>
   );

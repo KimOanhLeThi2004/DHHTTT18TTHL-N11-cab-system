@@ -5,6 +5,7 @@ import Profile from "./pages/Profile";
 import Home from "./pages/Home";
 import Driver from "./pages/Driver";
 import DriverDashboard from "./pages/DashbroadDriver";
+import DriverRegister from "./pages/DriverRegister";
 
 export default function App() {
   return (
@@ -15,6 +16,7 @@ export default function App() {
         <Route path="/register" element={<Register />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/driver" element={<Driver />} />
+        <Route path="/driver/register" element={<DriverRegister />} />
         <Route path="/driver/dashboard" element={<DriverDashboard />} />
       </Routes>
     </BrowserRouter>

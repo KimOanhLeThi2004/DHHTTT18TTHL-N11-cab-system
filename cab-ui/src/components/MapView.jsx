@@ -3,6 +3,22 @@ import { useEffect, useState } from "react";
 import L from "leaflet";
 import "leaflet-routing-machine";
 
+const customerIcon = new L.Icon({
+  iconRetinaUrl: "/marker-icon-2x.png",
+  iconUrl: "/marker-icon.png",
+  shadowUrl: "/marker-shadow.png",
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+});
+
+const driverIcon = new L.Icon({
+  iconRetinaUrl: "/marker-icon-2x.png",
+  iconUrl: "/marker-icon.png",
+  shadowUrl: "/marker-shadow.png",
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+});
+
 function Routing({ from, to, vehicle }) {
   const map = useMap();
 
@@ -44,7 +60,7 @@ function Routing({ from, to, vehicle }) {
   return null;
 }
 
-export default function MapView({ from, to, vehicle }) {
+export default function MapView({ from, to, vehicle, driverPosition }) {
   const [currentPos, setCurrentPos] = useState(null);
 
   useEffect(() => {
@@ -74,7 +90,13 @@ export default function MapView({ from, to, vehicle }) {
       className="h-full w-full rounded-lg"
     >
       <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-      <Marker position={[currentPos.lat, currentPos.lng]} />
+      <Marker position={[currentPos.lat, currentPos.lng]} icon={customerIcon} />
+      {driverPosition && (
+        <Marker
+          position={[driverPosition.lat, driverPosition.lng]}
+          icon={driverIcon}
+        />
+      )}
 
       {from && to && <Routing from={from} to={to} vehicle={vehicle} />}
     </MapContainer>

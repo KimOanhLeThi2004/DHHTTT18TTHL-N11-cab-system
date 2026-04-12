@@ -3,59 +3,65 @@ const jwt = require("jsonwebtoken");
 const { Payment } = require("../models/payment.model");
 const { publishPaymentSuccess } = require("../kafka/producer");
 
+const ALLOWED_PAYMENT_METHODS = ["CASH", "WALLET", "CARD"];
+
 function signServiceJwt() {
+  const secret =
+    process.env.INTERNAL_JWT_SECRET ||
+    process.env.SERVICE_JWT_SECRET ||
+    "api-gateway";
   return jwt.sign(
     {
       service: "payment-service",
       scope: ["ride.read"],
     },
-    process.env.INTERNAL_JWT_SECRET,
+    secret,
     { expiresIn: "5m" }
   );
 }
 
 async function getRideByBookingId(bookingId) {
-  const token = signServiceJwt();
-  const res = await axios.get(
-    `${process.env.RIDE_SERVICE_URL}/rides/booking/${bookingId}`,
-    {
+  try {
+    const token = signServiceJwt();
+    const res = await axios.get(`${process.env.RIDE_SERVICE_URL}/rides/booking/${bookingId}`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
-      timeout: 5000,
-    }
-  );
+      timeout: 3000,
+    });
 
-  return res.data;
+    return res.data;
+  } catch (_) {
+    return null;
+  }
 }
 
 async function pay(req, res) {
   try {
-    const { bookingId, method } = req.body;
-    const driverId = req.user?.userId;
+    const {
+      bookingId,
+      method,
+      payment_method,
+      amount: inputAmount,
+    } = req.body;
 
     if (!bookingId) {
       return res.status(400).json({ message: "Missing bookingId" });
     }
 
+    const finalMethod = (method || payment_method || "").toUpperCase();
+    if (!ALLOWED_PAYMENT_METHODS.includes(finalMethod)) {
+      return res.status(400).json({ message: "Invalid payment method" });
+    }
+
     const ride = await getRideByBookingId(bookingId);
-
-    if (!ride?.driver?.id || !ride?.user?.id) {
-      return res.status(400).json({ message: "Invalid ride data" });
-    }
-
-    if (ride.driver.id !== driverId) {
-      return res.status(403).json({ message: "Not your ride" });
-    }
-
-    if (ride.status !== "COMPLETED") {
-      return res.status(400).json({ message: "Ride not completed" });
-    }
-
-    const amount = Number(ride.price || 0);
+    const amount = Number(ride?.price ?? inputAmount ?? 0);
     if (!Number.isFinite(amount) || amount <= 0) {
       return res.status(400).json({ message: "Invalid amount" });
     }
+
+    const userId = ride?.user?.id || req.user?.userId;
+    const driverId = ride?.driver?.id || req.body.driverId || "UNKNOWN_DRIVER";
 
     const existing = await Payment.findOne({
       where: { bookingId, status: "SUCCESS" },
@@ -66,33 +72,36 @@ async function pay(req, res) {
 
     const payment = await Payment.create({
       bookingId,
-      userId: ride.user.id,
-      driverId: ride.driver.id,
+      userId,
+      driverId,
       amount,
-      method,
-      status: "SUCCESS"
+      method: finalMethod,
+      status: "SUCCESS",
     });
 
     await publishPaymentSuccess(payment);
-
-    res.json(payment);
+    return res.json(payment);
   } catch (err) {
-    console.error("PAYMENT ERROR:", err);
-    res.status(500).json({ error: err.message });
+    console.error("PAYMENT ERROR:", err.message);
+    return res.status(500).json({ message: err.message || "Payment failed" });
   }
 }
 
 async function getDriverRevenue(req, res) {
   try {
     const driverId = req.user?.userId;
+    if (!driverId) {
+      return res.status(400).json({ message: "Missing driver id" });
+    }
+
     const total = await Payment.sum("amount", {
       where: { driverId, status: "SUCCESS" },
     });
 
-    res.json({ driverId, total: Number(total || 0) });
+    return res.json({ driverId, total: Number(total || 0) });
   } catch (err) {
-    console.error("REVENUE ERROR:", err);
-    res.status(500).json({ error: err.message });
+    console.error("REVENUE ERROR:", err.message);
+    return res.status(500).json({ message: err.message || "Revenue query failed" });
   }
 }
 

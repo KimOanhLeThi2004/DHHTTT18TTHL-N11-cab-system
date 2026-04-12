@@ -1,0 +1,747 @@
+openapi: 3.0.3
+info:
+  title: Taxi Booking Microservices API
+  version: 1.0.0
+  description: API tổng hợp cho gateway và các endpoint internal giữa service.
+servers:
+  - url: http://localhost:3000
+    description: API Gateway
+tags:
+  - { name: System }
+  - { name: Auth }
+  - { name: User }
+  - { name: Booking }
+  - { name: Driver }
+  - { name: Pricing }
+  - { name: Ride }
+  - { name: Payment }
+  - { name: Review }
+  - { name: Notification }
+  - { name: AI }
+paths:
+  /health:
+    get:
+      tags: [System]
+      summary: Health check
+      responses:
+        '200': { description: OK }
+  /metrics:
+    get:
+      tags: [System]
+      summary: Metrics
+      responses:
+        '200': { description: Metrics text }
+
+  /auth/register:
+    post:
+      tags: [Auth]
+      summary: Register
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/RegisterRequest' }
+      responses:
+        '201': { description: Created }
+        '400': { description: Bad request }
+  /auth/login:
+    post:
+      tags: [Auth]
+      summary: Login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/LoginRequest' }
+      responses:
+        '200':
+          description: Login success
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/LoginResponse' }
+        '401': { description: Unauthorized }
+  /auth/logout:
+    post:
+      tags: [Auth]
+      summary: Logout
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [refreshToken]
+              properties:
+                refreshToken: { type: string }
+      responses:
+        '200': { description: Logged out }
+
+  /users/me:
+    get:
+      tags: [User]
+      summary: Get profile
+      security: [ { BearerAuth: [] } ]
+      responses:
+        '200':
+          description: User profile
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/User' }
+        '401': { description: Unauthorized }
+    put:
+      tags: [User]
+      summary: Update profile
+      security: [ { BearerAuth: [] } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name: { type: string }
+                phone: { type: string }
+                avatar: { type: string }
+      responses:
+        '200': { description: Updated }
+
+  /users:
+    post:
+      tags: [User]
+      summary: Create user profile (internal)
+      x-internal: true
+      servers:
+        - { url: http://localhost:3002, description: User Service }
+      security: [ { ServiceJWT: [] } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/User' }
+      responses:
+        '201': { description: Created }
+  /users/{id}:
+    get:
+      tags: [User]
+      summary: Get user by id (internal)
+      x-internal: true
+      servers:
+        - { url: http://localhost:3002, description: User Service }
+      security: [ { ServiceJWT: [] } ]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200': { description: OK }
+        '404': { description: Not found }
+
+  /booking:
+    post:
+      tags: [Booking]
+      summary: Create booking (gateway flow)
+      security: [ { BearerAuth: [] } ]
+      parameters:
+        - in: header
+          name: Idempotency-Key
+          required: false
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/BookingCreateRequest' }
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/BookingCreateResponse' }
+        '400': { description: Missing required field }
+        '422': { description: Invalid coordinates/value }
+    get:
+      tags: [Booking]
+      summary: List my bookings
+      security: [ { BearerAuth: [] } ]
+      responses:
+        '200':
+          description: Booking list
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/BookingSummary' }
+  /booking/{bookingId}/cancel:
+    patch:
+      tags: [Booking]
+      summary: Cancel booking
+      security: [ { BearerAuth: [] } ]
+      parameters:
+        - in: path
+          name: bookingId
+          required: true
+          schema: { type: string }
+      responses:
+        '200': { description: Cancelled }
+        '404': { description: Not found }
+        '409': { description: Cannot cancel after driver accepted }
+
+  /bookings:
+    post:
+      tags: [Booking]
+      summary: Create booking (booking-service direct)
+      x-internal: true
+      servers:
+        - { url: http://localhost:3004, description: Booking Service }
+      security: [ { BearerAuth: [] } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/BookingCreateRequest' }
+      responses:
+        '201': { description: Created }
+
+  /drivers:
+    post:
+      tags: [Driver]
+      summary: Create driver profile (internal)
+      x-internal: true
+      servers:
+        - { url: http://localhost:3005, description: Driver Service }
+      security: [ { ServiceJWT: [] } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/Driver' }
+      responses:
+        '201': { description: Created }
+  /drivers/online:
+    post:
+      tags: [Driver]
+      summary: Driver online
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [driverId, lat, lng]
+              properties:
+                driverId: { type: string }
+                lat: { type: number }
+                lng: { type: number }
+                vehicleType: { type: string }
+      responses:
+        '200': { description: ONLINE }
+  /drivers/offline:
+    post:
+      tags: [Driver]
+      summary: Driver offline
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [driverId]
+              properties:
+                driverId: { type: string }
+      responses:
+        '200': { description: OFFLINE }
+  /drivers/nearby:
+    get:
+      tags: [Driver]
+      summary: Find nearby drivers
+      parameters:
+        - { in: query, name: lat, required: true, schema: { type: number } }
+        - { in: query, name: lng, required: true, schema: { type: number } }
+        - { in: query, name: radiusKm, required: false, schema: { type: number } }
+        - { in: query, name: vehicleType, required: false, schema: { type: string } }
+      responses:
+        '200': { description: OK }
+  /drivers/accept:
+    post:
+      tags: [Driver]
+      summary: Driver accept booking
+      security: [ { BearerAuth: [] } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/BookingAction' }
+      responses:
+        '200': { description: Accepted }
+  /drivers/reject:
+    post:
+      tags: [Driver]
+      summary: Driver reject booking
+      security: [ { BearerAuth: [] } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/BookingAction' }
+      responses:
+        '200': { description: Rejected }
+  /drivers/me:
+    get:
+      tags: [Driver]
+      summary: Get driver profile
+      security: [ { BearerAuth: [] } ]
+      responses:
+        '200':
+          description: Driver
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Driver' }
+  /drivers/location/{id}:
+    get:
+      tags: [Driver]
+      summary: Get driver location
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        '200': { description: OK }
+        '404': { description: Not found }
+  /drivers/{id}:
+    get:
+      tags: [Driver]
+      summary: Get driver by id (internal)
+      x-internal: true
+      servers:
+        - { url: http://localhost:3005, description: Driver Service }
+      security: [ { ServiceJWT: [] } ]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200': { description: OK }
+
+  /pricing/calculate:
+    post:
+      tags: [Pricing]
+      summary: Calculate price
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/PricingRequest' }
+      responses:
+        '200': { description: OK }
+        '400': { description: Invalid payload }
+        '422': { description: Invalid numeric values }
+  /pricing/eta:
+    post:
+      tags: [Pricing]
+      summary: ETA endpoint
+      x-internal: true
+      servers:
+        - { url: http://localhost:3003, description: Pricing Service }
+      security: [ { ServiceJWT: [] } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                distanceKm: { type: number }
+                distance_km: { type: number }
+                trafficLevel: { type: number }
+                traffic_level: { type: number }
+      responses:
+        '200': { description: OK }
+
+  /rides:
+    post:
+      tags: [Ride]
+      summary: Create ride (internal)
+      x-internal: true
+      servers:
+        - { url: http://localhost:3007, description: Ride Service }
+      security: [ { ServiceJWT: [] } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/Ride' }
+      responses:
+        '201': { description: Created }
+  /rides/booking/{bookingId}:
+    get:
+      tags: [Ride]
+      summary: Get ride by booking id
+      parameters:
+        - in: path
+          name: bookingId
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Ride
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Ride' }
+        '404': { description: Not found }
+  /rides/{rideId}/status:
+    put:
+      tags: [Ride]
+      summary: Update ride status
+      parameters:
+        - in: path
+          name: rideId
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [status]
+              properties:
+                status: { type: string, enum: [ONGOING, COMPLETED, CANCELLED] }
+      responses:
+        '200': { description: Updated }
+        '400': { description: Invalid status }
+
+  /payments/pay:
+    post:
+      tags: [Payment]
+      summary: Pay booking
+      security: [ { BearerAuth: [] } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/PaymentRequest' }
+      responses:
+        '200': { description: Success }
+        '400': { description: Invalid payload }
+  /payments/driver/total:
+    get:
+      tags: [Payment]
+      summary: Driver revenue
+      security: [ { BearerAuth: [] } ]
+      responses:
+        '200': { description: OK }
+
+  /reviews:
+    post:
+      tags: [Review]
+      summary: Create review
+      security: [ { BearerAuth: [] } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ReviewRequest' }
+      responses:
+        '201': { description: Created }
+  /reviews/driver/{driverId}:
+    get:
+      tags: [Review]
+      summary: Driver reviews
+      parameters:
+        - in: path
+          name: driverId
+          required: true
+          schema: { type: string }
+      responses:
+        '200': { description: OK }
+  /reviews/driver/{driverId}/rating:
+    get:
+      tags: [Review]
+      summary: Driver average rating
+      parameters:
+        - in: path
+          name: driverId
+          required: true
+          schema: { type: string }
+      responses:
+        '200': { description: OK }
+
+  /notifications:
+    post:
+      tags: [Notification]
+      summary: Create notification (direct/internal)
+      x-internal: true
+      servers:
+        - { url: http://localhost:3008, description: Notification Service }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/NotificationRequest' }
+      responses:
+        '200': { description: Created }
+  /notifications/{userId}:
+    get:
+      tags: [Notification]
+      summary: Get notifications by user
+      security: [ { BearerAuth: [] } ]
+      parameters:
+        - in: path
+          name: userId
+          required: true
+          schema: { type: string }
+      responses:
+        '200': { description: OK }
+  /notifications/read/{id}:
+    put:
+      tags: [Notification]
+      summary: Mark as read
+      security: [ { BearerAuth: [] } ]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        '200': { description: OK }
+
+  /ai/eta:
+    post:
+      tags: [AI]
+      summary: AI ETA
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                distance_km: { type: number }
+                distanceKm: { type: number }
+                traffic_level: { type: number }
+                trafficLevel: { type: number }
+      responses:
+        '200': { description: OK }
+  /ai/fraud:
+    post:
+      tags: [AI]
+      summary: AI fraud score
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [user_id, driver_id, booking_id, amount, location, device_fingerprint]
+              properties:
+                user_id: { type: string }
+                driver_id: { type: string }
+                booking_id: { type: string }
+                amount: { type: number }
+                location: { type: object, additionalProperties: true }
+                device_fingerprint: { type: string }
+      responses:
+        '200': { description: OK }
+        '400': { description: Missing required fields }
+  /ai/recommendations:
+    post:
+      tags: [AI]
+      summary: AI top driver recommendations
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                drivers:
+                  type: array
+                  items: { type: object, additionalProperties: true }
+      responses:
+        '200': { description: OK }
+  /ai/forecast:
+    post:
+      tags: [AI]
+      summary: AI forecast
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                demand_index: { type: number }
+                demandIndex: { type: number }
+      responses:
+        '200': { description: OK }
+  /ai/agent/select-driver:
+    post:
+      tags: [AI]
+      summary: AI select driver
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                strategy: { type: string, enum: [balanced, nearest, rating] }
+                drivers:
+                  type: array
+                  items: { type: object, additionalProperties: true }
+      responses:
+        '200': { description: OK }
+  /ai/model-info:
+    get:
+      tags: [AI]
+      summary: AI model versions
+      responses:
+        '200': { description: OK }
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: User JWT do auth-service sign (JWT_SECRET).
+    ServiceJWT:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Internal JWT giữa service (SERVICE_JWT_SECRET/INTERNAL_JWT_SECRET).
+  schemas:
+    RegisterRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email: { type: string, format: email }
+        password: { type: string }
+        role: { type: string, enum: [CUSTOMER, DRIVER, ADMIN], default: CUSTOMER }
+        name: { type: string }
+        phone: { type: string }
+        vehicleType: { type: string, enum: [CAR, BIKE] }
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email: { type: string, format: email }
+        password: { type: string }
+        role: { type: string, enum: [CUSTOMER, DRIVER, ADMIN] }
+    LoginResponse:
+      type: object
+      properties:
+        access_token: { type: string }
+        refresh_token: { type: string }
+        role: { type: string }
+        user_id: { type: string }
+    User:
+      type: object
+      properties:
+        id: { type: string }
+        email: { type: string }
+        name: { type: string }
+        phone: { type: string }
+        avatar: { type: string }
+        isActive: { type: boolean }
+    Driver:
+      type: object
+      properties:
+        id: { type: string }
+        name: { type: string }
+        phone: { type: string }
+        vehicleType: { type: string }
+    BookingCreateRequest:
+      type: object
+      required: [pickup, dropoff, vehicleType, distanceKm]
+      properties:
+        pickup:
+          type: object
+          required: [lat, lng]
+          properties:
+            lat: { type: number }
+            lng: { type: number }
+        dropoff:
+          type: object
+          required: [lat, lng]
+          properties:
+            lat: { type: number }
+            lng: { type: number }
+        vehicleType: { type: string, enum: [BIKE, CAR] }
+        distanceKm: { type: number }
+        durationMin: { type: number }
+        requestTime: { type: string, format: date-time }
+    BookingCreateResponse:
+      type: object
+      properties:
+        booking_id: { type: string }
+        status: { type: string }
+        eta_min: { type: number }
+        price: { type: number }
+        surge_multiplier: { type: number }
+    BookingSummary:
+      type: object
+      properties:
+        booking_id: { type: string }
+        status: { type: string }
+        vehicle_type: { type: string }
+        estimated_price: { type: number }
+        driver_id: { type: string, nullable: true }
+        created_at: { type: string, format: date-time }
+    BookingAction:
+      type: object
+      required: [bookingId]
+      properties:
+        bookingId: { type: string }
+        reason: { type: string }
+    PricingRequest:
+      type: object
+      properties:
+        vehicleType: { type: string }
+        distanceKm: { type: number }
+        durationMin: { type: number }
+        demandIndex: { type: number }
+        supplyIndex: { type: number }
+        trafficLevel: { type: number }
+        requestTime: { type: string, format: date-time }
+    Ride:
+      type: object
+      properties:
+        _id: { type: string }
+        bookingId: { type: string }
+        user: { type: object, additionalProperties: true }
+        driver: { type: object, additionalProperties: true }
+        pickup: { type: object, additionalProperties: true }
+        dropoff: { type: object, additionalProperties: true }
+        price: { type: number }
+        status: { type: string, enum: [ONGOING, COMPLETED, CANCELLED] }
+    PaymentRequest:
+      type: object
+      required: [bookingId]
+      properties:
+        bookingId: { type: string }
+        method: { type: string, enum: [CASH, WALLET, CARD] }
+        payment_method: { type: string, enum: [CASH, WALLET, CARD] }
+        amount: { type: number }
+    ReviewRequest:
+      type: object
+      required: [rideId, bookingId, reviewerId, driverId, rating]
+      properties:
+        rideId: { type: string }
+        bookingId: { type: string }
+        reviewerId: { type: string }
+        driverId: { type: string }
+        rating: { type: integer, minimum: 1, maximum: 5 }
+        comment: { type: string }
+    NotificationRequest:
+      type: object
+      required: [userId, message]
+      properties:
+        userId: { type: string }
+        type: { type: string }
+        title: { type: string }
+        message: { type: string }
+        payload: { type: object, additionalProperties: true }

@@ -5,16 +5,17 @@ import { getRouteInfo } from "../../services/osrm";
 import {
   createBooking,
   calculatePrice,
-  updateRideStatus,
   cancelBooking,
   createReview,
-  getMe
+  getMe,
+  getDriverLocation
 } from "../../src/api/api";
 
 export default function Home() {
   const [rideId, setRideId] = useState(null);
   const [driver, setDriver] = useState(null);
   const [driverId, setDriverId] = useState(null);
+  const [driverPosition, setDriverPosition] = useState(null);
   const [from, setFrom] = useState(null);
   const [to, setTo] = useState(null);
   const [vehicle, setVehicle] = useState("car");
@@ -117,12 +118,23 @@ export default function Home() {
             break;
           case "COMPLETED":
             setRideStatus("COMPLETED");
+            setDriverPosition(null);
             break;
           case "CANCELLED":
             setRideStatus("CANCELLED");
+            setDriverPosition(null);
             break;
           default:
             break;
+        }
+      }
+
+      if (data.type === "DRIVER_LOCATION" && data.bookingId === bookingId) {
+        if (Number.isFinite(Number(data.lat)) && Number.isFinite(Number(data.lng))) {
+          setDriverPosition({
+            lat: Number(data.lat),
+            lng: Number(data.lng),
+          });
         }
       }
 
@@ -137,6 +149,35 @@ export default function Home() {
 
     return () => ws.close();
   }, [bookingId]);
+
+  useEffect(() => {
+    if (!driverId || rideStatus !== "ONGOING") {
+      return undefined;
+    }
+
+    let mounted = true;
+    const fetchLocation = async () => {
+      try {
+        const res = await getDriverLocation(driverId);
+        const payload = res?.data;
+        if (!mounted || !payload) return;
+        if (!Number.isFinite(Number(payload.lat)) || !Number.isFinite(Number(payload.lng))) return;
+        setDriverPosition({
+          lat: Number(payload.lat),
+          lng: Number(payload.lng),
+        });
+      } catch (_) {
+      }
+    };
+
+    fetchLocation();
+    const timer = setInterval(fetchLocation, 4000);
+
+    return () => {
+      mounted = false;
+      clearInterval(timer);
+    };
+  }, [driverId, rideStatus]);
 
   const handleBooking = async () => {
     if (!from || !to || !distance || !duration) {
@@ -172,8 +213,12 @@ export default function Home() {
       };
 
       const res = await createBooking(payload);
+      const nextBookingId = res?.data?.booking_id || res?.data?.bookingId || null;
+      if (!nextBookingId) {
+        throw new Error("Booking response missing booking id");
+      }
 
-      setBookingId(res.data.bookingId);
+      setBookingId(nextBookingId);
       setRideStatus("SEARCHING");
       setPaymentSuccess(false);
       setReviewSubmitted(false);
@@ -182,6 +227,7 @@ export default function Home() {
       setShowReview(false);
       setDriver(null);
       setDriverId(null);
+      setDriverPosition(null);
       setRideId(null);
     } catch (err) {
       console.error(err);
@@ -207,6 +253,12 @@ export default function Home() {
               <p><b>Loai xe:</b> {driver.vehicleType}</p>
             </div>
           )}
+
+          {driverPosition && (
+            <p className="mt-2 text-sm">
+              Tai xe hien tai: <b>{driverPosition.lat.toFixed(5)}, {driverPosition.lng.toFixed(5)}</b>
+            </p>
+          )}
         </div>
       );
 
@@ -220,18 +272,8 @@ export default function Home() {
   };
 
   const handleCancelBooking = async () => {
-    if (rideId) {
-      try {
-      await updateRideStatus(rideId, "CANCELLED");
-      setRideStatus("CANCELLED");
-      setShowReview(false);
-      setPaymentSuccess(false);
-      setReviewDismissed(false);
-      setReloadPending(false);
-      } catch (err) {
-        console.error(err);
-        setError("Khong the huy chuyen");
-      }
+    if (rideStatus !== "SEARCHING") {
+      setError("Chi duoc huy khi tai xe chua nhan chuyen");
       return;
     }
 
@@ -243,9 +285,13 @@ export default function Home() {
       setPaymentSuccess(false);
       setReviewDismissed(false);
       setReloadPending(false);
+      setDriver(null);
+      setDriverId(null);
+      setDriverPosition(null);
+      setRideId(null);
     } catch (err) {
       console.error(err);
-      setError("Khong the huy dat xe");
+      setError(err.response?.data?.message || "Khong the huy dat xe");
     }
   };
 
@@ -307,7 +353,12 @@ export default function Home() {
 
       <div className="flex flex-1 p-4 gap-4 bg-gray-100 relative">
         <div className="flex-1 bg-white p-3 rounded-xl shadow">
-          <MapView from={from} to={to} vehicle={vehicle} />
+          <MapView
+            from={from}
+            to={to}
+            vehicle={vehicle}
+            driverPosition={driverPosition}
+          />
         </div>
 
         <div className="w-[350px] bg-white p-4 rounded-xl shadow">
@@ -352,7 +403,7 @@ export default function Home() {
               : "Dat xe"}
           </button>
 
-          {(rideStatus === "SEARCHING" || rideStatus === "ONGOING") && (
+          {rideStatus === "SEARCHING" && (
             <button
               onClick={handleCancelBooking}
               className="w-full mt-3 bg-red-500 text-white py-2 rounded hover:bg-red-600"
