@@ -1,4 +1,4 @@
-const axios = require("axios");
+const axios = require("../http-client");
 const { RIDE_SERVICE_URL } = require("../config");
 const token = require("../middlewares/pricing.middleware");
 

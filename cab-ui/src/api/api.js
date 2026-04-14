@@ -1,23 +1,14 @@
-// src/api/index.js
 import axios from "axios";
 
 const baseURL = (import.meta.env.VITE_API_URL || "http://localhost:3000").replace(/\/$/, "");
 
 const api = axios.create({
   baseURL,
+  withCredentials: true,
   headers: {
     "Content-Type": "application/json",
   },
   timeout: 10000,
-});
-
-// 🔐 Tự động gắn JWT cho mọi request
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem("accessToken");
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
 });
 
 // -------- AUTH --------
@@ -25,20 +16,19 @@ export const login = (email, password, role) =>
   api.post("/auth/login", { email, password, role });
 
 export const register = (data) =>
-  api.post("/auth/register",  data );
+  api.post("/auth/register", data);
 
-export const logout = (refreshToken) =>
-  api.post("/auth/logout", { refreshToken });
+export const logout = () =>
+  api.post("/auth/logout");
+
 // -------- USER --------
 export const getMe = async () => {
   const res = await api.get("/users/me");
-  return res.data;   //  trả object user
+  return res.data;
 };
 
 export const updateMe = (data) =>
   api.put("/users/me", data).then((res) => res.data);
-
-
 
 // -------- BOOKING --------
 export const createBooking = (payload) =>
@@ -47,40 +37,34 @@ export const createBooking = (payload) =>
 export const cancelBooking = (bookingId) =>
   api.patch(`/booking/${bookingId}/cancel`);
 
-
-
 /* ================= DRIVER ================= */
-
-//  Nhận cuốc
 export const acceptRide = (bookingId) =>
   api.post("/drivers/accept", {
-    bookingId
+    bookingId,
   });
 
-//  Từ chối cuốc
 export const rejectRide = (bookingId) =>
   api.post("/drivers/reject", {
-    bookingId
+    bookingId,
   });
 
-export const getDriver = () =>{
+export const getDriver = () => {
   return api.get("/drivers/me");
-}
+};
 
 export const getDriverLocation = (driverId) => {
   return api.get(`/drivers/location/${driverId}`);
 };
 
-  // -------- PRICING --------
+// -------- PRICING --------
 export const calculatePrice = (payload) => {
-
-  return  api.post("/pricing/calculate", payload);
+  return api.post("/pricing/calculate", payload);
 };
 
 // ride
 export const updateRideStatus = (rideId, status) => {
   return api.put(`/rides/${rideId}/status`, {
-    status: status
+    status,
   });
 };
 
@@ -109,4 +93,5 @@ export const getDriverRating = (driverId) => {
 export const getDriverRevenue = () => {
   return api.get("/payments/driver/total");
 };
+
 export default api;

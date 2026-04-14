@@ -1,6 +1,7 @@
 const express = require('express');
 const pricingRoutes = require('./routes/pricing.routes');
 const verifyToken = require('./middlewares/verifyServiceToken');
+const { startServer } = require("./mtls");
 require("dotenv").config();
 
 const app = express();
@@ -32,6 +33,6 @@ app.use((err, _, res, __) => {
   return res.status(500).json({ message: "Internal server error" });
 });
 
-app.listen(port, () => {
-  console.log(`Pricing Service running on port ${port}`);
+startServer(app, port, "pricing-service", ({ protocol }) => {
+  console.log(`Pricing Service running on ${protocol}://0.0.0.0:${port}`);
 });

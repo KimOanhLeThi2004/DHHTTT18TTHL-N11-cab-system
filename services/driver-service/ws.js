@@ -5,11 +5,57 @@ const { registerDriverSocket, removeDriverSocket } = require("./websocketGateway
 const { setDriverOnline, setDriverOffline } = require("./services/driver.service");
 const { publishDriverLocation } = require("./services/eventProducer");
 
+const ACCESS_COOKIE_NAME = process.env.ACCESS_COOKIE_NAME || "access_token";
+
+function parseCookieHeader(cookieHeader = "") {
+  if (!cookieHeader || typeof cookieHeader !== "string") {
+    return {};
+  }
+
+  return cookieHeader.split(";").reduce((acc, pair) => {
+    const [rawKey, ...rest] = pair.split("=");
+    const key = rawKey ? rawKey.trim() : "";
+    if (!key) return acc;
+    const rawValue = rest.join("=").trim();
+    try {
+      acc[key] = decodeURIComponent(rawValue);
+    } catch (_) {
+      acc[key] = rawValue;
+    }
+    return acc;
+  }, {});
+}
+
+function verifyDriverToken(token) {
+  try {
+    const payload = jwt.verify(token, process.env.JWT_SECRET);
+    if (payload?.role && payload.role !== "DRIVER") {
+      return null;
+    }
+    return payload;
+  } catch (_) {
+    return null;
+  }
+}
+
+function resolveDriverIdFromCookie(req) {
+  const cookies = parseCookieHeader(req.headers.cookie);
+  const token = cookies[ACCESS_COOKIE_NAME];
+  if (!token) return null;
+  const payload = verifyDriverToken(token);
+  return payload?.userId || payload?.sub || null;
+}
+
 function setupDriverWS(server) {
   const wss = new WebSocket.Server({ server });
 
-  wss.on("connection", (ws) => {
+  wss.on("connection", (ws, req) => {
     console.log("Driver WS connected");
+    const cookieDriverId = resolveDriverIdFromCookie(req);
+    if (cookieDriverId) {
+      ws.driverId = cookieDriverId;
+      registerDriverSocket(ws.driverId, ws);
+    }
 
     ws.on("error", (err) => {
       console.error("WS error:", err.message);
@@ -20,15 +66,14 @@ function setupDriverWS(server) {
         const data = JSON.parse(msg.toString());
 
         if (data.type === "AUTH") {
-          try {
-            const payload = jwt.verify(data.token, process.env.JWT_SECRET);
-            ws.driverId = payload.userId;
+          const payload = verifyDriverToken(data.token);
+          if (payload?.userId || payload?.sub) {
+            ws.driverId = payload.userId || payload.sub;
             registerDriverSocket(ws.driverId, ws);
             return;
-          } catch (err) {
-            ws.send(JSON.stringify({ error: "Invalid token" }));
-            return;
           }
+          ws.send(JSON.stringify({ error: "Invalid token" }));
+          return;
         }
 
         if (!ws.driverId) {

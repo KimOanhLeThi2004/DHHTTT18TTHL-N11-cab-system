@@ -1,5 +1,11 @@
 version: "3.9"
 
+x-mtls-common-env: &mtls-common-env
+  MTLS_ENABLED: ${MTLS_ENABLED:-false}
+  MTLS_CERT_DIR: /etc/mtls
+  MTLS_REJECT_UNAUTHORIZED: ${MTLS_REJECT_UNAUTHORIZED:-true}
+  MTLS_REQUIRE_CLIENT_CERT: ${MTLS_REQUIRE_CLIENT_CERT:-true}
+
 services:
   auth-postgres:
     image: postgres:15
@@ -144,10 +150,14 @@ services:
     env_file:
       - ./services/auth-service/.env
     environment:
+      <<: *mtls-common-env
+      MTLS_SERVICE_NAME: auth-service
       DB_HOST: auth-postgres
       DB_PORT: 5432
       USER_SERVICE_URL: http://user-service:3002
       DRIVER_SERVICE_URL: http://driver-service:3005
+    volumes:
+      - ./security/certs:/etc/mtls:ro
     depends_on:
       - auth-postgres
       - user-service
@@ -163,8 +173,12 @@ services:
     env_file:
       - ./services/user-service/.env
     environment:
+      <<: *mtls-common-env
+      MTLS_SERVICE_NAME: user-service
       DB_HOST: user-postgres
       DB_PORT: 5432
+    volumes:
+      - ./security/certs:/etc/mtls:ro
     depends_on:
       - user-postgres
     networks:
@@ -177,6 +191,11 @@ services:
       - "3003:3003"
     env_file:
       - ./services/pricing-service/.env
+    environment:
+      <<: *mtls-common-env
+      MTLS_SERVICE_NAME: pricing-service
+    volumes:
+      - ./security/certs:/etc/mtls:ro
     networks:
       - cab-network
 
@@ -188,9 +207,13 @@ services:
     env_file:
       - ./services/booking-service/.env
     environment:
+      <<: *mtls-common-env
+      MTLS_SERVICE_NAME: booking-service
       MONGO_URI: mongodb://mongo:27017/booking_db
       PRICING_SERVICE_URL: http://pricing-service:3003
       KAFKA_BROKERS: kafka:29092
+    volumes:
+      - ./security/certs:/etc/mtls:ro
     depends_on:
       - mongo
       - kafka
@@ -206,10 +229,14 @@ services:
     env_file:
       - ./services/driver-service/.env
     environment:
+      <<: *mtls-common-env
+      MTLS_SERVICE_NAME: driver-service
       POSTGRES_URL: postgres://driver_user:driver_pass@driver-postgres:5432/driver_db
       REDIS_HOST: redis
       REDIS_PORT: 6379
       KAFKA_BROKER: kafka:29092
+    volumes:
+      - ./security/certs:/etc/mtls:ro
     depends_on:
       - driver-postgres
       - redis
@@ -225,9 +252,13 @@ services:
     env_file:
       - ./services/payment-service/.env
     environment:
+      <<: *mtls-common-env
+      MTLS_SERVICE_NAME: payment-service
       POSTGRES_URL: postgres://payment_user:payment_pass@payment-postgres:5432/payment_db
       KAFKA_BROKER: kafka:29092
       RIDE_SERVICE_URL: http://ride-service:3007
+    volumes:
+      - ./security/certs:/etc/mtls:ro
     depends_on:
       - payment-postgres
       - kafka
@@ -243,12 +274,16 @@ services:
     env_file:
       - ./services/ride-service/.env
     environment:
+      <<: *mtls-common-env
+      MTLS_SERVICE_NAME: ride-service
       MONGO_URI: mongodb://mongo:27017/ride_db
       REDIS_HOST: redis
       REDIS_PORT: 6379
       KAFKA_BROKER: kafka:29092
       USER_SERVICE_URL: http://user-service:3002
       DRIVER_SERVICE_URL: http://driver-service:3005
+    volumes:
+      - ./security/certs:/etc/mtls:ro
     depends_on:
       - mongo
       - redis
@@ -266,8 +301,12 @@ services:
     env_file:
       - ./services/notification-service/.env
     environment:
+      <<: *mtls-common-env
+      MTLS_SERVICE_NAME: notification-service
       MONGO_URI: mongodb://mongo:27017/notification_db
       KAFKA_BROKER: kafka:29092
+    volumes:
+      - ./security/certs:/etc/mtls:ro
     depends_on:
       - mongo
       - kafka
@@ -282,8 +321,12 @@ services:
     env_file:
       - ./services/review-service/.env
     environment:
+      <<: *mtls-common-env
+      MTLS_SERVICE_NAME: review-service
       DB_HOST: review-postgres
       DB_PORT: 5432
+    volumes:
+      - ./security/certs:/etc/mtls:ro
     depends_on:
       - review-postgres
     networks:
@@ -295,9 +338,13 @@ services:
     ports:
       - "3010:3010"
     environment:
+      <<: *mtls-common-env
+      MTLS_SERVICE_NAME: ai-matching-service
       PORT: 3010
       KAFKA_BROKERS: kafka:29092
       REDIS_URL: redis://redis:6379
+    volumes:
+      - ./security/certs:/etc/mtls:ro
     depends_on:
       - kafka
       - redis
@@ -312,6 +359,8 @@ services:
     env_file:
       - ./api-gateway/.env
     environment:
+      <<: *mtls-common-env
+      MTLS_SERVICE_NAME: api-gateway
       PORT: 3000
       AUTH_SERVICE_URL: http://auth-service:3001
       USER_SERVICE_URL: http://user-service:3002
@@ -323,6 +372,8 @@ services:
       REVIEW_SERVICE_URL: http://review-service:3009
       NOTIFICATION_SERVICE_URL: http://notification-service:3008
       AI_SERVICE_URL: http://ai-matching-service:3010
+    volumes:
+      - ./security/certs:/etc/mtls:ro
     depends_on:
       - auth-service
       - user-service

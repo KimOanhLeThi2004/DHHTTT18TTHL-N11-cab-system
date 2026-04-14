@@ -40,9 +40,6 @@ export default function Home() {
   const wsRef = useRef(null);
 
   useEffect(() => {
-    const token = localStorage.getItem("accessToken");
-    if (!token) return;
-
     getMe().then(setMe).catch(() => {});
   }, []);
 
@@ -77,10 +74,8 @@ export default function Home() {
 
   // Open WebSocket when having booking
   useEffect(() => {
-    const token = localStorage.getItem("accessToken");
-    if (!token) return;
-
-    const ws = new WebSocket(`ws://localhost:3008?token=${token}`);
+    if (!me?.id) return;
+    const ws = new WebSocket("ws://localhost:3008");
     wsRef.current = ws;
 
     ws.onopen = () => {
@@ -148,7 +143,7 @@ export default function Home() {
     };
 
     return () => ws.close();
-  }, [bookingId]);
+  }, [bookingId, me?.id]);
 
   useEffect(() => {
     if (!driverId || rideStatus !== "ONGOING") {
@@ -184,8 +179,7 @@ export default function Home() {
       setError("Vui long chon diem di va diem den truoc khi dat xe");
       return;
     }
-    const token = localStorage.getItem("accessToken");
-    if (!token) {
+    if (!me?.id) {
       setError("Vui long dang nhap truoc khi dat xe");
       return;
     }

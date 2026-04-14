@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import AutocompleteInput from "./AutocompleteInput";
 import { getMe, logout } from "../api/api";
 
@@ -14,35 +14,21 @@ export default function Navbar({ onSearch }) {
 
   const menuRef = useRef(null);
 
-  // Load user
   useEffect(() => {
-  const loadMe = async () => {
-    const token = localStorage.getItem("accessToken");
+    const loadMe = async () => {
+      try {
+        const data = await getMe();
+        setUser(data);
+      } catch (_) {
+        setUser(null);
+      } finally {
+        setLoadingUser(false);
+      }
+    };
 
-    // 👉 Chưa login thì khỏi gọi API
-    if (!token) {
-      setUser(null);
-      setLoadingUser(false);
-      return;
-    }
+    loadMe();
+  }, []);
 
-    try {
-      const data = await getMe(); // gọi /users/me qua gateway
-      setUser(data);
-    } catch (err) {
-      // Token hết hạn / invalid → clear & coi như logout
-      localStorage.removeItem("accessToken");
-      localStorage.removeItem("refreshToken");
-      setUser(null);
-    } finally {
-      setLoadingUser(false);
-    }
-  };
-
-  loadMe();
-}, []);
-
-  // Close dropdown when click outside
   useEffect(() => {
     const handler = (e) => {
       if (menuRef.current && !menuRef.current.contains(e.target)) {
@@ -53,7 +39,6 @@ export default function Navbar({ onSearch }) {
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
-  // Get current location
   useEffect(() => {
     if (!navigator.geolocation) return;
 
@@ -68,9 +53,11 @@ export default function Navbar({ onSearch }) {
           );
           const data = await res.json();
 
-          setFromText(data.display_name || "Vị trí hiện tại");
+          setFromText(data.display_name || "Vi tri hien tai");
           setFromPos({ lat, lng });
-        } catch {}
+        } catch (_) {
+          // Ignore geocode failure.
+        }
       },
       () => {}
     );
@@ -78,25 +65,18 @@ export default function Navbar({ onSearch }) {
 
   const handleLogout = async () => {
     try {
-      const refreshToken = localStorage.getItem("refreshToken");
-      
-      await logout(refreshToken);
-
-      localStorage.removeItem("accessToken");
-      localStorage.removeItem("refreshToken");
-
-      window.location.href = "/";
+      await logout();
     } catch (err) {
       console.error("Logout failed", err);
-      alert("Đăng xuất thất bại");
+    } finally {
+      window.location.href = "/";
     }
   };
 
   return (
     <>
-      {/* NAVBAR */}
       <nav className="relative z-[9999] bg-white shadow p-3 flex justify-between items-center">
-        <div className="font-bold">🚕 Cab System</div>
+        <div className="font-bold">Cab System</div>
 
         {loadingUser ? (
           <div className="text-sm text-gray-400">Loading...</div>
@@ -113,9 +93,7 @@ export default function Navbar({ onSearch }) {
               <span className="text-sm font-medium">{user.name}</span>
 
               <svg
-                className={`w-4 h-4 transition-transform ${
-                  openMenu ? "rotate-180" : ""
-                }`}
+                className={`w-4 h-4 transition-transform ${openMenu ? "rotate-180" : ""}`}
                 fill="none"
                 stroke="currentColor"
                 strokeWidth="2"
@@ -127,59 +105,51 @@ export default function Navbar({ onSearch }) {
 
             {openMenu && (
               <div className="absolute right-0 mt-2 w-48 bg-white border rounded shadow-lg overflow-hidden">
-                <a
-                  href="/profile"
-                  className="block px-4 py-2 text-sm hover:bg-gray-100"
-                >
-                  👤 Thông tin tài khoản
+                <a href="/profile" className="block px-4 py-2 text-sm hover:bg-gray-100">
+                  Thong tin tai khoan
                 </a>
                 <button
                   onClick={handleLogout}
                   className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50"
                 >
-                  🚪 Đăng xuất
+                  Dang xuat
                 </button>
               </div>
             )}
           </div>
         ) : (
           <a href="/login" className="text-blue-600 text-sm">
-            Đăng nhập
+            Dang nhap
           </a>
         )}
       </nav>
 
-      {/* SEARCH BAR */}
       <div className="bg-white shadow p-4 flex gap-3 items-center relative z-[9998]">
         <AutocompleteInput
-          placeholder="Điểm đi"
+          placeholder="Diem di"
           defaultValue={fromText}
           onSelect={(pos) => setFromPos(pos)}
         />
 
-        <AutocompleteInput
-          placeholder="Điểm đến"
-          onSelect={(pos) => setToPos(pos)}
-        />
+        <AutocompleteInput placeholder="Diem den" onSelect={(pos) => setToPos(pos)} />
 
         <select
           value={vehicle}
           onChange={(e) => setVehicle(e.target.value)}
           className="border p-2 rounded"
         >
-          <option value="BIKE">Xe máy</option>
-          <option value="CAR">Ô tô</option>
+          <option value="BIKE">Xe may</option>
+          <option value="CAR">O to</option>
         </select>
 
         <button
           onClick={() => {
-            if (!fromPos || !toPos)
-              return alert("Vui lòng chọn đủ điểm đi & đến");
+            if (!fromPos || !toPos) return alert("Vui long chon du diem di va den");
             onSearch(fromPos, toPos, vehicle);
           }}
           className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
         >
-          Tìm đường
+          Tim duong
         </button>
       </div>
     </>

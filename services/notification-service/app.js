@@ -1,9 +1,9 @@
-require("dotenv").config();
+﻿require("dotenv").config();
 const express = require("express");
 const mongoose = require("mongoose");
-const http = require("http");
 const startConsumer = require("./kafka/consumer");
 const initWebSocket = require("./ws.server");
+const { createServer } = require("./mtls");
 
 const app = express();
 const metrics = { requests: 0, startedAt: Date.now() };
@@ -13,9 +13,10 @@ app.use((req, _, next) => {
   next();
 });
 
-mongoose.connect(process.env.MONGO_URI)
+mongoose
+  .connect(process.env.MONGO_URI)
   .then(() => console.log("MongoDB connected"))
-  .catch(err => console.error(err));
+  .catch((err) => console.error(err));
 
 app.use("/notifications", require("./routes/notification.routes"));
 app.get("/health", (_, res) => {
@@ -36,14 +37,13 @@ app.use((err, _, res, __) => {
   return res.status(500).json({ message: "Internal server error" });
 });
 
-const server = http.createServer(app);
+const { server, protocol } = createServer(app, "notification-service");
+const wsProtocol = protocol === "https" ? "wss" : "ws";
 
-// ✅ Khởi tạo WebSocket SAU khi có server
 const { sendToUser } = initWebSocket(server);
-
-// ✅ Truyền sendToUser cho consumer
 startConsumer(sendToUser).catch(console.error);
 
 server.listen(process.env.PORT, () => {
-  console.log(`Notification Service running on port ${process.env.PORT}`);
+  console.log(`Notification Service running on ${protocol}://0.0.0.0:${process.env.PORT}`);
+  console.log(`Notification WS running on ${wsProtocol}://localhost:${process.env.PORT}`);
 });

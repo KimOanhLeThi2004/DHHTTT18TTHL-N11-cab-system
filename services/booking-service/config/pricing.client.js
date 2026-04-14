@@ -1,4 +1,4 @@
-const axios = require('axios');
+const axios = require("../http-client");
 
 async function calculatePrice(payload) {
   const res = await axios.post(

@@ -1,4 +1,4 @@
-const axios = require("axios");
+const axios = require("../http-client");
 const { BOOKING_SERVICE_URL } = require("../config");
 
 async function createBooking(payload, token) {

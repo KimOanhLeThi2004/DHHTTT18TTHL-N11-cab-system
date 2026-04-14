@@ -1,4 +1,4 @@
-const axios = require("axios");
+const axios = require("../http-client");
 
 const {DRIVER_SERVICE_URL} = require("../config");
 

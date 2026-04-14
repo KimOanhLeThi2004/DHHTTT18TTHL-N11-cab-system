@@ -1,5 +1,5 @@
 const { consumer } = require("./kafka");
-const axios = require("axios");
+const axios = require("../http-client");
 const jwt = require("jsonwebtoken");
 const Ride = require("../models/ride.model");
 const { initProducer, publishRideStatusChanged } = require("./producer");

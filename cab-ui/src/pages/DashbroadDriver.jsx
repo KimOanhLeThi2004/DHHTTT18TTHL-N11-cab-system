@@ -13,7 +13,8 @@ import {
   createPayment,
   getDriverReviews,
   getDriverRating,
-  getDriverRevenue
+  getDriverRevenue,
+  logout,
 } from "../api/api";
 import { getRouteInfo, reverseGeocode } from "../../services/osrm";
 
@@ -101,12 +102,10 @@ export default function DriverDashboard() {
     loadDriver();
     if (wsRef.current) return;
 
-    const token = localStorage.getItem("accessToken");
     const ws = new WebSocket("ws://localhost:3005");
     wsRef.current = ws;
 
     ws.onopen = () => {
-      ws.send(JSON.stringify({ type: "AUTH", token }));
       console.log("WS connected");
     };
 
@@ -203,9 +202,6 @@ export default function DriverDashboard() {
   };
 
   const handleUnauthorized = () => {
-    localStorage.removeItem("accessToken");
-    localStorage.removeItem("refreshToken");
-    localStorage.removeItem("role");
     navigate("/driver");
   };
 
@@ -405,8 +401,14 @@ export default function DriverDashboard() {
     }
   };
 
-  const handleLogout = () => {
-    handleUnauthorized();
+  const handleLogout = async () => {
+    try {
+      await logout();
+    } catch (_) {
+      // Ignore logout API failures and force local redirect.
+    } finally {
+      handleUnauthorized();
+    }
   };
 
   const routeFrom = position

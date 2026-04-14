@@ -1,6 +1,7 @@
 const express = require('express');
 const { sequelize } = require('./models');
 const userRoutes = require('./routes/user.route');
+const { startServer } = require("./mtls");
 // const midldeware = require('./midlewares/auth.middleware')
 require('dotenv').config();
 
@@ -35,8 +36,8 @@ sequelize
   .sync({alter: true})
   .then(() => {
     console.log('User DB connected');
-    app.listen(process.env.PORT, () => {
-      console.log(`User Service running on port ${process.env.PORT}`);
+    startServer(app, process.env.PORT, "user-service", ({ protocol, port }) => {
+      console.log(`User Service running on ${protocol}://0.0.0.0:${port}`);
     });
   })
   .catch((err) => console.error(err));

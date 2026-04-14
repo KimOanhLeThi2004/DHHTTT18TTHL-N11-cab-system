@@ -1,4 +1,4 @@
-const axios = require("axios");
+const axios = require("../http-client");
 const jwt = require("jsonwebtoken");
 const { Payment } = require("../models/payment.model");
 const { publishPaymentSuccess } = require("../kafka/producer");

@@ -15,11 +15,7 @@ export default function DriverLogin() {
     setLoading(true);
 
     try {
-      const res = await login(email, password, "DRIVER");
-      const { accessToken, refreshToken } = res.data;
-      localStorage.setItem("accessToken", accessToken);
-      localStorage.setItem("refreshToken", refreshToken);
-      localStorage.setItem("role", "DRIVER");
+      await login(email, password, "DRIVER");
       navigate("/driver/dashboard");
     } catch (err) {
       setError(err.response?.data?.message || "Tai khoan tai xe khong hop le");

@@ -1,7 +1,8 @@
-const crypto = require("crypto");
+﻿const crypto = require("crypto");
 const express = require("express");
 const cors = require("cors");
-const { createProxyMiddleware, fixRequestBody  } = require("http-proxy-middleware");
+const { createProxyMiddleware, fixRequestBody } = require("http-proxy-middleware");
+const { toInternalUrl, getHttpsAgent, isMtlsEnabled } = require("./mtls");
 const authMiddleware = require("./middlewares/auth.middleware");
 const signServiceToken = require("./middlewares/pricing.middleware");
 const bookingRoute = require("./routes/booking.route");
@@ -30,8 +31,65 @@ const metrics = {
 const rateLimitWindowMs = Number(process.env.RATE_LIMIT_WINDOW_MS || 1000);
 const rateLimitMax = Number(process.env.RATE_LIMIT_MAX || 100);
 const ipBuckets = new Map();
+const ACCESS_COOKIE_NAME = process.env.ACCESS_COOKIE_NAME || "access_token";
 
-app.use(cors());
+function parseCookieHeader(cookieHeader = "") {
+  if (!cookieHeader || typeof cookieHeader !== "string") {
+    return {};
+  }
+
+  return cookieHeader.split(";").reduce((acc, pair) => {
+    const [rawKey, ...rest] = pair.split("=");
+    const key = rawKey ? rawKey.trim() : "";
+    if (!key) return acc;
+    const rawValue = rest.join("=").trim();
+    try {
+      acc[key] = decodeURIComponent(rawValue);
+    } catch (_) {
+      acc[key] = rawValue;
+    }
+    return acc;
+  }, {});
+}
+
+function parseAllowedOrigins() {
+  const rawOrigins = process.env.CORS_ORIGIN || "http://localhost:5173,http://localhost:4173,http://localhost:3000";
+  return rawOrigins
+    .split(",")
+    .map((origin) => origin.trim())
+    .filter(Boolean);
+}
+
+function resolveAccessTokenFromCookie(req) {
+  const cookies = parseCookieHeader(req.headers.cookie);
+  return cookies[ACCESS_COOKIE_NAME] || null;
+}
+
+function toBearerToken(token) {
+  if (!token) return null;
+  if (token.startsWith("Bearer ")) return token;
+  return `Bearer ${token}`;
+}
+
+const allowedOrigins = parseAllowedOrigins();
+app.use(
+  cors({
+    credentials: true,
+    origin(origin, callback) {
+      if (!origin) {
+        callback(null, true);
+        return;
+      }
+
+      if (allowedOrigins.includes("*") || allowedOrigins.includes(origin)) {
+        callback(null, true);
+        return;
+      }
+
+      callback(new Error("Not allowed by CORS"));
+    },
+  })
+);
 app.use(express.json({ limit: process.env.PAYLOAD_LIMIT || "1mb" }));
 
 app.use((req, res, next) => {
@@ -72,9 +130,9 @@ app.use((req, res, next) => {
 
 const withServiceToken = () => `Bearer ${signServiceToken()}`;
 
-const proxyTo = (target, options = {}) =>
-  createProxyMiddleware({
-    target,
+const proxyTo = (target, options = {}) => {
+  const proxyConfig = {
+    target: toInternalUrl(target),
     changeOrigin: true,
     pathRewrite: options.stripPrefix
       ? (path) => {
@@ -85,22 +143,34 @@ const proxyTo = (target, options = {}) =>
           return rewritten.startsWith("/") ? rewritten : rewritten || "/";
         }
       : undefined,
-    onProxyReq: (proxyReq, req, res) => {
+    onProxyReq: (proxyReq, req) => {
       proxyReq.setHeader("x-request-id", req.requestId);
 
       if (options.serviceToken) {
         proxyReq.setHeader("Authorization", withServiceToken());
-      } else if (req.headers.authorization) {
-        proxyReq.setHeader("Authorization", req.headers.authorization);
+      } else {
+        const resolvedAuth =
+          req.headers.authorization || toBearerToken(resolveAccessTokenFromCookie(req));
+        if (resolvedAuth) {
+          proxyReq.setHeader("Authorization", resolvedAuth);
+        }
       }
 
-      // FIX chuẩn
+      // Keep body forwarding consistent across proxied methods.
       fixRequestBody(proxyReq, req);
     },
     onError: (_, __, res) => {
       res.status(503).json({ message: "Upstream service unavailable" });
     },
-  });
+  };
+
+  if (isMtlsEnabled()) {
+    proxyConfig.agent = getHttpsAgent("api-gateway");
+    proxyConfig.secure = process.env.MTLS_REJECT_UNAUTHORIZED !== "false";
+  }
+
+  return createProxyMiddleware(proxyConfig);
+};
 
 // Custom booking flow (pricing + booking)
 app.use("/booking", authMiddleware, bookingRoute);

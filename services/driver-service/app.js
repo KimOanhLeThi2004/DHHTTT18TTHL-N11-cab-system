@@ -1,11 +1,10 @@
-const express = require("express");
+﻿const express = require("express");
 const driverRoutes = require("./routes/driver.routes");
 const { sequelize } = require("./db/postgres");
 require("dotenv").config();
-const startAssignmentConsumer = require('./services/assignmentConsumer')
-const setupDriverWS = require("./ws"); 
-const http = require("http");
-
+const startAssignmentConsumer = require("./services/assignmentConsumer");
+const setupDriverWS = require("./ws");
+const { createServer } = require("./mtls");
 
 const app = express();
 const metrics = { requests: 0, startedAt: Date.now() };
@@ -33,20 +32,23 @@ app.use((err, _, res, __) => {
   }
   return res.status(500).json({ message: "Internal server error" });
 });
+
 startAssignmentConsumer();
+
 (async () => {
   try {
     await sequelize.sync();
     console.log("Postgres connected");
 
-    const server = http.createServer(app);
+    const { server, protocol } = createServer(app, "driver-service");
+    const wsProtocol = protocol === "https" ? "wss" : "ws";
 
-    // 👇 gắn websocket
+    // Attach websocket to the shared HTTP/HTTPS server.
     setupDriverWS(server);
 
     server.listen(process.env.PORT, () => {
-      console.log(`Driver Service running on port ${process.env.PORT}`);
-      console.log(`Driver WS running on ws://localhost:${process.env.PORT}`);
+      console.log(`Driver Service running on ${protocol}://0.0.0.0:${process.env.PORT}`);
+      console.log(`Driver WS running on ${wsProtocol}://localhost:${process.env.PORT}`);
     });
   } catch (err) {
     console.error("Startup error:", err);

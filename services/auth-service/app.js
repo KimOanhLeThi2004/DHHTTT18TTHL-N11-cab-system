@@ -1,6 +1,7 @@
 const express = require('express');
 const { sequelize } = require('./models');
 const authRoutes = require('./routes/auth.route');
+const { startServer } = require("./mtls");
 require('dotenv').config();
 
 const app = express();
@@ -34,8 +35,8 @@ sequelize
   .sync({ alter: true })
   .then(() => {
     console.log('Auth DB connected');
-    app.listen(process.env.PORT, () => {
-      console.log(`Auth Service running on port ${process.env.PORT}`);
+    startServer(app, process.env.PORT, "auth-service", ({ protocol, port }) => {
+      console.log(`Auth Service running on ${protocol}://0.0.0.0:${port}`);
     });
   })
   .catch((err) => console.error(err));

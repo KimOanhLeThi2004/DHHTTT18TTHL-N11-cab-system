@@ -2,6 +2,7 @@ const express = require("express");
 const paymentRoutes = require("./routes/payment.routes");
 const { sequelize } = require("./db/postgres");
 const { initProducer } = require("./kafka/producer");
+const { startServer } = require("./mtls");
 require("dotenv").config();
 
 const app = express();
@@ -36,8 +37,8 @@ app.use((err, _, res, __) => {
     await sequelize.sync({alter: true });
     await initProducer();
 
-    app.listen(process.env.PORT, () => {
-      console.log(`Payment Service running on port ${process.env.PORT}`);
+    startServer(app, process.env.PORT, "payment-service", ({ protocol, port }) => {
+      console.log(`Payment Service running on ${protocol}://0.0.0.0:${port}`);
     });
   } catch (err) {
     console.error("Startup error:", err);

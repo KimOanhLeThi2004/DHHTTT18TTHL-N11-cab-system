@@ -181,6 +181,17 @@ Recommended env convention:
 - `INTERNAL_JWT_SECRET` for service tokens
 - Optionally set `SERVICE_JWT_SECRET` equal to `INTERNAL_JWT_SECRET` for compatibility
 
+### 6.3 mTLS for service-to-service
+
+- Internal HTTP calls support mTLS when `MTLS_ENABLED=true`.
+- Outbound clients auto-upgrade `http://` internal URLs to `https://` under mTLS mode.
+- Each service loads certs from `/etc/mtls` by default:
+  - `/etc/mtls/ca.crt`
+  - `/etc/mtls/<service-name>.crt`
+  - `/etc/mtls/<service-name>.key`
+- Compose already mounts `./security/certs` into `/etc/mtls` for backend services.
+- Cert generation guide: `security/certs/README.md`
+
 ## 7. Realtime channels
 
 - Driver websocket: `ws://localhost:3005`
@@ -190,6 +201,12 @@ Recommended env convention:
 
 ```bash
 docker compose up --build
+```
+
+Enable mTLS:
+
+```bash
+MTLS_ENABLED=true MTLS_REJECT_UNAUTHORIZED=true docker compose up --build
 ```
 
 Then open:

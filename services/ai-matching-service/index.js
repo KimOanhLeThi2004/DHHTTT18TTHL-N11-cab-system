@@ -1,4 +1,4 @@
-const http = require("http");
+const { createServer } = require("./mtls");
 const { consumer, producer } = require("./kafka");
 const { findNearbyDrivers, reserveDriver } = require("./driverRepository");
 const calculateScore = require("./scoring");
@@ -249,11 +249,11 @@ async function startKafka() {
 }
 
 function startHttpServer() {
-  const server = http.createServer((req, res) => {
+  const { server, protocol } = createServer((req, res) => {
     handleHttp(req, res);
-  });
+  }, "ai-matching-service");
   server.listen(port, () => {
-    console.log(`AI matching service HTTP running on ${port}`);
+    console.log(`AI matching service running on ${protocol}://0.0.0.0:${port}`);
   });
 }
 

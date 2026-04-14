@@ -7,6 +7,7 @@ import string
 import time
 import urllib.error
 import urllib.request
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -45,6 +46,14 @@ def jwt_payload(token):
         return json.loads(base64.urlsafe_b64decode(part.encode("ascii")).decode("utf-8"))
     except Exception:
         return {}
+
+
+def pick_access_token(payload):
+    return payload.get("access_token") or payload.get("accessToken") or payload.get("token") or ""
+
+
+def pick_refresh_token(payload):
+    return payload.get("refresh_token") or payload.get("refreshToken") or ""
 
 
 def exists(path):
@@ -110,10 +119,10 @@ def c2():
     s, d = req("POST", "/auth/login", {"email": ctx.email, "password": ctx.password, "role": "CUSTOMER"})
     if s != 200:
         return False, f"{s} {d}"
-    ctx.token = d.get("access_token") or d.get("accessToken") or ""
-    ctx.refresh = d.get("refresh_token") or d.get("refreshToken") or ""
+    ctx.token = pick_access_token(d)
+    ctx.refresh = pick_refresh_token(d)
     p = jwt_payload(ctx.token)
-    return bool(p.get("exp") and (p.get("sub") or p.get("userId"))), f"payload={p}"
+    return bool(ctx.token and ctx.refresh and p.get("exp") and (p.get("sub") or p.get("userId"))), f"payload={p}"
 
 
 def c3():
@@ -163,8 +172,8 @@ def c10():
     s2, _ = req("GET", "/booking", headers=auth())
     s3, d3 = req("POST", "/auth/login", {"email": ctx.email, "password": ctx.password, "role": "CUSTOMER"})
     if s3 == 200:
-        ctx.token = d3.get("access_token") or d3.get("accessToken") or ""
-        ctx.refresh = d3.get("refresh_token") or d3.get("refreshToken") or ""
+        ctx.token = pick_access_token(d3)
+        ctx.refresh = pick_refresh_token(d3)
     return s1 == 200 and s2 == 401, f"logout={s1}, old_token={s2}"
 
 
@@ -364,17 +373,46 @@ def c84():
 
 
 def c85():
-    hit = False
-    for _ in range(130):
-        s, _ = req("GET", "/health")
+    # Phase 1: quick sequential burst.
+    for _ in range(180):
+        s, _ = req("GET", "/health", timeout=2)
         if s == 429:
-            hit = True
-            break
-    return hit, "rate limit triggered" if hit else "no 429 observed"
+            return True, "rate limit triggered (sequential burst)"
+
+    # Phase 2: concurrent burst to force many requests in one limiter window.
+    futures = []
+    with ThreadPoolExecutor(max_workers=48) as pool:
+        for _ in range(240):
+            futures.append(pool.submit(req, "GET", "/health", timeout=2))
+        for fut in as_completed(futures):
+            try:
+                s, _ = fut.result()
+                if s == 429:
+                    return True, "rate limit triggered (concurrent burst)"
+            except Exception:
+                continue
+
+    return False, "no 429 observed after sequential + concurrent burst"
 
 
 def c86():
     return c19()
+
+
+def c87():
+    return exists("security/zero-trust-checklist.md"), "security checklist exists"
+
+
+def c88():
+    return contains("services/user-service/midlewares/verifyServiceJwt.js", "service"), "service jwt verification exists"
+
+
+def c89():
+    return contains("security/zero-trust-checklist.md", "service-to-service"), "service-to-service policy documented"
+
+
+def c90():
+    return contains("security/zero-trust-checklist.md", "mTLS"), "mTLS policy documented"
 
 
 def c91():
@@ -508,7 +546,7 @@ explicit = {
     21: c21, 22: c22, 23: c23, 24: c24, 25: c25, 26: c26, 27: c27,
     41: c41, 42: c42, 43: c43, 44: c44, 45: c45, 46: c46, 47: c47, 49: c49, 50: c50,
     51: c51, 52: c52, 53: c53, 57: c57, 58: c58, 59: c59, 60: c60,
-    81: c81, 82: c82, 83: c83, 84: c84, 85: c85, 86: c86,
+    81: c81, 82: c82, 83: c83, 84: c84, 85: c85, 86: c86, 87: c87, 88: c88, 89: c89, 90: c90,
     91: c91, 92: c92, 93: c93, 94: c94, 95: c95, 96: c96, 97: c97, 98: c98, 99: c99, 100: c100,
     101: c101, 102: c102, 103: c103, 104: c104, 105: c105, 106: c106, 107: c107, 108: c108,
     109: c109, 110: c110, 111: c111, 112: c112, 113: c113, 114: c114, 115: c115, 116: c116,
@@ -525,8 +563,6 @@ for cid in range(1, 121):
         run(cid, lambda c=cid: sim(f"ai-agent simulated {c}", [exists("services/ai-matching-service/index.js"), contains("services/ai-matching-service/index.js", "select-driver")]))
     elif 61 <= cid <= 80:
         run(cid, lambda c=cid: sim(f"performance/resilience simulated {c}", [exists("docker-compose.yml"), exists("observability/prometheus.yml"), contains("api-gateway/routes/booking.route.js", "withRetry")]))
-    elif 87 <= cid <= 90:
-        run(cid, lambda c=cid: sim(f"security simulated {c}", [exists("security/zero-trust-checklist.md"), contains("services/user-service/midlewares/verifyServiceJwt.js", "service")]))
     else:
         run(cid, lambda c=cid: (True, f"covered by hybrid simulation {c}"))
 

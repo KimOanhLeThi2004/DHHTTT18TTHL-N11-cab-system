@@ -15,11 +15,7 @@ export default function CustomerLogin() {
     setLoading(true);
 
     try {
-      const res = await login(email, password, "CUSTOMER");
-      const { accessToken, refreshToken } = res.data;
-      localStorage.setItem("accessToken", accessToken);
-      localStorage.setItem("refreshToken", refreshToken);
-      localStorage.setItem("role", "CUSTOMER");
+      await login(email, password, "CUSTOMER");
       navigate("/");
     } catch (err) {
       setError(err.response?.data?.message || "Dang nhap that bai");

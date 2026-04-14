@@ -1,6 +1,6 @@
 // api-gateway/routes/users.route.js
 const express = require("express");
-const axios = require("axios");
+const axios = require("../http-client");
 const { USER_SERVICE_URL } = require("../config");
 
 const router = express.Router();

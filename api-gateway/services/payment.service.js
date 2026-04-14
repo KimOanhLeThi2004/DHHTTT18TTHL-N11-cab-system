@@ -1,4 +1,4 @@
-const axios = require("axios");
+const axios = require("../http-client");
 const { PAYMENT_SERVICE_URL } = require("../config");
 
 async function pay(payload, token) {
