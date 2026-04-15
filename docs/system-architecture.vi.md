@@ -325,3 +325,17 @@ score = -0.6*distanceKm + 2.0*acceptRate + 1.5*rating - 0.3*eta
 - Token revocation in-memory ở auth-service chưa phù hợp multi-instance/HA.
 - Một số middleware service token check theo cấu hình secret fallback; cần đồng bộ secret giữa services.
 - AI matching hiện heuristic; nếu cần tối ưu SLA và fairness nên bổ sung feature store + model training + offline evaluation.
+
+## 11) Update 2026-04-15
+
+Luu y: phan AI matching trong tai lieu nay co mot so noi dung cu.
+
+Trang thai moi:
+
+- `ai-matching-service` da tich hop Ollama (`qwen2.5:3b`) cho driver selection.
+- Neu Ollama loi/timeout/output khong hop le, service fallback ve rules/scoring.
+- Frontend da chuyen sang cookie-based session (`HttpOnly`) thay vi luu JWT trong localStorage.
+
+Tai lieu cap nhat chi tiet xem tai:
+
+- `docs/ai-matching-security.vi.md`

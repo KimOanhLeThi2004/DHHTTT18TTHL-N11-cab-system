@@ -1,6 +1,12 @@
 import axios from "axios";
 
 const baseURL = (import.meta.env.VITE_API_URL || "http://localhost:3000").replace(/\/$/, "");
+function purgeLegacyTokenStorage() {
+  if (typeof window === "undefined") return;
+  window.localStorage.removeItem("cab_access_token");
+  window.localStorage.removeItem("cab_access_token_customer");
+  window.localStorage.removeItem("cab_access_token_driver");
+}
 
 const api = axios.create({
   baseURL,
@@ -11,6 +17,8 @@ const api = axios.create({
   timeout: 10000,
 });
 
+purgeLegacyTokenStorage();
+
 // -------- AUTH --------
 export const login = (email, password, role) =>
   api.post("/auth/login", { email, password, role });
@@ -18,8 +26,13 @@ export const login = (email, password, role) =>
 export const register = (data) =>
   api.post("/auth/register", data);
 
-export const logout = () =>
-  api.post("/auth/logout");
+export const logout = async () => {
+  try {
+    return await api.post("/auth/logout");
+  } finally {
+    purgeLegacyTokenStorage();
+  }
+};
 
 // -------- USER --------
 export const getMe = async () => {

@@ -39,6 +39,7 @@ taxi-booking-microservices/
 |  |- ai-matching-service/
 |- docs/
 |  |- openapi.yaml
+|  |- ai-matching-security.vi.md
 |- database/
 |- events/
 |- infra/
@@ -52,6 +53,7 @@ taxi-booking-microservices/
 Full API spec is at:
 
 - `docs/openapi.yaml`
+- `docs/ai-matching-security.vi.md` (AI matching model flow + frontend JWT/XSS/SQLi notes)
 
 Quick usage:
 
@@ -67,7 +69,9 @@ Quick usage:
 2. `auth-service` creates credentials.
 3. For `CUSTOMER`, auth-service calls `user-service POST /users` with service JWT.
 4. For `DRIVER`, auth-service calls `driver-service POST /drivers` with service JWT.
-5. Client logs in via `POST /auth/login` and receives access + refresh token.
+5. Client logs in via `POST /auth/login`; auth-service sets `HttpOnly` cookies:
+   - `access_token`
+   - `refresh_token`
 
 ### 4.2 Booking and matching
 
@@ -79,6 +83,29 @@ Quick usage:
 6. Driver accepts via `POST /drivers/accept`.
 7. booking-service consumes `driver.accepted`, updates booking, emits `booking.confirmed`.
 8. ride-service consumes `booking.confirmed`, enriches user/driver info, creates ride.
+
+### 4.6 AI model and model communication
+
+AI matching currently uses Ollama from `ai-matching-service` with default model:
+
+- `OLLAMA_MODEL=qwen2.5:3b`
+- `OLLAMA_BASE_URL=http://ollama:11434`
+- `OLLAMA_TIMEOUT_MS=15000`
+- `OLLAMA_ENABLED=true`
+
+How systems communicate with the model:
+
+1. `booking-service` emits `BOOKING_CREATED` and `ride_events`.
+2. `ai-matching-service` consumes events, builds candidate drivers from Redis + score.
+3. `ai-matching-service` calls Ollama HTTP API:
+   - `POST /api/generate`
+   - payload includes booking context + candidate list
+   - `format: "json"`, `stream: false`
+4. Ollama returns JSON with selected `driverId`.
+5. If model output is invalid/timeout/error, service falls back to rule-based ranking.
+6. Service emits `driver.assigned.requested` with:
+   - `selectionMode: "ollama"` or `"rules"`
+   - `selectionReason`
 
 ### 4.3 Tracking and notifications
 
@@ -141,6 +168,7 @@ If driver already accepted, booking-service returns conflict (`409`).
 
 - Signed by `auth-service` at login (`jwt.sign`) with `JWT_SECRET`.
 - Contains `sub/userId`, `role`, `jti`.
+- Stored client-side in `HttpOnly` cookie (not in `localStorage`/`sessionStorage`).
 - Verified by user-auth middlewares in:
   - booking-service
   - user-service
@@ -192,12 +220,32 @@ Recommended env convention:
 - Compose already mounts `./security/certs` into `/etc/mtls` for backend services.
 - Cert generation guide: `security/certs/README.md`
 
-## 7. Realtime channels
+## 7. Frontend token storage and security notes
+
+Current frontend (`cab-ui/src/api/api.js`) uses cookie-based session only:
+
+- Axios uses `withCredentials: true` for cookie forwarding.
+- Frontend does not persist access JWT in browser JS storage.
+- Legacy localStorage token keys are removed during startup/logout.
+
+Why this helps XSS:
+
+- `HttpOnly` cookies are not readable by injected JavaScript.
+- Even if XSS happens, token exfiltration via `localStorage.getItem(...)` is blocked.
+
+SQL injection note:
+
+- Frontend cannot directly prevent SQL injection in DB layer.
+- SQL injection prevention is backend responsibility:
+  - use ORM/query parameterization (Sequelize/Mongoose patterns in services)
+  - validate input schema/types server-side
+  - avoid raw string-concatenated SQL queries.
+## 8. Realtime channels
 
 - Driver websocket: `ws://localhost:3005`
 - Notification websocket: `ws://localhost:3008?token=<access_token>`
 
-## 8. Run with Docker
+## 9. Run with Docker
 
 ```bash
 docker compose up --build

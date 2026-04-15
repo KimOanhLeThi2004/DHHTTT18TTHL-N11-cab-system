@@ -79,7 +79,9 @@ function resolveSameSite() {
 
 function buildCookieOptions(maxAge) {
   const sameSite = resolveSameSite();
-  const secure = parseBool(process.env.AUTH_COOKIE_SECURE, true) || sameSite === "None";
+  const secure =
+    parseBool(process.env.AUTH_COOKIE_SECURE, process.env.NODE_ENV === "production") ||
+    sameSite === "None";
   const options = {
     httpOnly: true,
     secure,
@@ -97,7 +99,9 @@ function buildCookieOptions(maxAge) {
 
 function buildClearCookieOptions() {
   const sameSite = resolveSameSite();
-  const secure = parseBool(process.env.AUTH_COOKIE_SECURE, true) || sameSite === "None";
+  const secure =
+    parseBool(process.env.AUTH_COOKIE_SECURE, process.env.NODE_ENV === "production") ||
+    sameSite === "None";
   const options = {
     httpOnly: true,
     secure,
@@ -261,11 +265,6 @@ exports.login = async (req, res) => {
       role: credential.role,
       user_id: credential.userId,
       userId: credential.userId,
-      access_token: accessToken,
-      accessToken,
-      refresh_token: refreshToken,
-      refreshToken,
-      token: accessToken,
     });
   } catch (err) {
     console.error("Login error:", err.message);

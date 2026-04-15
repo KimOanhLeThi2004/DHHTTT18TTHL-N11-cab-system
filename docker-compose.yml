@@ -85,6 +85,16 @@ services:
     networks:
       - cab-network
 
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama-data:/root/.ollama
+    networks:
+      - cab-network
+
   auth-service:
     build: ./services/auth-service
     container_name: auth-service
@@ -286,11 +296,17 @@ services:
       PORT: 3010
       KAFKA_BROKERS: kafka:29092
       REDIS_URL: redis://redis:6379
+      OLLAMA_ENABLED: "true"
+      OLLAMA_BASE_URL: http://ollama:11434
+      OLLAMA_MODEL: qwen2.5:3b
+      OLLAMA_TIMEOUT_MS: 15000
+      OLLAMA_MAX_CANDIDATES: 8
     volumes:
       - ./security/certs:/etc/mtls:ro
     depends_on:
       - kafka
       - redis
+      - ollama
     networks:
       - cab-network
 
@@ -349,3 +365,4 @@ networks:
 
 volumes:
   postgres-data:
+  ollama-data:

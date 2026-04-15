@@ -73,6 +73,7 @@ export default function DriverDashboard() {
   const lastRouteCalcRef = useRef(0);
   const activeRideRef = useRef(null);
   const orderRef = useRef(null);
+  const driverIdRef = useRef(null);
 
   const [status, setStatus] = useState("OFFLINE");
   const [driver, setDriver] = useState({});
@@ -97,6 +98,10 @@ export default function DriverDashboard() {
   useEffect(() => {
     orderRef.current = order;
   }, [order]);
+
+  useEffect(() => {
+    driverIdRef.current = driverId;
+  }, [driverId]);
 
   const handleUnauthorized = useCallback(() => {
     navigate("/driver");
@@ -176,6 +181,15 @@ export default function DriverDashboard() {
 
       if (msg.type === "ASSIGN_RIDE") {
         if (activeRideRef.current) return;
+        const assignedDriverId = msg.data?.driverId ?? msg.data?.driver_id ?? null;
+        const currentDriverId = driverIdRef.current;
+        if (
+          assignedDriverId &&
+          currentDriverId &&
+          String(assignedDriverId) !== String(currentDriverId)
+        ) {
+          return;
+        }
 
         const route = await getRouteInfo(
           msg.data.pickup,
@@ -195,6 +209,7 @@ export default function DriverDashboard() {
 
         setOrder({
           ...msg.data,
+          driverId: assignedDriverId,
           pickupAddress,
           dropoffAddress,
           distanceKm: route.distanceKm,
@@ -328,6 +343,15 @@ export default function DriverDashboard() {
 
   const acceptRide = async () => {
     if (!order) return;
+    const assignedDriverId = order.driverId || order.driver_id || null;
+    if (
+      assignedDriverId &&
+      driverId &&
+      String(assignedDriverId) !== String(driverId)
+    ) {
+      setOrder(null);
+      return;
+    }
 
     try {
       await acceptRideAPI(order.bookingId);
@@ -342,6 +366,9 @@ export default function DriverDashboard() {
         setRideId(ride._id || ride.id);
       }
     } catch (err) {
+      if (err?.response?.status === 403) {
+        setOrder(null);
+      }
       console.error("Accept error:", err);
     }
   };

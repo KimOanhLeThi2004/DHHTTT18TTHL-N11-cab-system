@@ -12,6 +12,12 @@ function resolveTokenUserId(user = {}) {
   return user.userId || user.user_id || user.sub || user.id || null;
 }
 
+function normalizeIdentity(value) {
+  if (value === undefined || value === null) return null;
+  const normalized = String(value).trim().toLowerCase();
+  return normalized || null;
+}
+
 async function createDriver(req, res) {
   try {
     const { id, name, phone, vehicleType = "CAR" } = req.body;
@@ -103,7 +109,10 @@ async function acceptRide(req, res) {
 
     const parsed = JSON.parse(assignment);
     const assignedDriverId = parsed.driverId || parsed.driver_id || null;
-    if (!assignedDriverId || String(assignedDriverId) !== String(driverId)) {
+    if (
+      !assignedDriverId ||
+      normalizeIdentity(assignedDriverId) !== normalizeIdentity(driverId)
+    ) {
       return res.status(403).json({ message: "Not your assignment" });
     }
 

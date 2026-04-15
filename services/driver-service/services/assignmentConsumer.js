@@ -1,6 +1,6 @@
 const { consumer } = require("./kafka");
 const assignmentService = require("./assignmentService");
-const { notifyDriverAssignment, notifyBookingCancelled } = require("../websocketGateway");
+const { notifyBookingCancelled } = require("../websocketGateway");
 const { redis } = require("../db/redis");
 
 async function startAssignmentConsumer() {
@@ -22,14 +22,19 @@ async function startAssignmentConsumer() {
         const data = JSON.parse(message.value.toString());
 
         if (topic === "driver.assigned.requested") {
-          const ok = notifyDriverAssignment(data);
-          if (!ok) {
-            console.log("Driver offline -> need reassign:", data.driverId);
-            // TODO: emit Kafka event reassign
+          const result = await assignmentService.handleAssignment(data);
+          if (!result.accepted && result.reason === "already_assigned_to_other_driver") {
+            console.log("Skip overwritten assignment:", {
+              bookingId: data.bookingId,
+              incomingDriverId: data.driverId,
+            });
+            return;
           }
-          console.log("Received assignment:", data);
-
-          await assignmentService.handleAssignment(data);
+          console.log("Received assignment:", {
+            bookingId: data.bookingId,
+            driverId: data.driverId,
+            status: result.reason,
+          });
           return;
         }
 

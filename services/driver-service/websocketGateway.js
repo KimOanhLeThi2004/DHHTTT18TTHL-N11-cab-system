@@ -19,7 +19,7 @@ function notifyDriverAssignment({ bookingId, driverId, pickup, dropoff, distance
 
   ws.send(JSON.stringify({
     type: "ASSIGN_RIDE",
-    data: { bookingId, pickup, dropoff, distanceKm, price }
+    data: { bookingId, driverId, pickup, dropoff, distanceKm, price }
   }));
 
   console.log("Assignment pushed to driver:", driverId);

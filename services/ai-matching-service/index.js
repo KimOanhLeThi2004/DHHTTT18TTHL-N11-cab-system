@@ -2,12 +2,20 @@ const { createServer } = require("./mtls");
 const { consumer, producer } = require("./kafka");
 const { findNearbyDrivers, reserveDriver } = require("./driverRepository");
 const calculateScore = require("./scoring");
+const axios = require("axios");
 
 const port = Number(process.env.PORT || 3010);
+const OLLAMA_ENABLED = process.env.OLLAMA_ENABLED !== "false";
+const OLLAMA_BASE_URL = process.env.OLLAMA_BASE_URL || "http://ollama:11434";
+const OLLAMA_MODEL = process.env.OLLAMA_MODEL || "qwen2.5:3b";
+const OLLAMA_TIMEOUT_MS = Math.max(100, Number(process.env.OLLAMA_TIMEOUT_MS || 15000));
+const OLLAMA_MAX_CANDIDATES = Math.max(1, Number(process.env.OLLAMA_MAX_CANDIDATES || 8));
 const metrics = {
   requests: 0,
   matchedTrips: 0,
   fallbackCount: 0,
+  aiPreferredMatches: 0,
+  ruleFallbackMatches: 0,
   startedAt: Date.now(),
 };
 
@@ -77,6 +85,93 @@ function chooseDriver(drivers = [], strategy = "balanced") {
   })[0];
 }
 
+function normalizeDriverId(value) {
+  if (value === undefined || value === null) return null;
+  const id = String(value).trim();
+  return id || null;
+}
+
+function reorderDriversByPreferredId(drivers = [], preferredId) {
+  if (!preferredId) return drivers;
+  const target = String(preferredId);
+  const preferred = drivers.find((d) => String(d.id) === target);
+  if (!preferred) return drivers;
+  return [preferred, ...drivers.filter((d) => String(d.id) !== target)];
+}
+
+async function selectDriverWithOllama(trip, scoredDrivers = []) {
+  if (!OLLAMA_ENABLED || !scoredDrivers.length) {
+    return null;
+  }
+
+  const candidates = scoredDrivers.slice(0, OLLAMA_MAX_CANDIDATES).map((d, index) => ({
+    rank: index + 1,
+    driverId: d.id,
+    distanceKm: Number(d.distanceKm || d.distance || 0),
+    score: Number(d.score || 0),
+    rating: Number(d.rating || 0),
+    eta: Number(d.eta || 0),
+    vehicleType: d.vehicleType || "UNKNOWN",
+  }));
+
+  const prompt = [
+    "You are a taxi dispatch selector.",
+    "Pick exactly one best driver from the candidates list.",
+    "Must only use driverId values from candidates.",
+    "Return strict JSON with keys driverId and reason.",
+    `booking=${JSON.stringify({
+      bookingId: trip.bookingId,
+      pickup: trip.pickup,
+      dropoff: trip.dropoff,
+      vehicleType: trip.vehicleType,
+      estimatedPrice: trip.estimatedPrice,
+    })}`,
+    `candidates=${JSON.stringify(candidates)}`,
+  ].join("\n");
+
+  try {
+    const response = await axios.post(
+      `${OLLAMA_BASE_URL}/api/generate`,
+      {
+        model: OLLAMA_MODEL,
+        prompt,
+        stream: false,
+        format: "json",
+        options: {
+          temperature: 0,
+          top_p: 0.9,
+        },
+      },
+      { timeout: OLLAMA_TIMEOUT_MS }
+    );
+
+    const raw = response?.data?.response;
+    if (!raw || typeof raw !== "string") return null;
+
+    let parsed = null;
+    try {
+      parsed = JSON.parse(raw);
+    } catch (_) {
+      return null;
+    }
+
+    const selectedDriverId = normalizeDriverId(parsed.driverId || parsed.driver_id || parsed.id);
+    if (!selectedDriverId) return null;
+
+    const exists = scoredDrivers.some((d) => String(d.id) === selectedDriverId);
+    if (!exists) return null;
+
+    return {
+      driverId: selectedDriverId,
+      reason: parsed.reason || "selected_by_ollama",
+    };
+  } catch (err) {
+    const msg = err?.response?.data?.error || err.message || "unknown_ollama_error";
+    console.warn("Ollama selection failed:", msg);
+    return null;
+  }
+}
+
 async function handleHttp(req, res) {
   metrics.requests += 1;
   const path = req.url.split("?")[0];
@@ -91,6 +186,8 @@ async function handleHttp(req, res) {
           `request_count ${metrics.requests}`,
           `matched_trips ${metrics.matchedTrips}`,
           `fallback_count ${metrics.fallbackCount}`,
+          `ai_preferred_matches ${metrics.aiPreferredMatches}`,
+          `rule_fallback_matches ${metrics.ruleFallbackMatches}`,
           `uptime_ms ${Date.now() - metrics.startedAt}`,
         ].join("\n")
       );
@@ -163,6 +260,8 @@ async function handleHttp(req, res) {
         eta_model_version: "eta-v1",
         pricing_model_version: "pricing-v2",
         fraud_model_version: "fraud-v1",
+        llm_provider: OLLAMA_ENABLED ? "ollama" : "disabled",
+        ollama_model: OLLAMA_MODEL,
       });
     }
 
@@ -192,7 +291,18 @@ async function handleTripMessage(trip) {
     }))
     .sort((a, b) => b.score - a.score);
 
-  for (const driver of scoredDrivers) {
+  const aiSelection = await selectDriverWithOllama(trip, scoredDrivers);
+  const prioritizedDrivers = aiSelection
+    ? reorderDriversByPreferredId(scoredDrivers, aiSelection.driverId)
+    : scoredDrivers;
+
+  if (aiSelection) {
+    metrics.aiPreferredMatches += 1;
+  } else {
+    metrics.ruleFallbackMatches += 1;
+  }
+
+  for (const driver of prioritizedDrivers) {
     const locked = await reserveDriver(driver.id);
     if (locked) {
       metrics.matchedTrips += 1;
@@ -207,6 +317,8 @@ async function handleTripMessage(trip) {
               pickup: trip.pickup,
               dropoff: trip.dropoff,
               price: trip.estimatedPrice,
+              selectionMode: aiSelection ? "ollama" : "rules",
+              selectionReason: aiSelection?.reason || "score_ranked",
             }),
           },
         ],
@@ -214,6 +326,8 @@ async function handleTripMessage(trip) {
       return;
     }
   }
+
+  metrics.fallbackCount += 1;
 }
 
 async function startKafka() {
