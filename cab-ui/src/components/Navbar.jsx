@@ -19,7 +19,7 @@ export default function Navbar({ onSearch }) {
       try {
         const data = await getMe();
         setUser(data);
-      } catch (_) {
+      } catch {
         setUser(null);
       } finally {
         setLoadingUser(false);
@@ -55,7 +55,7 @@ export default function Navbar({ onSearch }) {
 
           setFromText(data.display_name || "Vi tri hien tai");
           setFromPos({ lat, lng });
-        } catch (_) {
+        } catch {
           // Ignore geocode failure.
         }
       },

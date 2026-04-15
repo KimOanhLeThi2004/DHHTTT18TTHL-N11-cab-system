@@ -10,6 +10,7 @@ on:
   workflow_dispatch:
 
 env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
   NODE_VERSION: "20"
   REGISTRY: docker.io
   IMAGE_NAMESPACE: ${{ vars.DOCKERHUB_NAMESPACE || secrets.DOCKERHUB_USERNAME }}
@@ -72,8 +73,22 @@ jobs:
       - name: Lint (if present)
         run: npm run lint --if-present
 
-      - name: Unit test (if present)
-        run: npm test --if-present
+      - name: Unit test (if meaningful test script)
+        shell: bash
+        run: |
+          TEST_SCRIPT=$(node -e "const s=(require('./package.json').scripts||{}).test||''; process.stdout.write(s)")
+          if [ -z "$TEST_SCRIPT" ]; then
+            echo "No test script. Skip."
+            exit 0
+          fi
+
+          NORMALIZED=$(echo "$TEST_SCRIPT" | tr -d '[:space:]')
+          if [ "$NORMALIZED" = "echo\"Error:notestspecified\"&&exit1" ] || [ "$NORMALIZED" = "echo\"Error:notestspecified\"&&exit1;" ]; then
+            echo "Placeholder test script detected. Skip."
+            exit 0
+          fi
+
+          npm test
 
       - name: Build (if present)
         run: npm run build --if-present

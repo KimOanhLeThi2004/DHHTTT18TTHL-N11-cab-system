@@ -161,7 +161,8 @@ export default function Home() {
           lat: Number(payload.lat),
           lng: Number(payload.lng),
         });
-      } catch (_) {
+      } catch (err) {
+        console.error("Driver location fetch failed:", err);
       }
     };
 

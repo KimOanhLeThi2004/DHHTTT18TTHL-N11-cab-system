@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { MapContainer, TileLayer, Marker, useMap } from "react-leaflet";
 import L from "leaflet";
@@ -98,6 +98,68 @@ export default function DriverDashboard() {
     orderRef.current = order;
   }, [order]);
 
+  const handleUnauthorized = useCallback(() => {
+    navigate("/driver");
+  }, [navigate]);
+
+  const loadDriver = useCallback(async () => {
+    try {
+      const res = await getDriver();
+      const { id, ...driverData } = res.data;
+      setDriverId(id);
+      setDriver(driverData);
+    } catch (err) {
+      const status = err?.response?.status;
+      if (status === 401) {
+        handleUnauthorized();
+        return;
+      }
+      console.error(err);
+    }
+  }, [handleUnauthorized]);
+
+  const loadReviewData = useCallback(async (id) => {
+    if (!id) return;
+
+    try {
+      const [reviewsRes, ratingRes] = await Promise.all([
+        getDriverReviews(id),
+        getDriverRating(id),
+      ]);
+
+      const reviews = reviewsRes?.data || [];
+      const sorted = [...reviews].sort((a, b) => {
+        const aTime = a?.createdAt ? new Date(a.createdAt).getTime() : 0;
+        const bTime = b?.createdAt ? new Date(b.createdAt).getTime() : 0;
+        return bTime - aTime;
+      });
+      setLatestReview(sorted[0] || null);
+
+      const ratingValue = ratingRes?.data?.avgRating;
+      setAvgRating(ratingValue ? Number(ratingValue).toFixed(1) : null);
+    } catch (err) {
+      if (err?.response?.status === 401) {
+        handleUnauthorized();
+        return;
+      }
+      console.error("Load review error:", err);
+    }
+  }, [handleUnauthorized]);
+
+  const loadRevenue = useCallback(async () => {
+    try {
+      const res = await getDriverRevenue();
+      const total = res?.data?.total ?? 0;
+      setTotalRevenue(Number(total));
+    } catch (err) {
+      if (err?.response?.status === 401) {
+        handleUnauthorized();
+        return;
+      }
+      console.error("Load revenue error:", err);
+    }
+  }, [handleUnauthorized]);
+
   useEffect(() => {
     loadDriver();
     if (wsRef.current) return;
@@ -161,7 +223,7 @@ export default function DriverDashboard() {
       }
       ws.close();
     };
-  }, []);
+  }, [loadDriver]);
 
   useEffect(() => {
     const calcPickupRoute = async () => {
@@ -185,73 +247,11 @@ export default function DriverDashboard() {
     calcPickupRoute();
   }, [activeRide, position, driver.vehicleType]);
 
-  const loadDriver = async () => {
-    try {
-      const res = await getDriver();
-      const { id, ...driverData } = res.data;
-      setDriverId(id);
-      setDriver(driverData);
-    } catch (err) {
-      const status = err?.response?.status;
-      if (status === 401) {
-        handleUnauthorized();
-        return;
-      }
-      console.error(err);
-    }
-  };
-
-  const handleUnauthorized = () => {
-    navigate("/driver");
-  };
-
-  const loadReviewData = async (id) => {
-    if (!id) return;
-
-    try {
-      const [reviewsRes, ratingRes] = await Promise.all([
-        getDriverReviews(id),
-        getDriverRating(id),
-      ]);
-
-      const reviews = reviewsRes?.data || [];
-      const sorted = [...reviews].sort((a, b) => {
-        const aTime = a?.createdAt ? new Date(a.createdAt).getTime() : 0;
-        const bTime = b?.createdAt ? new Date(b.createdAt).getTime() : 0;
-        return bTime - aTime;
-      });
-      setLatestReview(sorted[0] || null);
-
-      const ratingValue = ratingRes?.data?.avgRating;
-      setAvgRating(ratingValue ? Number(ratingValue).toFixed(1) : null);
-    } catch (err) {
-      if (err?.response?.status === 401) {
-        handleUnauthorized();
-        return;
-      }
-      console.error("Load review error:", err);
-    }
-  };
-
   useEffect(() => {
     if (!driverId) return;
     loadReviewData(driverId);
     loadRevenue();
-  }, [driverId]);
-
-  const loadRevenue = async () => {
-    try {
-      const res = await getDriverRevenue();
-      const total = res?.data?.total ?? 0;
-      setTotalRevenue(Number(total));
-    } catch (err) {
-      if (err?.response?.status === 401) {
-        handleUnauthorized();
-        return;
-      }
-      console.error("Load revenue error:", err);
-    }
-  };
+  }, [driverId, loadReviewData, loadRevenue]);
 
   const sendGPS = (lat, lng, vehicleType) => {
     const ws = wsRef.current;
@@ -404,7 +404,7 @@ export default function DriverDashboard() {
   const handleLogout = async () => {
     try {
       await logout();
-    } catch (_) {
+    } catch {
       // Ignore logout API failures and force local redirect.
     } finally {
       handleUnauthorized();

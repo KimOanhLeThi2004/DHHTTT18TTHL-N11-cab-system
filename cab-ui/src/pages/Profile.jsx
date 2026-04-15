@@ -18,7 +18,7 @@ export default function Profile() {
           name: data.name || "",
           phone: data.phone || "",
         });
-      } catch (err) {
+      } catch {
         alert("Bạn chưa đăng nhập");
         window.location.href = "/login";
       } finally {
@@ -35,7 +35,7 @@ export default function Profile() {
       setSaving(true);
       await updateMe(form);
       alert("✅ Cập nhật thành công");
-    } catch (err) {
+    } catch {
       alert("❌ Cập nhật thất bại");
     } finally {
       setSaving(false);
