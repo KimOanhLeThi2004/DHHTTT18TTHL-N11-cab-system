@@ -8,6 +8,10 @@ function toNumber(value) {
   return Number.isFinite(parsed) ? parsed : null;
 }
 
+function resolveTokenUserId(user = {}) {
+  return user.userId || user.user_id || user.sub || user.id || null;
+}
+
 async function createDriver(req, res) {
   try {
     const { id, name, phone, vehicleType = "CAR" } = req.body;
@@ -84,9 +88,12 @@ async function nearby(req, res) {
 async function acceptRide(req, res) {
   try {
     const { bookingId } = req.body;
-    const driverId = req.user.userId;
+    const driverId = resolveTokenUserId(req.user);
     if (!bookingId) {
       return res.status(400).json({ message: "bookingId is required" });
+    }
+    if (!driverId) {
+      return res.status(401).json({ message: "Invalid token payload" });
     }
 
     const assignment = await redis.get(`assignment:${bookingId}`);
@@ -95,7 +102,8 @@ async function acceptRide(req, res) {
     }
 
     const parsed = JSON.parse(assignment);
-    if (parsed.driverId !== driverId) {
+    const assignedDriverId = parsed.driverId || parsed.driver_id || null;
+    if (!assignedDriverId || String(assignedDriverId) !== String(driverId)) {
       return res.status(403).json({ message: "Not your assignment" });
     }
 

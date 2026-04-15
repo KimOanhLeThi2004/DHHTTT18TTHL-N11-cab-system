@@ -42,6 +42,47 @@ async function getDriverInfo(driverId, serviceJwt) {
   return res.data;
 }
 
+function buildUserFallback(userId) {
+  return {
+    id: userId,
+    name: "Unknown user",
+    phone: null,
+  };
+}
+
+function buildDriverFallback(driverId) {
+  return {
+    id: driverId,
+    name: "Unknown driver",
+    phone: null,
+    vehicleType: null,
+  };
+}
+
+async function getUserInfoSafe(userId, serviceJwt) {
+  try {
+    return await getUserInfo(userId, serviceJwt);
+  } catch (err) {
+    if (err?.response?.status === 404) {
+      console.warn(`User ${userId} not found, fallback profile will be used`);
+      return buildUserFallback(userId);
+    }
+    throw err;
+  }
+}
+
+async function getDriverInfoSafe(driverId, serviceJwt) {
+  try {
+    return await getDriverInfo(driverId, serviceJwt);
+  } catch (err) {
+    if (err?.response?.status === 404) {
+      console.warn(`Driver ${driverId} not found, fallback profile will be used`);
+      return buildDriverFallback(driverId);
+    }
+    throw err;
+  }
+}
+
 async function startBookingConfirmedConsumer() {
   await consumer.connect();
   await initProducer();
@@ -52,6 +93,10 @@ async function startBookingConfirmedConsumer() {
       try {
         const event = JSON.parse(message.value.toString());
         const { bookingId, userId, driverId, pickup, dropoff, estimatedPrice, confirmedAt } = event;
+        if (!bookingId || !userId || !driverId) {
+          console.warn("booking.confirmed missing ids:", event);
+          return;
+        }
 
         const existed = await Ride.findOne({ bookingId });
         if (existed) {
@@ -60,22 +105,22 @@ async function startBookingConfirmedConsumer() {
 
         const serviceJwt = signServiceJwt();
         const [user, driver] = await Promise.all([
-          getUserInfo(userId, serviceJwt),
-          getDriverInfo(driverId, serviceJwt),
+          getUserInfoSafe(userId, serviceJwt),
+          getDriverInfoSafe(driverId, serviceJwt),
         ]);
 
         const ride = await Ride.create({
           bookingId,
           user: {
             id: userId,
-            name: user.name,
-            phone: user.phone,
+            name: user.name || "Unknown user",
+            phone: user.phone || null,
           },
           driver: {
             id: driverId,
-            name: driver.name,
-            phone: driver.phone,
-            vehicleType: driver.vehicleType,
+            name: driver.name || "Unknown driver",
+            phone: driver.phone || null,
+            vehicleType: driver.vehicleType || null,
           },
           pickup,
           dropoff,

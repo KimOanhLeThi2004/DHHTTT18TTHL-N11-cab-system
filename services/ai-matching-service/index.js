@@ -235,6 +235,7 @@ async function startKafka() {
         if (topic === "ride_events" && data.event_type === "ride_requested") {
           await handleTripMessage({
             bookingId: data.booking_id,
+            userId: data.user_id,
             pickup: data.pickup,
             dropoff: data.dropoff,
             vehicleType: data.vehicle_type,

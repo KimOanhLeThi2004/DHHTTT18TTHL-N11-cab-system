@@ -1,0 +1,251 @@
+name: CI-CD
+
+on:
+  pull_request:
+    branches: ["main", "develop"]
+  push:
+    branches: ["main", "develop"]
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+env:
+  NODE_VERSION: "20"
+  REGISTRY: docker.io
+  IMAGE_NAMESPACE: ${{ vars.DOCKERHUB_NAMESPACE || secrets.DOCKERHUB_USERNAME }}
+  VITE_API_URL: ${{ vars.VITE_API_URL || 'http://localhost:3000' }}
+
+jobs:
+  test:
+    name: Test ${{ matrix.name }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: api-gateway
+            path: api-gateway
+          - name: cab-ui
+            path: cab-ui
+          - name: ai-matching-service
+            path: services/ai-matching-service
+          - name: auth-service
+            path: services/auth-service
+          - name: booking-service
+            path: services/booking-service
+          - name: driver-service
+            path: services/driver-service
+          - name: notification-service
+            path: services/notification-service
+          - name: payment-service
+            path: services/payment-service
+          - name: pricing-service
+            path: services/pricing-service
+          - name: review-service
+            path: services/review-service
+          - name: ride-service
+            path: services/ride-service
+          - name: user-service
+            path: services/user-service
+    defaults:
+      run:
+        working-directory: ${{ matrix.path }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: ${{ matrix.path }}/package-lock.json
+
+      - name: Install dependencies
+        run: |
+          if [ -f package-lock.json ]; then
+            npm ci
+          else
+            npm install
+          fi
+
+      - name: Lint (if present)
+        run: npm run lint --if-present
+
+      - name: Unit test (if present)
+        run: npm test --if-present
+
+      - name: Build (if present)
+        run: npm run build --if-present
+
+  validate-compose:
+    name: Validate Docker Compose
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Compose config check
+        run: docker compose -f docker-compose.yml config > /dev/null
+
+  docker-build-check:
+    name: Docker build check ${{ matrix.image }}
+    runs-on: ubuntu-latest
+    needs: [test, validate-compose]
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - image: api-gateway
+            context: ./api-gateway
+            dockerfile: ./api-gateway/Dockerfile
+          - image: cab-ui
+            context: ./cab-ui
+            dockerfile: ./cab-ui/Dockerfile
+          - image: auth-service
+            context: ./services/auth-service
+            dockerfile: ./services/auth-service/Dockerfile
+          - image: user-service
+            context: ./services/user-service
+            dockerfile: ./services/user-service/Dockerfile
+          - image: booking-service
+            context: ./services/booking-service
+            dockerfile: ./services/booking-service/Dockerfile
+          - image: driver-service
+            context: ./services/driver-service
+            dockerfile: ./services/driver-service/Dockerfile
+          - image: payment-service
+            context: ./services/payment-service
+            dockerfile: ./services/payment-service/Dockerfile
+          - image: pricing-service
+            context: ./services/pricing-service
+            dockerfile: ./services/pricing-service/Dockerfile
+          - image: review-service
+            context: ./services/review-service
+            dockerfile: ./services/review-service/Dockerfile
+          - image: ride-service
+            context: ./services/ride-service
+            dockerfile: ./services/ride-service/Dockerfile
+          - image: notification-service
+            context: ./services/notification-service
+            dockerfile: ./services/notification-service/Dockerfile
+          - image: ai-matching-service
+            context: ./services/ai-matching-service
+            dockerfile: ./services/ai-matching-service/Dockerfile
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build image (cab-ui)
+        if: matrix.image == 'cab-ui'
+        uses: docker/build-push-action@v6
+        with:
+          context: ${{ matrix.context }}
+          file: ${{ matrix.dockerfile }}
+          push: false
+          tags: local/${{ matrix.image }}:ci-${{ github.sha }}
+          build-args: |
+            VITE_API_URL=${{ env.VITE_API_URL }}
+
+      - name: Build image (backend services)
+        if: matrix.image != 'cab-ui'
+        uses: docker/build-push-action@v6
+        with:
+          context: ${{ matrix.context }}
+          file: ${{ matrix.dockerfile }}
+          push: false
+          tags: local/${{ matrix.image }}:ci-${{ github.sha }}
+
+  docker-push:
+    name: Docker push ${{ matrix.image }}
+    runs-on: ubuntu-latest
+    needs: [docker-build-check]
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v'))
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - image: api-gateway
+            context: ./api-gateway
+            dockerfile: ./api-gateway/Dockerfile
+          - image: cab-ui
+            context: ./cab-ui
+            dockerfile: ./cab-ui/Dockerfile
+          - image: auth-service
+            context: ./services/auth-service
+            dockerfile: ./services/auth-service/Dockerfile
+          - image: user-service
+            context: ./services/user-service
+            dockerfile: ./services/user-service/Dockerfile
+          - image: booking-service
+            context: ./services/booking-service
+            dockerfile: ./services/booking-service/Dockerfile
+          - image: driver-service
+            context: ./services/driver-service
+            dockerfile: ./services/driver-service/Dockerfile
+          - image: payment-service
+            context: ./services/payment-service
+            dockerfile: ./services/payment-service/Dockerfile
+          - image: pricing-service
+            context: ./services/pricing-service
+            dockerfile: ./services/pricing-service/Dockerfile
+          - image: review-service
+            context: ./services/review-service
+            dockerfile: ./services/review-service/Dockerfile
+          - image: ride-service
+            context: ./services/ride-service
+            dockerfile: ./services/ride-service/Dockerfile
+          - image: notification-service
+            context: ./services/notification-service
+            dockerfile: ./services/notification-service/Dockerfile
+          - image: ai-matching-service
+            context: ./services/ai-matching-service
+            dockerfile: ./services/ai-matching-service/Dockerfile
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Docker metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAMESPACE }}/${{ matrix.image }}
+          tags: |
+            type=raw,value=latest,enable={{is_default_branch}}
+            type=ref,event=tag
+            type=ref,event=branch
+            type=sha,prefix=sha-
+
+      - name: Build and push (cab-ui)
+        if: matrix.image == 'cab-ui'
+        uses: docker/build-push-action@v6
+        with:
+          context: ${{ matrix.context }}
+          file: ${{ matrix.dockerfile }}
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            VITE_API_URL=${{ env.VITE_API_URL }}
+
+      - name: Build and push (backend services)
+        if: matrix.image != 'cab-ui'
+        uses: docker/build-push-action@v6
+        with:
+          context: ${{ matrix.context }}
+          file: ${{ matrix.dockerfile }}
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
