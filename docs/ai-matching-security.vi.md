@@ -13,7 +13,8 @@ Service su dung model LLM qua Ollama:
 
 - Service: `ai-matching-service`
 - Model mac dinh: `qwen2.5:3b`
-- Base URL: `http://ollama:11434`
+- Ket noi model qua MCP (`ollama.generate` tool)
+- Ollama Base URL (duoc MCP bridge goi): `http://ollama:11434`
 - Timeout: `OLLAMA_TIMEOUT_MS` (mac dinh hien tai: `15000`)
 - Toggle: `OLLAMA_ENABLED=true|false`
 
@@ -30,15 +31,16 @@ Luong tong quan:
 3. Service tinh diem candidate va tao prompt chua:
    - booking context
    - danh sach candidate driver
-4. Service goi Ollama:
+4. Service goi MCP tool (`tools/call`) den `ollama.generate`.
+5. MCP bridge goi Ollama:
    - `POST {OLLAMA_BASE_URL}/api/generate`
    - `stream: false`
    - `format: "json"`
-5. Ollama tra JSON chua `driverId` + `reason`.
-6. Service validate `driverId`:
+6. Ollama tra JSON chua `driverId` + `reason`.
+7. Service validate `driverId`:
    - phai ton tai trong candidate list
    - neu khong hop le/timeout/error -> fallback sang rule-based.
-7. Service phat `driver.assigned.requested` voi metadata:
+8. Service phat `driver.assigned.requested` voi metadata:
    - `selectionMode: "ollama"` hoac `"rules"`
    - `selectionReason`
 
@@ -78,9 +80,13 @@ Backend:
 1. Xac nhan cookie co `HttpOnly=true` trong browser devtools.
 2. Xac nhan khong con key JWT trong `localStorage`.
 3. Xac nhan `OLLAMA_MODEL`, `OLLAMA_BASE_URL`, `OLLAMA_TIMEOUT_MS` dung moi truong.
-4. Theo doi log `ai-matching-service`:
-   - neu thay `Ollama selection failed` lien tuc -> kiem tra timeout/model warmup.
-5. Theo doi metrics:
+4. Xac nhan MCP env:
+   - `OLLAMA_MCP_ENABLED`
+   - `OLLAMA_MCP_COMMAND`
+   - `OLLAMA_MCP_ARGS`
+   - `OLLAMA_MCP_TOOL`
+5. Theo doi log `ai-matching-service`:
+   - neu thay `Ollama MCP selection failed` lien tuc -> kiem tra mcp bridge/model warmup.
+6. Theo doi metrics:
    - `ai_preferred_matches`
    - `rule_fallback_matches`
-

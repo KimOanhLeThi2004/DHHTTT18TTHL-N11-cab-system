@@ -2,10 +2,12 @@ const { createServer } = require("./mtls");
 const { consumer, producer } = require("./kafka");
 const { findNearbyDrivers, reserveDriver } = require("./driverRepository");
 const calculateScore = require("./scoring");
-const axios = require("axios");
+const { callOllamaGenerateViaMcp } = require("./ollamaMcpClient");
 
 const port = Number(process.env.PORT || 3010);
 const OLLAMA_ENABLED = process.env.OLLAMA_ENABLED !== "false";
+const OLLAMA_MCP_ENABLED = process.env.OLLAMA_MCP_ENABLED !== "false";
+const OLLAMA_MCP_TOOL = process.env.OLLAMA_MCP_TOOL || "ollama.generate";
 const OLLAMA_BASE_URL = process.env.OLLAMA_BASE_URL || "http://ollama:11434";
 const OLLAMA_MODEL = process.env.OLLAMA_MODEL || "qwen2.5:3b";
 const OLLAMA_TIMEOUT_MS = Math.max(100, Number(process.env.OLLAMA_TIMEOUT_MS || 15000));
@@ -100,7 +102,7 @@ function reorderDriversByPreferredId(drivers = [], preferredId) {
 }
 
 async function selectDriverWithOllama(trip, scoredDrivers = []) {
-  if (!OLLAMA_ENABLED || !scoredDrivers.length) {
+  if (!OLLAMA_ENABLED || !OLLAMA_MCP_ENABLED || !scoredDrivers.length) {
     return null;
   }
 
@@ -130,22 +132,17 @@ async function selectDriverWithOllama(trip, scoredDrivers = []) {
   ].join("\n");
 
   try {
-    const response = await axios.post(
-      `${OLLAMA_BASE_URL}/api/generate`,
-      {
-        model: OLLAMA_MODEL,
-        prompt,
-        stream: false,
-        format: "json",
-        options: {
-          temperature: 0,
-          top_p: 0.9,
-        },
+    const raw = await callOllamaGenerateViaMcp({
+      prompt,
+      model: OLLAMA_MODEL,
+      format: "json",
+      options: {
+        temperature: 0,
+        top_p: 0.9,
       },
-      { timeout: OLLAMA_TIMEOUT_MS }
-    );
-
-    const raw = response?.data?.response;
+      timeoutMs: OLLAMA_TIMEOUT_MS,
+      toolName: OLLAMA_MCP_TOOL,
+    });
     if (!raw || typeof raw !== "string") return null;
 
     let parsed = null;
@@ -166,8 +163,8 @@ async function selectDriverWithOllama(trip, scoredDrivers = []) {
       reason: parsed.reason || "selected_by_ollama",
     };
   } catch (err) {
-    const msg = err?.response?.data?.error || err.message || "unknown_ollama_error";
-    console.warn("Ollama selection failed:", msg);
+    const msg = err?.message || "unknown_ollama_error";
+    console.warn("Ollama MCP selection failed:", msg);
     return null;
   }
 }
@@ -260,8 +257,11 @@ async function handleHttp(req, res) {
         eta_model_version: "eta-v1",
         pricing_model_version: "pricing-v2",
         fraud_model_version: "fraud-v1",
-        llm_provider: OLLAMA_ENABLED ? "ollama" : "disabled",
+        llm_provider: OLLAMA_ENABLED && OLLAMA_MCP_ENABLED ? "mcp" : "disabled",
+        ollama_transport: OLLAMA_ENABLED && OLLAMA_MCP_ENABLED ? "mcp" : "disabled",
+        ollama_base_url: OLLAMA_BASE_URL,
         ollama_model: OLLAMA_MODEL,
+        ollama_mcp_tool: OLLAMA_MCP_TOOL,
       });
     }
 
