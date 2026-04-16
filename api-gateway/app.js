@@ -134,6 +134,7 @@ const proxyTo = (target, options = {}) => {
   const proxyConfig = {
     target: toInternalUrl(target),
     changeOrigin: true,
+    ws: options.ws === true,
     pathRewrite: options.stripPrefix
       ? (path) => {
           if (!path.startsWith(options.stripPrefix)) {
@@ -176,6 +177,8 @@ const proxyTo = (target, options = {}) => {
 app.use("/booking", authMiddleware, bookingRoute);
 
 // Proxy routes
+app.use("/ws/drivers", proxyTo(DRIVER_SERVICE_URL, { stripPrefix: "/ws/drivers", ws: true }));
+app.use("/ws/notifications", proxyTo(NOTIFICATION_SERVICE_URL, { stripPrefix: "/ws/notifications", ws: true }));
 app.use("/auth", proxyTo(AUTH_SERVICE_URL));
 app.use("/users", proxyTo(USER_SERVICE_URL));
 app.use("/drivers", proxyTo(DRIVER_SERVICE_URL));

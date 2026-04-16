@@ -10,6 +10,7 @@ import {
   getMe,
   getDriverLocation
 } from "../../src/api/api";
+import { resolveGatewayWsUrl } from "../utils/runtime";
 
 export default function Home() {
   const [rideId, setRideId] = useState(null);
@@ -75,7 +76,7 @@ export default function Home() {
   // Open WebSocket when having booking
   useEffect(() => {
     if (!me?.id) return;
-    const ws = new WebSocket("ws://localhost:3008");
+    const ws = new WebSocket(resolveGatewayWsUrl("/ws/notifications"));
     wsRef.current = ws;
 
     ws.onopen = () => {

@@ -17,6 +17,7 @@ import {
   logout,
 } from "../api/api";
 import { getRouteInfo, reverseGeocode } from "../../services/osrm";
+import { canUseBrowserGeolocation, resolveGatewayWsUrl } from "../utils/runtime";
 
 const driverIcon = new L.Icon({
   iconRetinaUrl: "/marker-icon-2x.png",
@@ -169,7 +170,7 @@ export default function DriverDashboard() {
     loadDriver();
     if (wsRef.current) return;
 
-    const ws = new WebSocket("ws://localhost:3005");
+    const ws = new WebSocket(resolveGatewayWsUrl("/ws/drivers"));
     wsRef.current = ws;
 
     ws.onopen = () => {
@@ -298,6 +299,10 @@ export default function DriverDashboard() {
     }
 
     if (watchIdRef.current) return;
+    if (!canUseBrowserGeolocation()) {
+      alert("GPS chi hoat dong tren HTTPS hoac localhost.");
+      return;
+    }
 
     watchIdRef.current = navigator.geolocation.watchPosition(
       (pos) => {
@@ -308,7 +313,9 @@ export default function DriverDashboard() {
         setStatus("ONLINE");
         sendGPS(lat, lng, vehicleType);
       },
-      console.error,
+      (err) => {
+        console.error("watchPosition error:", err);
+      },
       { enableHighAccuracy: true }
     );
   };

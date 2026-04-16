@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import AutocompleteInput from "./AutocompleteInput";
 import { getMe, logout } from "../api/api";
+import { canUseBrowserGeolocation } from "../utils/runtime";
 
 export default function Navbar({ onSearch }) {
   const [fromPos, setFromPos] = useState(null);
@@ -40,7 +41,7 @@ export default function Navbar({ onSearch }) {
   }, []);
 
   useEffect(() => {
-    if (!navigator.geolocation) return;
+    if (!canUseBrowserGeolocation()) return;
 
     navigator.geolocation.getCurrentPosition(
       async (pos) => {

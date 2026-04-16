@@ -1,7 +1,8 @@
-import { MapContainer, TileLayer, Marker, useMap } from "react-leaflet";
+﻿import { MapContainer, TileLayer, Marker, useMap } from "react-leaflet";
 import { useEffect, useState } from "react";
 import L from "leaflet";
 import "leaflet-routing-machine";
+import { canUseBrowserGeolocation } from "../utils/runtime";
 
 const customerIcon = new L.Icon({
   iconRetinaUrl: "/marker-icon-2x.png",
@@ -19,23 +20,21 @@ const driverIcon = new L.Icon({
   iconAnchor: [12, 41],
 });
 
+const FALLBACK_CENTER = { lat: 10.7769, lng: 106.7009 };
+
 function Routing({ from, to, vehicle }) {
   const map = useMap();
 
   useEffect(() => {
     if (!from || !to) return;
 
-    // ❗ BẮT BUỘC phải dùng base URL, KHÔNG tự gắn /car hay /bike
     const router = L.Routing.osrmv1({
       serviceUrl: "https://router.project-osrm.org/route/v1",
       profile: vehicle === "motorbike" ? "bike" : "car",
     });
 
     const routingControl = L.Routing.control({
-      waypoints: [
-        L.latLng(from.lat, from.lng),
-        L.latLng(to.lat, to.lng),
-      ],
+      waypoints: [L.latLng(from.lat, from.lng), L.latLng(to.lat, to.lng)],
       router,
       show: false,
       addWaypoints: false,
@@ -61,9 +60,13 @@ function Routing({ from, to, vehicle }) {
 }
 
 export default function MapView({ from, to, vehicle, driverPosition }) {
-  const [currentPos, setCurrentPos] = useState(null);
+  const [currentPos, setCurrentPos] = useState(() =>
+    canUseBrowserGeolocation() ? null : FALLBACK_CENTER
+  );
 
   useEffect(() => {
+    if (!canUseBrowserGeolocation()) return;
+
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         setCurrentPos({
@@ -71,33 +74,22 @@ export default function MapView({ from, to, vehicle, driverPosition }) {
           lng: pos.coords.longitude,
         });
       },
-      (err) => {
-        console.error("Geolocation error:", err);
-        alert("Bạn chưa cấp quyền truy cập vị trí");
+      () => {
+        setCurrentPos(FALLBACK_CENTER);
       },
       { enableHighAccuracy: true }
     );
   }, []);
 
   if (!currentPos) {
-    return <div className="h-full flex items-center justify-center">Đang lấy vị trí...</div>;
+    return <div className="h-full flex items-center justify-center">Dang lay vi tri...</div>;
   }
 
   return (
-    <MapContainer
-      center={[currentPos.lat, currentPos.lng]}
-      zoom={14}
-      className="h-full w-full rounded-lg"
-    >
+    <MapContainer center={[currentPos.lat, currentPos.lng]} zoom={14} className="h-full w-full rounded-lg">
       <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
       <Marker position={[currentPos.lat, currentPos.lng]} icon={customerIcon} />
-      {driverPosition && (
-        <Marker
-          position={[driverPosition.lat, driverPosition.lng]}
-          icon={driverIcon}
-        />
-      )}
-
+      {driverPosition && <Marker position={[driverPosition.lat, driverPosition.lng]} icon={driverIcon} />}
       {from && to && <Routing from={from} to={to} vehicle={vehicle} />}
     </MapContainer>
   );
