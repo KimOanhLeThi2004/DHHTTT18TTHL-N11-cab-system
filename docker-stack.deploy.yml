@@ -1,0 +1,267 @@
+version: "3.9"
+
+x-default-deploy: &default-deploy
+  replicas: 1
+  restart_policy:
+    condition: on-failure
+    delay: 5s
+    max_attempts: 3
+    window: 120s
+
+services:
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - cab-network
+    deploy: *default-deploy
+
+  mongo:
+    image: mongo:7
+    volumes:
+      - mongo-data:/data/db
+    networks:
+      - cab-network
+    deploy: *default-deploy
+
+  kafka:
+    image: apache/kafka:4.2.0-rc2
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_LISTENERS: INTERNAL://0.0.0.0:29092,CONTROLLER://0.0.0.0:9093
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka:29092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL:PLAINTEXT,CONTROLLER:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_LOG_DIRS: /var/lib/kafka/data
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+    volumes:
+      - kafka-data:/var/lib/kafka/data
+    networks:
+      - cab-network
+    deploy: *default-deploy
+
+  redis:
+    image: redis:7-alpine
+    networks:
+      - cab-network
+    deploy: *default-deploy
+
+  ollama:
+    image: ollama/ollama:latest
+    volumes:
+      - ollama-data:/root/.ollama
+    networks:
+      - cab-network
+    deploy: *default-deploy
+
+  auth-service:
+    image: docker.io/kietlu/auth-service:${IMAGE_TAG:-latest}
+    environment:
+      PORT: 3001
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: postgres
+      DB_USER: postgres
+      DB_PASS: postgres
+      JWT_SECRET: secret_key
+      JWT_EXPIRES: 1h
+      SERVICE_JWT_SECRET: ride-service
+      USER_SERVICE_URL: http://user-service:3002
+      DRIVER_SERVICE_URL: http://driver-service:3005
+      MTLS_ENABLED: "false"
+    networks:
+      - cab-network
+    deploy: *default-deploy
+
+  user-service:
+    image: docker.io/kietlu/user-service:${IMAGE_TAG:-latest}
+    environment:
+      PORT: 3002
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: postgres
+      DB_USER: postgres
+      DB_PASS: postgres
+      JWT_SECRET: secret_key
+      SERVICE_JWT_SECRET: ride-service
+      MTLS_ENABLED: "false"
+    networks:
+      - cab-network
+    deploy: *default-deploy
+
+  pricing-service:
+    image: docker.io/kietlu/pricing-service:${IMAGE_TAG:-latest}
+    environment:
+      INTERNAL_JWT_SECRET: api-gateway
+      MTLS_ENABLED: "false"
+    networks:
+      - cab-network
+    deploy: *default-deploy
+
+  booking-service:
+    image: docker.io/kietlu/booking-service:${IMAGE_TAG:-latest}
+    environment:
+      PORT: 3004
+      MONGO_URI: mongodb://mongo:27017/booking_db
+      PRICING_SERVICE_URL: http://pricing-service:3003
+      KAFKA_BROKERS: kafka:29092
+      JWT_SECRET: secret_key
+      MTLS_ENABLED: "false"
+    networks:
+      - cab-network
+    deploy: *default-deploy
+
+  driver-service:
+    image: docker.io/kietlu/driver-service:${IMAGE_TAG:-latest}
+    environment:
+      PORT: 3005
+      POSTGRES_URL: postgres://postgres:postgres@postgres:5432/postgres
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      KAFKA_BROKER: kafka:29092
+      SERVICE_JWT_SECRET: ride-service
+      JWT_SECRET: secret_key
+      MTLS_ENABLED: "false"
+    networks:
+      - cab-network
+    deploy: *default-deploy
+
+  payment-service:
+    image: docker.io/kietlu/payment-service:${IMAGE_TAG:-latest}
+    environment:
+      PORT: 3006
+      POSTGRES_URL: postgres://postgres:postgres@postgres:5432/postgres
+      KAFKA_BROKER: kafka:29092
+      KAFKA_CLIENT_ID: payment-service
+      JWT_SECRET: secret_key
+      INTERNAL_JWT_SECRET: api-gateway
+      RIDE_SERVICE_URL: http://ride-service:3007
+      MTLS_ENABLED: "false"
+    networks:
+      - cab-network
+    deploy: *default-deploy
+
+  ride-service:
+    image: docker.io/kietlu/ride-service:${IMAGE_TAG:-latest}
+    environment:
+      PORT: 3007
+      MONGO_URI: mongodb://mongo:27017/ride_db
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      KAFKA_BROKER: kafka:29092
+      KAFKA_CLIENT_ID: ride-service
+      SERVICE_JWT_SECRET: ride-service
+      INTERNAL_JWT_SECRET: api-gateway
+      USER_SERVICE_URL: http://user-service:3002
+      DRIVER_SERVICE_URL: http://driver-service:3005
+      MTLS_ENABLED: "false"
+    networks:
+      - cab-network
+    deploy: *default-deploy
+
+  notification-service:
+    image: docker.io/kietlu/notification-service:${IMAGE_TAG:-latest}
+    environment:
+      PORT: 3008
+      MONGO_URI: mongodb://mongo:27017/notification_db
+      KAFKA_BROKER: kafka:29092
+      JWT_SECRET: ride-service
+      JWT_SECRETKEY: secret_key
+      MTLS_ENABLED: "false"
+    networks:
+      - cab-network
+    deploy: *default-deploy
+
+  review-service:
+    image: docker.io/kietlu/review-service:${IMAGE_TAG:-latest}
+    environment:
+      PORT: 3009
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: postgres
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      MTLS_ENABLED: "false"
+    networks:
+      - cab-network
+    deploy: *default-deploy
+
+  ai-matching-service:
+    image: docker.io/kietlu/ai-matching-service:${IMAGE_TAG:-latest}
+    environment:
+      PORT: 3010
+      KAFKA_BROKERS: kafka:29092
+      REDIS_URL: redis://redis:6379
+      FRAUD_THRESHOLD: 0.7
+      OLLAMA_ENABLED: "true"
+      OLLAMA_MCP_ENABLED: "true"
+      OLLAMA_MCP_COMMAND: node
+      OLLAMA_MCP_ARGS: "[\"./ollamaMcpServer.js\"]"
+      OLLAMA_MCP_TOOL: ollama.generate
+      OLLAMA_BASE_URL: http://ollama:11434
+      OLLAMA_MODEL: qwen2.5:3b
+      OLLAMA_TIMEOUT_MS: 15000
+      OLLAMA_MAX_CANDIDATES: 8
+      MTLS_ENABLED: "false"
+    networks:
+      - cab-network
+    deploy: *default-deploy
+
+  api-gateway:
+    image: docker.io/kietlu/api-gateway:${IMAGE_TAG:-latest}
+    environment:
+      PORT: 3000
+      INTERNAL_JWT_SECRET: api-gateway
+      AUTH_SERVICE_URL: http://auth-service:3001
+      USER_SERVICE_URL: http://user-service:3002
+      PRICING_SERVICE_URL: http://pricing-service:3003
+      BOOKING_SERVICE_URL: http://booking-service:3004
+      DRIVER_SERVICE_URL: http://driver-service:3005
+      RIDE_SERVICE_URL: http://ride-service:3007
+      PAYMENT_SERVICE_URL: http://payment-service:3006
+      REVIEW_SERVICE_URL: http://review-service:3009
+      NOTIFICATION_SERVICE_URL: http://notification-service:3008
+      AI_SERVICE_URL: http://ai-matching-service:3010
+      CORS_ORIGIN: "*"
+      MTLS_ENABLED: "false"
+    ports:
+      - target: 3000
+        published: 3000
+        protocol: tcp
+        mode: ingress
+    networks:
+      - cab-network
+    deploy: *default-deploy
+
+  cab-ui:
+    image: docker.io/kietlu/cab-ui:${IMAGE_TAG:-latest}
+    ports:
+      - target: 80
+        published: 5173
+        protocol: tcp
+        mode: ingress
+    networks:
+      - cab-network
+    deploy: *default-deploy
+
+networks:
+  cab-network:
+    driver: overlay
+    attachable: true
+
+volumes:
+  postgres-data:
+  mongo-data:
+  kafka-data:
+  ollama-data:

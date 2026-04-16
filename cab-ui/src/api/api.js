@@ -1,6 +1,35 @@
 import axios from "axios";
 
-const baseURL = (import.meta.env.VITE_API_URL || "http://api-gateway:3000").replace(/\/$/, "");
+function trimTrailingSlash(value = "") {
+  return String(value).replace(/\/$/, "");
+}
+
+function isLoopbackHost(hostname = "") {
+  return hostname === "localhost" || hostname === "127.0.0.1";
+}
+
+function resolveApiBaseUrl() {
+  const rawEnvUrl = trimTrailingSlash(import.meta.env.VITE_API_URL || "");
+  if (rawEnvUrl) {
+    try {
+      const parsed = new URL(rawEnvUrl);
+      if (typeof window !== "undefined" && isLoopbackHost(parsed.hostname) && !isLoopbackHost(window.location.hostname)) {
+        return `${window.location.protocol}//${window.location.hostname}:3000`;
+      }
+      return rawEnvUrl;
+    } catch (_) {
+      return rawEnvUrl;
+    }
+  }
+
+  if (typeof window !== "undefined") {
+    return `${window.location.protocol}//${window.location.hostname}:3000`;
+  }
+
+  return "http://api-gateway:3000";
+}
+
+const baseURL = resolveApiBaseUrl();
 function purgeLegacyTokenStorage() {
   if (typeof window === "undefined") return;
   window.localStorage.removeItem("cab_access_token");
