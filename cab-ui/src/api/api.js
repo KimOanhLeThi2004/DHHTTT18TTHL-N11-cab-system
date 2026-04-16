@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const baseURL = (import.meta.env.VITE_API_URL || "http://localhost:3000").replace(/\/$/, "");
+const baseURL = (import.meta.env.VITE_API_URL || "http://api-gateway:3000").replace(/\/$/, "");
 function purgeLegacyTokenStorage() {
   if (typeof window === "undefined") return;
   window.localStorage.removeItem("cab_access_token");

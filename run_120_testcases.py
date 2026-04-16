@@ -11,7 +11,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass
 from pathlib import Path
 
-API_BASE = os.getenv("API_BASE_URL", "http://localhost:3000").rstrip("/")
+API_BASE = os.getenv("API_BASE_URL", "http://192.168.57.101:3000").rstrip("/")
 ROOT = Path(__file__).resolve().parent
 
 
