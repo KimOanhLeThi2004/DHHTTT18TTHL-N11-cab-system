@@ -16,7 +16,7 @@ env:
   IMAGE_NAMESPACE: kietlu
   VITE_API_URL: ${{ vars.VITE_API_URL || 'http://localhost:3000' }}
   STACK_NAME: taxi-booking
-  STACK_FILE: docker-stack.yml
+
 
 jobs:
   test:
@@ -105,8 +105,7 @@ jobs:
       - name: Compose config check
         run: docker compose -f docker-compose.yml config > /dev/null
 
-      - name: Stack config check
-        run: docker compose -f ${{ env.STACK_FILE }} config > /dev/null
+
 
   docker-build-check:
     name: Docker build check ${{ matrix.image }}
