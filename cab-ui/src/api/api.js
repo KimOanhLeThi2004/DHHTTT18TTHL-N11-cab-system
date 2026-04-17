@@ -2,11 +2,33 @@ import axios from "axios";
 import { resolveApiBaseUrl } from "../utils/runtime";
 
 const baseURL = resolveApiBaseUrl();
+const SESSION_ACCESS_TOKEN_KEY = "cab_access_token_session";
+
+let accessTokenCache = null;
+
 function purgeLegacyTokenStorage() {
   if (typeof window === "undefined") return;
   window.localStorage.removeItem("cab_access_token");
   window.localStorage.removeItem("cab_access_token_customer");
   window.localStorage.removeItem("cab_access_token_driver");
+}
+
+function readSessionAccessToken() {
+  if (typeof window === "undefined") return null;
+  return window.sessionStorage.getItem(SESSION_ACCESS_TOKEN_KEY);
+}
+
+function writeSessionAccessToken(token) {
+  if (typeof window === "undefined") return;
+  if (!token) {
+    window.sessionStorage.removeItem(SESSION_ACCESS_TOKEN_KEY);
+    return;
+  }
+  window.sessionStorage.setItem(SESSION_ACCESS_TOKEN_KEY, token);
+}
+
+function extractAccessToken(payload = {}) {
+  return payload.accessToken || payload.access_token || payload.token || null;
 }
 
 const api = axios.create({
@@ -19,10 +41,44 @@ const api = axios.create({
 });
 
 purgeLegacyTokenStorage();
+accessTokenCache = readSessionAccessToken();
+
+if (accessTokenCache) {
+  api.defaults.headers.common.Authorization = `Bearer ${accessTokenCache}`;
+}
+
+function setAccessToken(token) {
+  accessTokenCache = token || null;
+  writeSessionAccessToken(accessTokenCache);
+
+  if (accessTokenCache) {
+    api.defaults.headers.common.Authorization = `Bearer ${accessTokenCache}`;
+  } else {
+    delete api.defaults.headers.common.Authorization;
+  }
+}
+
+api.interceptors.request.use((config) => {
+  const token = accessTokenCache || readSessionAccessToken();
+  if (!token) return config;
+
+  const nextConfig = { ...config };
+  nextConfig.headers = nextConfig.headers || {};
+  if (!nextConfig.headers.Authorization && !nextConfig.headers.authorization) {
+    nextConfig.headers.Authorization = `Bearer ${token}`;
+  }
+  return nextConfig;
+});
 
 // -------- AUTH --------
-export const login = (email, password, role) =>
-  api.post("/auth/login", { email, password, role });
+export const login = async (email, password, role) => {
+  const response = await api.post("/auth/login", { email, password, role });
+  const token = extractAccessToken(response?.data);
+  if (token) {
+    setAccessToken(token);
+  }
+  return response;
+};
 
 export const register = (data) =>
   api.post("/auth/register", data);
@@ -31,6 +87,7 @@ export const logout = async () => {
   try {
     return await api.post("/auth/logout");
   } finally {
+    setAccessToken(null);
     purgeLegacyTokenStorage();
   }
 };

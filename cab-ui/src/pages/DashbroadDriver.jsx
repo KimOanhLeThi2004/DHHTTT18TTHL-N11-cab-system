@@ -192,24 +192,27 @@ export default function DriverDashboard() {
           return;
         }
 
+        const pickup = msg.data?.pickup || {};
+        const dropoff = msg.data?.dropoff || {};
+
         const route = await getRouteInfo(
-          msg.data.pickup,
-          msg.data.dropoff,
+          pickup,
+          dropoff,
           "car"
         );
 
-        const pickupAddress = await reverseGeocode(
-          msg.data.pickup.lat,
-          msg.data.pickup.lng
-        );
+        const pickupAddress =
+          pickup.address ||
+          (await reverseGeocode(pickup.lat, pickup.lng));
 
-        const dropoffAddress = await reverseGeocode(
-          msg.data.dropoff.lat,
-          msg.data.dropoff.lng
-        );
+        const dropoffAddress =
+          dropoff.address ||
+          (await reverseGeocode(dropoff.lat, dropoff.lng));
 
         setOrder({
           ...msg.data,
+          pickup,
+          dropoff,
           driverId: assignedDriverId,
           pickupAddress,
           dropoffAddress,

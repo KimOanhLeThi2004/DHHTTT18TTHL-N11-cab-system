@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import AutocompleteInput from "./AutocompleteInput";
 import { getMe, logout } from "../api/api";
 import { canUseBrowserGeolocation } from "../utils/runtime";
+import { reverseGeocode } from "../../services/osrm";
 
 export default function Navbar({ onSearch }) {
   const [fromPos, setFromPos] = useState(null);
@@ -45,17 +46,14 @@ export default function Navbar({ onSearch }) {
 
     navigator.geolocation.getCurrentPosition(
       async (pos) => {
+        const lat = pos.coords.latitude;
+        const lng = pos.coords.longitude;
+        setFromPos({ lat, lng, address: "" });
+
         try {
-          const lat = pos.coords.latitude;
-          const lng = pos.coords.longitude;
-
-          const res = await fetch(
-            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`
-          );
-          const data = await res.json();
-
-          setFromText(data.display_name || "Vi tri hien tai");
-          setFromPos({ lat, lng });
+          const address = await reverseGeocode(lat, lng);
+          setFromText(address || "Vi tri hien tai");
+          setFromPos({ lat, lng, address });
         } catch {
           // Ignore geocode failure.
         }

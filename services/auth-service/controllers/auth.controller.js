@@ -265,6 +265,11 @@ exports.login = async (req, res) => {
       role: credential.role,
       user_id: credential.userId,
       userId: credential.userId,
+      token: accessToken,
+      accessToken,
+      access_token: accessToken,
+      refreshToken,
+      refresh_token: refreshToken,
     });
   } catch (err) {
     console.error("Login error:", err.message);

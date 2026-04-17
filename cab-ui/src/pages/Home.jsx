@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import Navbar from "../components/Navbar";
 import MapView from "../components/MapView";
-import { getRouteInfo } from "../../services/osrm";
+import { getRouteInfo, reverseGeocode } from "../../services/osrm";
 import {
   createBooking,
   calculatePrice,
@@ -11,6 +11,9 @@ import {
   getDriverLocation
 } from "../../src/api/api";
 import { resolveGatewayWsUrl } from "../utils/runtime";
+
+const DRIVER_ADDRESS_REFRESH_MS = 15000;
+const DRIVER_ADDRESS_MIN_DELTA = 0.0002;
 
 export default function Home() {
   const [rideId, setRideId] = useState(null);
@@ -37,8 +40,46 @@ export default function Home() {
   const [reviewDismissed, setReviewDismissed] = useState(false);
   const [me, setMe] = useState(null);
   const [reloadPending, setReloadPending] = useState(false);
+  const [driverAddress, setDriverAddress] = useState("");
 
   const wsRef = useRef(null);
+  const driverAddressMetaRef = useRef({
+    lat: null,
+    lng: null,
+    at: 0,
+    address: "",
+  });
+
+  const updateDriverAddress = async (lat, lng) => {
+    const normalizedLat = Number(lat);
+    const normalizedLng = Number(lng);
+    if (!Number.isFinite(normalizedLat) || !Number.isFinite(normalizedLng)) return;
+
+    const meta = driverAddressMetaRef.current;
+    const now = Date.now();
+    const hasPrev = Number.isFinite(meta.lat) && Number.isFinite(meta.lng);
+    const movedEnough =
+      !hasPrev ||
+      Math.abs(meta.lat - normalizedLat) > DRIVER_ADDRESS_MIN_DELTA ||
+      Math.abs(meta.lng - normalizedLng) > DRIVER_ADDRESS_MIN_DELTA;
+    const expired = now - meta.at >= DRIVER_ADDRESS_REFRESH_MS;
+
+    if (!movedEnough && !expired && meta.address) {
+      setDriverAddress((current) => current || meta.address);
+      return;
+    }
+
+    const address = await reverseGeocode(normalizedLat, normalizedLng);
+    if (!address) return;
+
+    driverAddressMetaRef.current = {
+      lat: normalizedLat,
+      lng: normalizedLng,
+      at: now,
+      address,
+    };
+    setDriverAddress(address);
+  };
 
   useEffect(() => {
     getMe().then(setMe).catch(() => {});
@@ -115,10 +156,14 @@ export default function Home() {
           case "COMPLETED":
             setRideStatus("COMPLETED");
             setDriverPosition(null);
+            setDriverAddress("");
+            driverAddressMetaRef.current = { lat: null, lng: null, at: 0, address: "" };
             break;
           case "CANCELLED":
             setRideStatus("CANCELLED");
             setDriverPosition(null);
+            setDriverAddress("");
+            driverAddressMetaRef.current = { lat: null, lng: null, at: 0, address: "" };
             break;
           default:
             break;
@@ -127,10 +172,13 @@ export default function Home() {
 
       if (data.type === "DRIVER_LOCATION" && data.bookingId === bookingId) {
         if (Number.isFinite(Number(data.lat)) && Number.isFinite(Number(data.lng))) {
+          const lat = Number(data.lat);
+          const lng = Number(data.lng);
           setDriverPosition({
-            lat: Number(data.lat),
-            lng: Number(data.lng),
+            lat,
+            lng,
           });
+          updateDriverAddress(lat, lng).catch(() => {});
         }
       }
 
@@ -158,10 +206,13 @@ export default function Home() {
         const payload = res?.data;
         if (!mounted || !payload) return;
         if (!Number.isFinite(Number(payload.lat)) || !Number.isFinite(Number(payload.lng))) return;
+        const lat = Number(payload.lat);
+        const lng = Number(payload.lng);
         setDriverPosition({
-          lat: Number(payload.lat),
-          lng: Number(payload.lng),
+          lat,
+          lng,
         });
+        updateDriverAddress(lat, lng).catch(() => {});
       } catch (err) {
         console.error("Driver location fetch failed:", err);
       }
@@ -196,12 +247,12 @@ export default function Home() {
         pickup: {
           lat: Number(from.lat),
           lng: Number(from.lng),
-          address: from.address,
+          address: from.address || from.name || "",
         },
         dropoff: {
           lat: Number(to.lat),
           lng: Number(to.lng),
-          address: to.address,
+          address: to.address || to.name || "",
         },
         distanceKm: Number(distance),
         durationMin: Number(duration),
@@ -224,6 +275,8 @@ export default function Home() {
       setDriver(null);
       setDriverId(null);
       setDriverPosition(null);
+      setDriverAddress("");
+      driverAddressMetaRef.current = { lat: null, lng: null, at: 0, address: "" };
       setRideId(null);
     } catch (err) {
       console.error(err);
@@ -252,7 +305,7 @@ export default function Home() {
 
           {driverPosition && (
             <p className="mt-2 text-sm">
-              Tai xe hien tai: <b>{driverPosition.lat.toFixed(5)}, {driverPosition.lng.toFixed(5)}</b>
+              Tai xe hien tai: <b>{driverAddress || `${driverPosition.lat.toFixed(5)}, ${driverPosition.lng.toFixed(5)}`}</b>
             </p>
           )}
         </div>
@@ -284,6 +337,8 @@ export default function Home() {
       setDriver(null);
       setDriverId(null);
       setDriverPosition(null);
+      setDriverAddress("");
+      driverAddressMetaRef.current = { lat: null, lng: null, at: 0, address: "" };
       setRideId(null);
     } catch (err) {
       console.error(err);

@@ -1,5 +1,4 @@
 version: "3.9"
-
 x-default-deploy: &default-deploy
   replicas: 1
   restart_policy:
@@ -66,7 +65,7 @@ services:
     deploy: *default-deploy
 
   auth-service:
-    image: docker.io/kietlu/auth-service:${IMAGE_TAG:-latest}
+    image: docker.io/kietlu/auth-service:latest
     environment:
       PORT: 3001
       DB_HOST: postgres
@@ -79,13 +78,17 @@ services:
       SERVICE_JWT_SECRET: ride-service
       USER_SERVICE_URL: http://user-service:3002
       DRIVER_SERVICE_URL: http://driver-service:3005
+      ACCESS_COOKIE_NAME: access_token
+      REFRESH_COOKIE_NAME: refresh_token
+      AUTH_COOKIE_SAMESITE: Lax
+      AUTH_COOKIE_SECURE: "false"
       MTLS_ENABLED: "false"
     networks:
       - cab-network
     deploy: *default-deploy
 
   user-service:
-    image: docker.io/kietlu/user-service:${IMAGE_TAG:-latest}
+    image: docker.io/kietlu/user-service:latest
     environment:
       PORT: 3002
       DB_HOST: postgres
@@ -101,7 +104,7 @@ services:
     deploy: *default-deploy
 
   pricing-service:
-    image: docker.io/kietlu/pricing-service:${IMAGE_TAG:-latest}
+    image: docker.io/kietlu/pricing-service:latest
     environment:
       INTERNAL_JWT_SECRET: api-gateway
       MTLS_ENABLED: "false"
@@ -110,7 +113,7 @@ services:
     deploy: *default-deploy
 
   booking-service:
-    image: docker.io/kietlu/booking-service:${IMAGE_TAG:-latest}
+    image: docker.io/kietlu/booking-service:latest
     environment:
       PORT: 3004
       MONGO_URI: mongodb://mongo:27017/booking_db
@@ -123,7 +126,7 @@ services:
     deploy: *default-deploy
 
   driver-service:
-    image: docker.io/kietlu/driver-service:${IMAGE_TAG:-latest}
+    image: docker.io/kietlu/driver-service:latest
     environment:
       PORT: 3005
       POSTGRES_URL: postgres://postgres:postgres@postgres:5432/postgres
@@ -138,7 +141,7 @@ services:
     deploy: *default-deploy
 
   payment-service:
-    image: docker.io/kietlu/payment-service:${IMAGE_TAG:-latest}
+    image: docker.io/kietlu/payment-service:latest
     environment:
       PORT: 3006
       POSTGRES_URL: postgres://postgres:postgres@postgres:5432/postgres
@@ -153,7 +156,7 @@ services:
     deploy: *default-deploy
 
   ride-service:
-    image: docker.io/kietlu/ride-service:${IMAGE_TAG:-latest}
+    image: docker.io/kietlu/ride-service:latest
     environment:
       PORT: 3007
       MONGO_URI: mongodb://mongo:27017/ride_db
@@ -171,7 +174,7 @@ services:
     deploy: *default-deploy
 
   notification-service:
-    image: docker.io/kietlu/notification-service:${IMAGE_TAG:-latest}
+    image: docker.io/kietlu/notification-service:latest
     environment:
       PORT: 3008
       MONGO_URI: mongodb://mongo:27017/notification_db
@@ -184,7 +187,7 @@ services:
     deploy: *default-deploy
 
   review-service:
-    image: docker.io/kietlu/review-service:${IMAGE_TAG:-latest}
+    image: docker.io/kietlu/review-service:latest
     environment:
       PORT: 3009
       DB_HOST: postgres
@@ -198,7 +201,7 @@ services:
     deploy: *default-deploy
 
   ai-matching-service:
-    image: docker.io/kietlu/ai-matching-service:${IMAGE_TAG:-latest}
+    image: docker.io/kietlu/ai-matching-service:latest
     environment:
       PORT: 3010
       KAFKA_BROKERS: kafka:29092
@@ -219,9 +222,10 @@ services:
     deploy: *default-deploy
 
   api-gateway:
-    image: docker.io/kietlu/api-gateway:${IMAGE_TAG:-latest}
+    image: docker.io/kietlu/api-gateway:latest
     environment:
       PORT: 3000
+      ACCESS_COOKIE_NAME: access_token
       INTERNAL_JWT_SECRET: api-gateway
       AUTH_SERVICE_URL: http://auth-service:3001
       USER_SERVICE_URL: http://user-service:3002
@@ -245,7 +249,7 @@ services:
     deploy: *default-deploy
 
   cab-ui:
-    image: docker.io/kietlu/cab-ui:${IMAGE_TAG:-latest}
+    image: docker.io/kietlu/cab-ui:latest
     ports:
       - target: 80
         published: 5173
@@ -265,3 +269,4 @@ volumes:
   mongo-data:
   kafka-data:
   ollama-data:
+
