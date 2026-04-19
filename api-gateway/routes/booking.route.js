@@ -28,6 +28,13 @@ function validateCreateBody(body) {
   if (!isValidLatLng(body.pickup)) return "pickup must be valid lat/lng";
   if (!isValidLatLng(body.dropoff)) return "dropoff must be valid lat/lng";
   if (!body.vehicleType) return "vehicleType is required";
+  if (!["CAR", "BIKE"].includes(String(body.vehicleType).toUpperCase())) {
+    return "Invalid vehicle type";
+  }
+
+  if (body.distanceKm === undefined || body.distanceKm === null || body.distanceKm === "") {
+    return "distanceKm is required";
+  }
 
   const distanceKm = Number(body.distanceKm);
   if (!Number.isFinite(distanceKm) || distanceKm < 0) {
@@ -67,7 +74,10 @@ router.post("/", async (req, res) => {
   try {
     const validationMessage = validateCreateBody(req.body);
     if (validationMessage) {
-      const status = validationMessage.includes("required") ? 400 : 422;
+      const status =
+        validationMessage.includes("required") || validationMessage === "Invalid vehicle type"
+          ? 400
+          : 422;
       return res.status(status).json({ message: validationMessage });
     }
 

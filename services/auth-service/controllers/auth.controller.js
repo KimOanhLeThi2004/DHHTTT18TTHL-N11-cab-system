@@ -24,6 +24,13 @@ function parseBool(value, fallback = false) {
   return ["1", "true", "yes", "on"].includes(String(value).trim().toLowerCase());
 }
 
+function isValidEmail(value = "") {
+  if (typeof value !== "string") return false;
+  const normalized = value.trim();
+  if (!normalized) return false;
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalized);
+}
+
 function parseCookieHeader(cookieHeader = "") {
   if (!cookieHeader || typeof cookieHeader !== "string") {
     return {};
@@ -176,15 +183,19 @@ exports.register = async (req, res) => {
       phone = "",
       vehicleType = "CAR",
     } = req.body;
+    const normalizedEmail = String(email || "").trim().toLowerCase();
 
-    if (!email || !password) {
+    if (!normalizedEmail || !password) {
       throw httpError(400, "email and password are required");
+    }
+    if (!isValidEmail(normalizedEmail)) {
+      throw httpError(400, "Invalid email format");
     }
     if (!["CUSTOMER", "DRIVER", "ADMIN"].includes(role)) {
       throw httpError(400, "Invalid role");
     }
 
-    const existed = await Credential.findOne({ where: { email } });
+    const existed = await Credential.findOne({ where: { email: normalizedEmail } });
     if (existed) {
       throw httpError(400, "Email already exists");
     }
@@ -194,10 +205,10 @@ exports.register = async (req, res) => {
     const profileId =
       role === "ADMIN"
         ? userId
-        : await createProfileByRole({ role, userId, email, name, phone, vehicleType });
+        : await createProfileByRole({ role, userId, email: normalizedEmail, name, phone, vehicleType });
 
     await Credential.create({
-      email,
+      email: normalizedEmail,
       passwordHash,
       role,
       userId: profileId,
@@ -206,7 +217,7 @@ exports.register = async (req, res) => {
     return res.status(201).json({
       message: "Register successful",
       user_id: profileId,
-      email,
+      email: normalizedEmail,
       role,
     });
   } catch (err) {
@@ -218,11 +229,15 @@ exports.register = async (req, res) => {
 exports.login = async (req, res) => {
   try {
     const { email, password, role } = req.body;
-    if (!email || !password) {
+    const normalizedEmail = String(email || "").trim().toLowerCase();
+    if (!normalizedEmail || !password) {
       throw httpError(400, "email and password are required");
     }
+    if (!isValidEmail(normalizedEmail)) {
+      throw httpError(400, "Invalid email format");
+    }
 
-    const credential = await Credential.findOne({ where: { email } });
+    const credential = await Credential.findOne({ where: { email: normalizedEmail } });
     if (!credential || !credential.isActive) {
       throw httpError(404, "Account not found");
     }

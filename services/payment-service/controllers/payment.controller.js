@@ -54,6 +54,13 @@ async function pay(req, res) {
       return res.status(400).json({ message: "Invalid payment method" });
     }
 
+    if (inputAmount !== undefined && inputAmount !== null) {
+      const parsedInputAmount = Number(inputAmount);
+      if (!Number.isFinite(parsedInputAmount) || parsedInputAmount <= 0) {
+        return res.status(400).json({ message: "Invalid amount" });
+      }
+    }
+
     const ride = await getRideByBookingId(bookingId);
     const amount = Number(ride?.price ?? inputAmount ?? 0);
     if (!Number.isFinite(amount) || amount <= 0) {

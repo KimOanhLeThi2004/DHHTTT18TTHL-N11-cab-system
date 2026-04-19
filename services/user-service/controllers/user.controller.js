@@ -58,7 +58,34 @@ exports.updateProfile = async (req, res) => {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    await user.update({ name, phone, avatar });
+    const updates = {};
+
+    if (name !== undefined) {
+      if (typeof name !== "string" || !name.trim()) {
+        return res.status(400).json({ message: "name must be a non-empty string" });
+      }
+      updates.name = name.trim();
+    }
+
+    if (phone !== undefined) {
+      if (phone !== null && typeof phone !== "string") {
+        return res.status(400).json({ message: "phone must be a string" });
+      }
+      updates.phone = phone;
+    }
+
+    if (avatar !== undefined) {
+      if (avatar !== null && typeof avatar !== "string") {
+        return res.status(400).json({ message: "avatar must be a string" });
+      }
+      updates.avatar = avatar;
+    }
+
+    if (!Object.keys(updates).length) {
+      return res.status(400).json({ message: "No updatable fields provided" });
+    }
+
+    await user.update(updates);
     return res.json(user);
   } catch (err) {
     return res.status(500).json({ error: err.message });
