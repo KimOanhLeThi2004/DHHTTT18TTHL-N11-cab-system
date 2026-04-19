@@ -12,6 +12,8 @@ const OLLAMA_BASE_URL = process.env.OLLAMA_BASE_URL || "http://ollama:11434";
 const OLLAMA_MODEL = process.env.OLLAMA_MODEL || "qwen2.5:3b";
 const OLLAMA_TIMEOUT_MS = Math.max(100, Number(process.env.OLLAMA_TIMEOUT_MS || 15000));
 const OLLAMA_MAX_CANDIDATES = Math.max(1, Number(process.env.OLLAMA_MAX_CANDIDATES || 8));
+const OLLAMA_NUM_PREDICT = Math.max(8, Number(process.env.OLLAMA_NUM_PREDICT || 64));
+const OLLAMA_NUM_CTX = Math.max(512, Number(process.env.OLLAMA_NUM_CTX || 2048));
 const OLLAMA_FAILURE_THRESHOLD = Math.max(1, Number(process.env.OLLAMA_FAILURE_THRESHOLD || 3));
 const OLLAMA_FAILURE_COOLDOWN_MS = Math.max(
   1000,
@@ -163,6 +165,8 @@ async function selectDriverWithOllama(trip, scoredDrivers = []) {
       options: {
         temperature: 0,
         top_p: 0.9,
+        num_predict: OLLAMA_NUM_PREDICT,
+        num_ctx: OLLAMA_NUM_CTX,
       },
       timeoutMs: OLLAMA_TIMEOUT_MS,
       toolName: OLLAMA_MCP_TOOL,
