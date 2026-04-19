@@ -21,6 +21,7 @@ const OLLAMA_ERROR_LOG_COOLDOWN_MS = Math.max(
   1000,
   Number(process.env.OLLAMA_ERROR_LOG_COOLDOWN_MS || 10000)
 );
+const MATCH_AUDIT_TOPIC = process.env.MATCH_AUDIT_TOPIC || "ai.matching.audit";
 const KAFKA_BOOTSTRAP_RETRY_MS = Math.max(
   1000,
   Number(process.env.KAFKA_BOOTSTRAP_RETRY_MS || 5000)
@@ -208,6 +209,30 @@ async function selectDriverWithOllama(trip, scoredDrivers = []) {
   }
 }
 
+async function publishMatchingAudit({ eventType, trip, selectedDriverId = null, reason = null }) {
+  try {
+    await producer.send({
+      topic: MATCH_AUDIT_TOPIC,
+      messages: [
+        {
+          value: JSON.stringify({
+            eventType,
+            bookingId: trip.bookingId,
+            userId: trip.userId ?? trip.user_id ?? null,
+            selectedDriverId,
+            reason,
+            model: OLLAMA_MODEL,
+            transport: "mcp",
+            timestamp: new Date().toISOString(),
+          }),
+        },
+      ],
+    });
+  } catch (err) {
+    console.warn(`Matching audit publish failed: ${err?.message || "unknown_error"}`);
+  }
+}
+
 async function handleHttp(req, res) {
   metrics.requests += 1;
   const path = req.url.split("?")[0];
@@ -337,6 +362,12 @@ async function handleTripMessage(trip) {
 
   if (aiSelection) {
     metrics.aiPreferredMatches += 1;
+    await publishMatchingAudit({
+      eventType: "qwen_match_success",
+      trip,
+      selectedDriverId: aiSelection.driverId,
+      reason: aiSelection.reason || "selected_by_ollama",
+    });
   } else {
     metrics.ruleFallbackMatches += 1;
   }
@@ -357,6 +388,10 @@ async function handleTripMessage(trip) {
               dropoff: trip.dropoff,
               price: trip.estimatedPrice,
               selectionMode: aiSelection ? "ollama" : "rules",
+              matchingMode: aiSelection ? "qwen_mcp" : "rule_base",
+              qwenMatchSuccess: Boolean(aiSelection),
+              qwenSelectedDriverId: aiSelection?.driverId || null,
+              selectedViaMcp: Boolean(aiSelection),
               selectionReason: aiSelection?.reason || "score_ranked",
             }),
           },

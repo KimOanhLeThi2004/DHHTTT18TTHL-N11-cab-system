@@ -53,6 +53,21 @@ services:
       - cab-network
     deploy: *default-deploy
 
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    environment:
+      KAFKA_CLUSTERS_0_NAME: taxi-cluster
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:29092
+      KAFKA_CLUSTERS_0_READONLY: "false"
+    ports:
+      - target: 8080
+        published: 8080
+        protocol: tcp
+        mode: ingress
+    networks:
+      - cab-network
+    deploy: *default-deploy
+
   redis:
     image: redis:7-alpine
     networks:
@@ -221,7 +236,7 @@ services:
       OLLAMA_MAX_CANDIDATES: 8
       OLLAMA_MCP_RETRIES: 2
       OLLAMA_MCP_RETRY_BACKOFF_MS: 500
-      OLLAMA_MCP_HTTP_FALLBACK: "true"
+      OLLAMA_MCP_HTTP_FALLBACK: "false"
       OLLAMA_FAILURE_THRESHOLD: 3
       OLLAMA_FAILURE_COOLDOWN_MS: 30000
       OLLAMA_ERROR_LOG_COOLDOWN_MS: 10000

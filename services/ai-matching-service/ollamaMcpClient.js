@@ -1,15 +1,12 @@
-const axios = require("axios");
 const { spawn } = require("child_process");
 
 const HEADER_SEPARATOR = Buffer.from("\r\n\r\n", "utf8");
 const DEFAULT_TIMEOUT_MS = Math.max(100, Number(process.env.OLLAMA_TIMEOUT_MS || 15000));
-const OLLAMA_BASE_URL = process.env.OLLAMA_BASE_URL || "http://ollama:11434";
 const MCP_RETRIES = Math.max(0, Number(process.env.OLLAMA_MCP_RETRIES || 1));
 const MCP_RETRY_BACKOFF_MS = Math.max(
   50,
   Number(process.env.OLLAMA_MCP_RETRY_BACKOFF_MS || 400)
 );
-const MCP_HTTP_FALLBACK_ENABLED = process.env.OLLAMA_MCP_HTTP_FALLBACK !== "false";
 
 function parseArgs(raw) {
   if (!raw) return [];
@@ -220,33 +217,6 @@ function shouldRetryMcpError(error) {
   );
 }
 
-async function callOllamaGenerateDirectHttp({
-  prompt,
-  model,
-  format = "json",
-  options = {},
-  timeoutMs = DEFAULT_TIMEOUT_MS,
-} = {}) {
-  const effectiveTimeout = Math.max(100, Number(timeoutMs) || DEFAULT_TIMEOUT_MS);
-  const response = await axios.post(
-    `${OLLAMA_BASE_URL}/api/generate`,
-    {
-      model,
-      prompt,
-      stream: false,
-      format,
-      options,
-    },
-    { timeout: effectiveTimeout }
-  );
-
-  const text = response?.data?.response;
-  if (typeof text !== "string" || !text.trim()) {
-    throw new Error("Ollama returned empty response");
-  }
-  return text;
-}
-
 async function callMcpOnce({
   prompt,
   model,
@@ -346,23 +316,7 @@ async function callOllamaGenerateViaMcp({
     }
   }
 
-  if (!MCP_HTTP_FALLBACK_ENABLED) {
-    throw lastError || new Error("MCP call failed");
-  }
-
-  try {
-    return await callOllamaGenerateDirectHttp({
-      prompt,
-      model,
-      format,
-      options,
-      timeoutMs,
-    });
-  } catch (httpErr) {
-    const mcpMsg = lastError?.message || "unknown_mcp_error";
-    const httpMsg = httpErr?.message || "unknown_http_error";
-    throw new Error(`MCP failed (${mcpMsg}); HTTP fallback failed (${httpMsg})`);
-  }
+  throw lastError || new Error("MCP call failed");
 }
 
 module.exports = {

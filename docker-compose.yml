@@ -305,6 +305,7 @@ services:
       OLLAMA_MODEL: qwen2.5:3b
       OLLAMA_TIMEOUT_MS: 15000
       OLLAMA_MAX_CANDIDATES: 8
+      OLLAMA_MCP_HTTP_FALLBACK: "false"
     volumes:
       - ./security/certs:/etc/mtls:ro
     depends_on:
