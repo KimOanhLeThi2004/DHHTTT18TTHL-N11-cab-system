@@ -12,6 +12,15 @@ const OLLAMA_BASE_URL = process.env.OLLAMA_BASE_URL || "http://ollama:11434";
 const OLLAMA_MODEL = process.env.OLLAMA_MODEL || "qwen2.5:3b";
 const OLLAMA_TIMEOUT_MS = Math.max(100, Number(process.env.OLLAMA_TIMEOUT_MS || 15000));
 const OLLAMA_MAX_CANDIDATES = Math.max(1, Number(process.env.OLLAMA_MAX_CANDIDATES || 8));
+const OLLAMA_FAILURE_THRESHOLD = Math.max(1, Number(process.env.OLLAMA_FAILURE_THRESHOLD || 3));
+const OLLAMA_FAILURE_COOLDOWN_MS = Math.max(
+  1000,
+  Number(process.env.OLLAMA_FAILURE_COOLDOWN_MS || 30000)
+);
+const OLLAMA_ERROR_LOG_COOLDOWN_MS = Math.max(
+  1000,
+  Number(process.env.OLLAMA_ERROR_LOG_COOLDOWN_MS || 10000)
+);
 const KAFKA_BOOTSTRAP_RETRY_MS = Math.max(
   1000,
   Number(process.env.KAFKA_BOOTSTRAP_RETRY_MS || 5000)
@@ -26,6 +35,11 @@ const metrics = {
 };
 
 let kafkaReady = false;
+const ollamaState = {
+  consecutiveFailures: 0,
+  disabledUntil: 0,
+  lastErrorLogAt: 0,
+};
 
 function json(res, status, payload) {
   res.writeHead(status, { "Content-Type": "application/json" });
@@ -111,6 +125,9 @@ async function selectDriverWithOllama(trip, scoredDrivers = []) {
   if (!OLLAMA_ENABLED || !OLLAMA_MCP_ENABLED || !scoredDrivers.length) {
     return null;
   }
+  if (Date.now() < ollamaState.disabledUntil) {
+    return null;
+  }
 
   const candidates = scoredDrivers.slice(0, OLLAMA_MAX_CANDIDATES).map((d, index) => ({
     rank: index + 1,
@@ -164,13 +181,29 @@ async function selectDriverWithOllama(trip, scoredDrivers = []) {
     const exists = scoredDrivers.some((d) => String(d.id) === selectedDriverId);
     if (!exists) return null;
 
+    ollamaState.consecutiveFailures = 0;
+    ollamaState.disabledUntil = 0;
+
     return {
       driverId: selectedDriverId,
       reason: parsed.reason || "selected_by_ollama",
     };
   } catch (err) {
     const msg = err?.message || "unknown_ollama_error";
-    console.warn("Ollama MCP selection failed:", msg);
+    ollamaState.consecutiveFailures += 1;
+    if (ollamaState.consecutiveFailures >= OLLAMA_FAILURE_THRESHOLD) {
+      ollamaState.disabledUntil = Date.now() + OLLAMA_FAILURE_COOLDOWN_MS;
+    }
+
+    const shouldLog = Date.now() - ollamaState.lastErrorLogAt >= OLLAMA_ERROR_LOG_COOLDOWN_MS;
+    if (shouldLog) {
+      ollamaState.lastErrorLogAt = Date.now();
+      const cooldownSec = Math.ceil(
+        Math.max(0, ollamaState.disabledUntil - Date.now()) / 1000
+      );
+      const suffix = cooldownSec > 0 ? `; retry after ~${cooldownSec}s` : "";
+      console.warn(`Ollama MCP selection failed: ${msg}${suffix}`);
+    }
     return null;
   }
 }

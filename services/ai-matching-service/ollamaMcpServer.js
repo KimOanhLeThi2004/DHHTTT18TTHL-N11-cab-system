@@ -3,7 +3,7 @@ const axios = require("axios");
 const HEADER_SEPARATOR = Buffer.from("\r\n\r\n", "utf8");
 const OLLAMA_BASE_URL = process.env.OLLAMA_BASE_URL || "http://ollama:11434";
 const OLLAMA_MODEL = process.env.OLLAMA_MODEL || "qwen2.5:3b";
-const OLLAMA_TIMEOUT_MS = Math.max(100, Number(process.env.OLLAMA_TIMEOUT_MS || 15000));
+const OLLAMA_TIMEOUT_MS = Math.max(100, Number(process.env.OLLAMA_TIMEOUT_MS || 60000));
 const TOOL_NAME = process.env.OLLAMA_MCP_TOOL || "ollama.generate";
 
 let buffer = Buffer.alloc(0);
