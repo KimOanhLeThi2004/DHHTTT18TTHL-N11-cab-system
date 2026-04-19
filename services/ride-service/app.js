@@ -8,6 +8,10 @@ require("dotenv").config();
 
 const app = express();
 const metrics = { requests: 0, startedAt: Date.now() };
+const KAFKA_BOOTSTRAP_RETRY_MS = Math.max(
+  1000,
+  Number(process.env.KAFKA_BOOTSTRAP_RETRY_MS || 5000)
+);
 
 app.use(express.json({ limit: process.env.PAYLOAD_LIMIT || "1mb" }));
 app.use((req, _, next) => {
@@ -39,19 +43,49 @@ async function bootstrapConsumer() {
   console.log("Ride consumer started");
 }
 
-bootstrapConsumer().catch((err) => {
-  console.error("Ride consumer bootstrap failed:", err.message);
-});
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function bootstrapConsumerWithRetry() {
+  while (true) {
+    try {
+      await bootstrapConsumer();
+      return;
+    } catch (err) {
+      console.error("Ride consumer bootstrap failed:", err.message);
+      console.log(`Retrying ride consumer bootstrap in ${KAFKA_BOOTSTRAP_RETRY_MS}ms`);
+      await sleep(KAFKA_BOOTSTRAP_RETRY_MS);
+    }
+  }
+}
+
+async function bootstrapProducerWithRetry() {
+  while (true) {
+    try {
+      await initProducer();
+      return;
+    } catch (err) {
+      console.error("Ride producer bootstrap failed:", err.message);
+      console.log(`Retrying ride producer bootstrap in ${KAFKA_BOOTSTRAP_RETRY_MS}ms`);
+      await sleep(KAFKA_BOOTSTRAP_RETRY_MS);
+    }
+  }
+}
 
 (async () => {
   try {
     await connectMongo();
-    await initProducer();
 
     startServer(app, process.env.PORT, "ride-service", ({ protocol, port }) => {
       console.log(`Ride Service running on ${protocol}://0.0.0.0:${port}`);
     });
+
+    // Keep HTTP API alive even if Kafka is temporarily unavailable.
+    bootstrapProducerWithRetry();
+    bootstrapConsumerWithRetry();
   } catch (err) {
     console.error("Startup error:", err);
+    process.exit(1);
   }
 })();

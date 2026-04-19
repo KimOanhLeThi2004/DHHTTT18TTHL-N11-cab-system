@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { MapContainer, TileLayer, Marker, useMap } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, useMap, useMapEvents } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import "leaflet-routing-machine";
@@ -18,6 +18,17 @@ import {
 } from "../api/api";
 import { getRouteInfo, reverseGeocode } from "../../services/osrm";
 import { canUseBrowserGeolocation, resolveGatewayWsUrl } from "../utils/runtime";
+
+const ACCESS_TOKEN_SESSION_KEY = "cab_access_token_session";
+const DRIVER_WS_RECONNECT_DELAY_MS = 1500;
+const WS_CONNECT_TIMEOUT_MS = 8000;
+const MAX_GEO_ACCURACY_METERS = 5000;
+const DRIVER_MAP_FALLBACK_CENTER = [10.7769, 106.7009];
+
+function readAccessToken() {
+  if (typeof window === "undefined") return null;
+  return window.sessionStorage.getItem(ACCESS_TOKEN_SESSION_KEY);
+}
 
 const driverIcon = new L.Icon({
   iconRetinaUrl: "/marker-icon-2x.png",
@@ -67,6 +78,20 @@ function RouteToPickup({ from, to, vehicle }) {
   return null;
 }
 
+function ManualGpsPicker({ enabled, onPick }) {
+  useMapEvents({
+    click(event) {
+      if (!enabled) return;
+      const lat = Number(event.latlng?.lat);
+      const lng = Number(event.latlng?.lng);
+      if (!Number.isFinite(lat) || !Number.isFinite(lng)) return;
+      onPick(lat, lng);
+    },
+  });
+
+  return null;
+}
+
 export default function DriverDashboard() {
   const navigate = useNavigate();
   const wsRef = useRef(null);
@@ -75,6 +100,8 @@ export default function DriverDashboard() {
   const activeRideRef = useRef(null);
   const orderRef = useRef(null);
   const driverIdRef = useRef(null);
+  const wsReconnectTimerRef = useRef(null);
+  const unmountedRef = useRef(false);
 
   const [status, setStatus] = useState("OFFLINE");
   const [driver, setDriver] = useState({});
@@ -89,6 +116,7 @@ export default function DriverDashboard() {
   const [latestReview, setLatestReview] = useState(null);
   const [avgRating, setAvgRating] = useState(null);
   const [totalRevenue, setTotalRevenue] = useState(0);
+  const [manualGpsMode, setManualGpsMode] = useState(false);
 
   const locked = !!activeRide && rideStatus !== "COMPLETED";
 
@@ -166,15 +194,66 @@ export default function DriverDashboard() {
     }
   }, [handleUnauthorized]);
 
-  useEffect(() => {
-    loadDriver();
-    if (wsRef.current) return;
+  const clearWsReconnectTimer = useCallback(() => {
+    if (wsReconnectTimerRef.current) {
+      clearTimeout(wsReconnectTimerRef.current);
+      wsReconnectTimerRef.current = null;
+    }
+  }, []);
+
+  const sendWsAuth = useCallback((ws) => {
+    const token = readAccessToken();
+    if (token && ws?.readyState === WebSocket.OPEN) {
+      ws.send(JSON.stringify({ type: "AUTH", token }));
+    }
+  }, []);
+
+  const waitForWebSocketOpen = useCallback(async (ws) => {
+    if (!ws) return false;
+    if (ws.readyState === WebSocket.OPEN) return true;
+
+    return new Promise((resolve) => {
+      let resolved = false;
+      let timeoutId = null;
+
+      const finish = (result) => {
+        if (resolved) return;
+        resolved = true;
+        if (timeoutId) {
+          clearTimeout(timeoutId);
+        }
+        ws.removeEventListener("open", handleOpen);
+        ws.removeEventListener("error", handleError);
+        ws.removeEventListener("close", handleClose);
+        resolve(result);
+      };
+
+      const handleOpen = () => finish(true);
+      const handleError = () => finish(false);
+      const handleClose = () => finish(false);
+
+      timeoutId = setTimeout(() => finish(false), WS_CONNECT_TIMEOUT_MS);
+      ws.addEventListener("open", handleOpen);
+      ws.addEventListener("error", handleError);
+      ws.addEventListener("close", handleClose);
+    });
+  }, []);
+
+  const connectDriverSocket = useCallback(() => {
+    const current = wsRef.current;
+    if (
+      current &&
+      (current.readyState === WebSocket.OPEN || current.readyState === WebSocket.CONNECTING)
+    ) {
+      return current;
+    }
 
     const ws = new WebSocket(resolveGatewayWsUrl("/ws/drivers"));
     wsRef.current = ws;
 
     ws.onopen = () => {
       console.log("WS connected");
+      sendWsAuth(ws);
     };
 
     ws.onmessage = async (event) => {
@@ -231,18 +310,52 @@ export default function DriverDashboard() {
 
     ws.onclose = () => {
       console.log("WS closed");
+      if (wsRef.current === ws) {
+        wsRef.current = null;
+      }
+
+      if (watchIdRef.current) {
+        navigator.geolocation.clearWatch(watchIdRef.current);
+        watchIdRef.current = null;
+      }
+
       setStatus("OFFLINE");
+      setManualGpsMode(false);
+
+      if (!unmountedRef.current) {
+        clearWsReconnectTimer();
+        wsReconnectTimerRef.current = setTimeout(() => {
+          connectDriverSocket();
+        }, DRIVER_WS_RECONNECT_DELAY_MS);
+      }
     };
 
     ws.onerror = (e) => console.error("WS error:", e);
+    return ws;
+  }, [clearWsReconnectTimer, sendWsAuth]);
+
+  useEffect(() => {
+    unmountedRef.current = false;
+    loadDriver();
+    connectDriverSocket();
 
     return () => {
+      unmountedRef.current = true;
+      clearWsReconnectTimer();
+
       if (watchIdRef.current) {
         navigator.geolocation.clearWatch(watchIdRef.current);
+        watchIdRef.current = null;
       }
-      ws.close();
+
+      const ws = wsRef.current;
+      wsRef.current = null;
+      if (ws && (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING)) {
+        ws.close();
+      }
+      setManualGpsMode(false);
     };
-  }, [loadDriver]);
+  }, [clearWsReconnectTimer, connectDriverSocket, loadDriver]);
 
   useEffect(() => {
     const calcPickupRoute = async () => {
@@ -287,30 +400,49 @@ export default function DriverDashboard() {
     }
   };
 
+  const pushManualGps = (lat, lng) => {
+    const vehicleType = driver.vehicleType || "CAR";
+    setPosition([lat, lng]);
+    setStatus("ONLINE");
+    sendGPS(lat, lng, vehicleType);
+  };
+
   const start = async () => {
-    const ws = wsRef.current;
+    const ws = connectDriverSocket();
 
     if (!ws) {
       alert("WS chua khoi tao");
       return;
     }
 
-    if (ws.readyState !== WebSocket.OPEN) {
-      await new Promise((r) => {
-        ws.onopen = r;
-      });
+    const connected = await waitForWebSocketOpen(ws);
+    if (!connected || ws.readyState !== WebSocket.OPEN) {
+      alert("WS khong the ket noi");
+      return;
     }
+    sendWsAuth(ws);
 
     if (watchIdRef.current) return;
     if (!canUseBrowserGeolocation()) {
-      alert("GPS chi hoat dong tren HTTPS hoac localhost.");
+      setManualGpsMode(true);
+      setStatus("ONLINE");
+      setPosition((prev) => prev || DRIVER_MAP_FALLBACK_CENTER);
+      alert("Trinh duyet khong ho tro geolocation. Hay cham ban do de cap nhat vi tri tai xe.");
       return;
     }
 
+    setManualGpsMode(false);
     watchIdRef.current = navigator.geolocation.watchPosition(
       (pos) => {
         const lat = pos.coords.latitude;
         const lng = pos.coords.longitude;
+        const accuracy = Number(pos.coords.accuracy);
+
+        if (Number.isFinite(accuracy) && accuracy > MAX_GEO_ACCURACY_METERS) {
+          console.warn(`Bo qua toa do do chinh xac thap (${accuracy}m), co the dang dinh vi theo IP`);
+          return;
+        }
+
         const vehicleType = driver.vehicleType;
         setPosition([lat, lng]);
         setStatus("ONLINE");
@@ -318,8 +450,18 @@ export default function DriverDashboard() {
       },
       (err) => {
         console.error("watchPosition error:", err);
+        if (err?.code === 1 && typeof window !== "undefined" && !window.isSecureContext) {
+          if (watchIdRef.current) {
+            navigator.geolocation.clearWatch(watchIdRef.current);
+            watchIdRef.current = null;
+          }
+          setManualGpsMode(true);
+          setStatus("ONLINE");
+          setPosition((prev) => prev || DRIVER_MAP_FALLBACK_CENTER);
+          alert("HTTP khong duoc phep lay GPS chinh xac. Hay cham ban do de cap nhat vi tri tai xe.");
+        }
       },
-      { enableHighAccuracy: true }
+      { enableHighAccuracy: true, maximumAge: 0, timeout: 20000 }
     );
   };
 
@@ -332,9 +474,9 @@ export default function DriverDashboard() {
     const ws = wsRef.current;
     if (ws && ws.readyState === WebSocket.OPEN) {
       ws.send(JSON.stringify({ type: "OFFLINE" }));
-      ws.close();
     }
 
+    setManualGpsMode(false);
     setStatus("OFFLINE");
   };
 
@@ -453,6 +595,8 @@ export default function DriverDashboard() {
     : null;
 
   const routeVehicle = driver.vehicleType === "BIKE" ? "motorbike" : "car";
+  const hasMap = Boolean(position) || manualGpsMode;
+  const mapCenter = position || DRIVER_MAP_FALLBACK_CENTER;
 
   return (
     <div className="h-screen grid grid-cols-12 gap-3 p-4 bg-gray-100">
@@ -469,6 +613,11 @@ export default function DriverDashboard() {
             {" "}{status}
           </b>
         </p>
+        {manualGpsMode && (
+          <p className="mt-2 text-sm text-amber-700">
+            Dang o che do GPS thu cong tren HTTP. Hay cham vao ban do de cap nhat vi tri.
+          </p>
+        )}
 
         <div className="mt-4 space-x-2">
           <button
@@ -517,19 +666,20 @@ export default function DriverDashboard() {
 
       {/* CENTER */}
       <div className="col-span-6 bg-white rounded shadow overflow-hidden">
-        {position ? (
-          <MapContainer center={position} zoom={15} style={{ height: "100%", width: "100%" }}>
+        {hasMap ? (
+          <MapContainer center={mapCenter} zoom={15} style={{ height: "100%", width: "100%" }}>
             <TileLayer
               attribution="&copy; OpenStreetMap"
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             />
-            <Marker position={position} icon={driverIcon} />
+            {position && <Marker position={position} icon={driverIcon} />}
             {activeRide?.pickup && (
               <Marker
                 position={[activeRide.pickup.lat, activeRide.pickup.lng]}
                 icon={pickupIcon}
               />
             )}
+            <ManualGpsPicker enabled={manualGpsMode} onPick={pushManualGps} />
             {routeFrom && activeRide?.pickup && (
               <RouteToPickup from={routeFrom} to={activeRide.pickup} vehicle={routeVehicle} />
             )}

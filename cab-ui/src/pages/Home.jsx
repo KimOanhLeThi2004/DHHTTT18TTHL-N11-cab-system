@@ -14,6 +14,12 @@ import { resolveGatewayWsUrl } from "../utils/runtime";
 
 const DRIVER_ADDRESS_REFRESH_MS = 15000;
 const DRIVER_ADDRESS_MIN_DELTA = 0.0002;
+const ACCESS_TOKEN_SESSION_KEY = "cab_access_token_session";
+
+function readAccessToken() {
+  if (typeof window === "undefined") return null;
+  return window.sessionStorage.getItem(ACCESS_TOKEN_SESSION_KEY);
+}
 
 export default function Home() {
   const [rideId, setRideId] = useState(null);
@@ -122,6 +128,10 @@ export default function Home() {
 
     ws.onopen = () => {
       console.log("Notification WS connected");
+      const token = readAccessToken();
+      if (token) {
+        ws.send(JSON.stringify({ type: "AUTH", token }));
+      }
     };
 
     ws.onclose = () => {
@@ -132,6 +142,15 @@ export default function Home() {
       const data = JSON.parse(event.data);
 
       console.log("WS Received:", data);
+
+      if (data.type === "AUTH_OK" || data.type === "AUTH_REQUIRED") {
+        return;
+      }
+
+      if (data.type === "AUTH_ERROR") {
+        console.error("Notification WS auth failed:", data.message || "Invalid token");
+        return;
+      }
 
       if (data.type === "RIDE_STATUS" && data.bookingId === bookingId) {
         if (data.driver) {

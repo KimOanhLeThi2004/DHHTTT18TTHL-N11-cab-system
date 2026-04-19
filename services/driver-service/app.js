@@ -48,7 +48,8 @@ startAssignmentConsumer();
 
     server.listen(process.env.PORT, () => {
       console.log(`Driver Service running on ${protocol}://0.0.0.0:${process.env.PORT}`);
-      console.log(`Driver WS running on ${wsProtocol}://localhost:${process.env.PORT}`);
+      console.log(`Driver WS internal bind: ${wsProtocol}://0.0.0.0:${process.env.PORT}`);
+      console.log(`Driver WS public endpoint: ${wsProtocol}://<gateway-host>:3000/ws/drivers`);
     });
   } catch (err) {
     console.error("Startup error:", err);

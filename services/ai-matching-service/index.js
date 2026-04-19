@@ -12,6 +12,10 @@ const OLLAMA_BASE_URL = process.env.OLLAMA_BASE_URL || "http://ollama:11434";
 const OLLAMA_MODEL = process.env.OLLAMA_MODEL || "qwen2.5:3b";
 const OLLAMA_TIMEOUT_MS = Math.max(100, Number(process.env.OLLAMA_TIMEOUT_MS || 15000));
 const OLLAMA_MAX_CANDIDATES = Math.max(1, Number(process.env.OLLAMA_MAX_CANDIDATES || 8));
+const KAFKA_BOOTSTRAP_RETRY_MS = Math.max(
+  1000,
+  Number(process.env.KAFKA_BOOTSTRAP_RETRY_MS || 5000)
+);
 const metrics = {
   requests: 0,
   matchedTrips: 0,
@@ -20,6 +24,8 @@ const metrics = {
   ruleFallbackMatches: 0,
   startedAt: Date.now(),
 };
+
+let kafkaReady = false;
 
 function json(res, status, payload) {
   res.writeHead(status, { "Content-Type": "application/json" });
@@ -363,6 +369,40 @@ async function startKafka() {
   });
 }
 
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function resetKafkaClients() {
+  try {
+    await consumer.disconnect();
+  } catch (_) {
+    // Ignore when consumer is not connected yet.
+  }
+
+  try {
+    await producer.disconnect();
+  } catch (_) {
+    // Ignore when producer is not connected yet.
+  }
+}
+
+async function startKafkaWithRetry() {
+  while (!kafkaReady) {
+    try {
+      await startKafka();
+      kafkaReady = true;
+      console.log("AI matching kafka consumer/producer connected");
+      return;
+    } catch (err) {
+      console.error("AI matching kafka bootstrap failed:", err.message);
+      await resetKafkaClients();
+      console.log(`Retrying kafka bootstrap in ${KAFKA_BOOTSTRAP_RETRY_MS}ms`);
+      await sleep(KAFKA_BOOTSTRAP_RETRY_MS);
+    }
+  }
+}
+
 function startHttpServer() {
   const { server, protocol } = createServer((req, res) => {
     handleHttp(req, res);
@@ -373,6 +413,4 @@ function startHttpServer() {
 }
 
 startHttpServer();
-startKafka().catch((err) => {
-  console.error("AI matching kafka bootstrap failed:", err.message);
-});
+startKafkaWithRetry();

@@ -53,11 +53,80 @@ function parseCookieHeader(cookieHeader = "") {
 }
 
 function parseAllowedOrigins() {
-  const rawOrigins = process.env.CORS_ORIGIN || "http://localhost:5173,http://localhost:4173,http://localhost:3000";
+  const rawEnvValue = stripOptionalQuotes(process.env.CORS_ORIGIN || "");
+  const rawOrigins =
+    rawEnvValue ||
+    "http://localhost:5173,http://localhost:4173,http://localhost:3000,http://127.0.0.1:5173,http://127.0.0.1:4173,http://127.0.0.1:3000";
   return rawOrigins
     .split(",")
-    .map((origin) => origin.trim())
+    .map((origin) => normalizeOrigin(origin))
     .filter(Boolean);
+}
+
+function stripOptionalQuotes(value = "") {
+  const trimmed = String(value).trim();
+  if (!trimmed) return "";
+
+  const firstChar = trimmed[0];
+  const lastChar = trimmed[trimmed.length - 1];
+  const isWrappedInSameQuote =
+    (firstChar === "'" && lastChar === "'") || (firstChar === '"' && lastChar === '"');
+  return isWrappedInSameQuote ? trimmed.slice(1, -1).trim() : trimmed;
+}
+
+function normalizeOrigin(origin = "") {
+  const value = stripOptionalQuotes(origin);
+  if (!value) return "";
+  if (value === "*") return "*";
+
+  try {
+    const parsed = new URL(value);
+    if (!["http:", "https:"].includes(parsed.protocol)) {
+      return "";
+    }
+
+    const defaultPort = parsed.protocol === "https:" ? "443" : "80";
+    const normalizedPort = parsed.port && parsed.port !== defaultPort ? `:${parsed.port}` : "";
+    return `${parsed.protocol}//${parsed.hostname}${normalizedPort}`.toLowerCase();
+  } catch (_) {
+    return value;
+  }
+}
+
+function isLoopbackHost(hostname = "") {
+  const value = String(hostname).trim().toLowerCase();
+  return value === "localhost" || value === "127.0.0.1" || value === "::1" || value === "[::1]";
+}
+
+function isPrivateIpv4(hostname = "") {
+  const value = String(hostname).trim().toLowerCase();
+  if (!value) return false;
+  if (isLoopbackHost(value)) return true;
+
+  const parts = value.split(".").map((part) => Number(part));
+  if (parts.length !== 4 || parts.some((part) => !Number.isInteger(part) || part < 0 || part > 255)) {
+    return false;
+  }
+
+  if (parts[0] === 10) return true;
+  if (parts[0] === 172 && parts[1] >= 16 && parts[1] <= 31) return true;
+  if (parts[0] === 192 && parts[1] === 168) return true;
+  return false;
+}
+
+function isLanDevOrigin(origin = "") {
+  try {
+    const parsed = new URL(normalizeOrigin(origin));
+    if (!["http:", "https:"].includes(parsed.protocol)) {
+      return false;
+    }
+
+    const port = parsed.port || (parsed.protocol === "https:" ? "443" : "80");
+    const allowedPorts = new Set(["3000", "4173", "5173"]);
+    return allowedPorts.has(port) && isPrivateIpv4(parsed.hostname);
+  } catch (_) {
+    return false;
+  }
 }
 
 function resolveAccessTokenFromCookie(req) {
@@ -71,24 +140,59 @@ function toBearerToken(token) {
   return `Bearer ${token}`;
 }
 
+function isOriginAllowed(origin = "", allowedOrigins = []) {
+  const normalizedOrigin = normalizeOrigin(origin);
+  if (!normalizedOrigin) return false;
+  if (allowedOrigins.includes("*")) return true;
+  return allowedOrigins.includes(normalizedOrigin);
+}
+
+function hasOnlyLoopbackOrigins(allowedOrigins = []) {
+  const concreteOrigins = allowedOrigins.filter((origin) => origin && origin !== "*");
+  if (!concreteOrigins.length) {
+    return false;
+  }
+
+  return concreteOrigins.every((origin) => {
+    try {
+      const parsed = new URL(origin);
+      return isLoopbackHost(parsed.hostname);
+    } catch (_) {
+      return false;
+    }
+  });
+}
+
 const allowedOrigins = parseAllowedOrigins();
+const hasExplicitCorsOrigins = Boolean(stripOptionalQuotes(process.env.CORS_ORIGIN || ""));
+const allowLanFallback = !hasExplicitCorsOrigins || hasOnlyLoopbackOrigins(allowedOrigins);
+const corsOptions = {
+  credentials: true,
+  methods: ["GET", "HEAD", "PUT", "PATCH", "POST", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
+  origin(origin, callback) {
+    if (!origin) {
+      callback(null, true);
+      return;
+    }
+
+    if (isOriginAllowed(origin, allowedOrigins)) {
+      callback(null, true);
+      return;
+    }
+
+    // When CORS_ORIGIN is empty or accidentally loopback-only on VPS,
+    // still allow same-LAN frontend origins to avoid login preflight failures.
+    if (allowLanFallback && isLanDevOrigin(origin)) {
+      callback(null, true);
+      return;
+    }
+
+    callback(new Error("Not allowed by CORS"));
+  },
+};
 app.use(
-  cors({
-    credentials: true,
-    origin(origin, callback) {
-      if (!origin) {
-        callback(null, true);
-        return;
-      }
-
-      if (allowedOrigins.includes("*") || allowedOrigins.includes(origin)) {
-        callback(null, true);
-        return;
-      }
-
-      callback(new Error("Not allowed by CORS"));
-    },
-  })
+  cors(corsOptions)
 );
 app.use(express.json({ limit: process.env.PAYLOAD_LIMIT || "1mb" }));
 
@@ -160,8 +264,33 @@ const proxyTo = (target, options = {}) => {
       // Keep body forwarding consistent across proxied methods.
       fixRequestBody(proxyReq, req);
     },
-    onError: (_, __, res) => {
-      res.status(503).json({ message: "Upstream service unavailable" });
+    onError: (err, req, resOrSocket) => {
+      const isWebSocketUpgrade =
+        String(req?.headers?.upgrade || "").toLowerCase() === "websocket";
+      const requestPath = req?.originalUrl || req?.url || "unknown";
+      const errorCode = err?.code || "UNKNOWN";
+      const errorMessage = err?.message || "proxy_error";
+
+      console.error(
+        `[proxy:error] target=${target} path=${requestPath} code=${errorCode} message=${errorMessage}`
+      );
+
+      if (isWebSocketUpgrade) {
+        if (resOrSocket && typeof resOrSocket.destroy === "function") {
+          resOrSocket.destroy();
+        }
+        return;
+      }
+
+      if (resOrSocket && typeof resOrSocket.status === "function" && typeof resOrSocket.json === "function") {
+        resOrSocket.status(503).json({ message: "Upstream service unavailable" });
+        return;
+      }
+
+      if (resOrSocket && typeof resOrSocket.writeHead === "function" && typeof resOrSocket.end === "function") {
+        resOrSocket.writeHead(503, { "Content-Type": "application/json" });
+        resOrSocket.end(JSON.stringify({ message: "Upstream service unavailable" }));
+      }
     },
   };
 
@@ -177,8 +306,14 @@ const proxyTo = (target, options = {}) => {
 app.use("/booking", authMiddleware, bookingRoute);
 
 // Proxy routes
-app.use("/ws/drivers", proxyTo(DRIVER_SERVICE_URL, { stripPrefix: "/ws/drivers", ws: true }));
-app.use("/ws/notifications", proxyTo(NOTIFICATION_SERVICE_URL, { stripPrefix: "/ws/notifications", ws: true }));
+const driverWsProxy = proxyTo(DRIVER_SERVICE_URL, { stripPrefix: "/ws/drivers", ws: true });
+const notificationWsProxy = proxyTo(NOTIFICATION_SERVICE_URL, {
+  stripPrefix: "/ws/notifications",
+  ws: true,
+});
+
+app.use("/ws/drivers", driverWsProxy);
+app.use("/ws/notifications", notificationWsProxy);
 app.use("/auth", proxyTo(AUTH_SERVICE_URL));
 app.use("/users", proxyTo(USER_SERVICE_URL));
 app.use("/drivers", proxyTo(DRIVER_SERVICE_URL));
@@ -213,6 +348,30 @@ app.use((err, _, res, __) => {
   return res.status(500).json({ message: "Internal server error" });
 });
 
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log(`API Gateway running on port ${PORT}`);
+});
+
+server.on("upgrade", (req, socket, head) => {
+  const requestUrl = req.url || "";
+
+  if (requestUrl.startsWith("/ws/drivers")) {
+    if (typeof driverWsProxy.upgrade === "function") {
+      driverWsProxy.upgrade(req, socket, head);
+      return;
+    }
+    socket.destroy();
+    return;
+  }
+
+  if (requestUrl.startsWith("/ws/notifications")) {
+    if (typeof notificationWsProxy.upgrade === "function") {
+      notificationWsProxy.upgrade(req, socket, head);
+      return;
+    }
+    socket.destroy();
+    return;
+  }
+
+  socket.destroy();
 });

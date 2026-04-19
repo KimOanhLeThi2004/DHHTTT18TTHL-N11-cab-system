@@ -52,7 +52,5 @@ export function resolveGatewayWsUrl(path = "/") {
 
 export function canUseBrowserGeolocation() {
   if (typeof window === "undefined") return false;
-  if (!("geolocation" in navigator)) return false;
-  if (window.isSecureContext) return true;
-  return isLoopbackHost(window.location.hostname);
+  return "geolocation" in navigator;
 }

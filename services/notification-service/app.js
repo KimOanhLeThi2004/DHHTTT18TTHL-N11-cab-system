@@ -45,5 +45,6 @@ startConsumer(sendToUser).catch(console.error);
 
 server.listen(process.env.PORT, () => {
   console.log(`Notification Service running on ${protocol}://0.0.0.0:${process.env.PORT}`);
-  console.log(`Notification WS running on ${wsProtocol}://localhost:${process.env.PORT}`);
+  console.log(`Notification WS internal bind: ${wsProtocol}://0.0.0.0:${process.env.PORT}`);
+  console.log(`Notification WS public endpoint: ${wsProtocol}://<gateway-host>:3000/ws/notifications`);
 });

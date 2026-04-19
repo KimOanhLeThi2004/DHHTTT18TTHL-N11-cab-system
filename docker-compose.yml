@@ -50,7 +50,7 @@ services:
       KAFKA_NODE_ID: 1
       KAFKA_PROCESS_ROLES: broker,controller
       KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,INTERNAL://0.0.0.0:29092,CONTROLLER://0.0.0.0:9093
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092,INTERNAL://kafka:29092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://${KAFKA_ADVERTISED_HOST:-kafka}:9092,INTERNAL://kafka:29092
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,INTERNAL:PLAINTEXT,CONTROLLER:PLAINTEXT
       KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
       KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
@@ -335,6 +335,7 @@ services:
       REVIEW_SERVICE_URL: http://review-service:3009
       NOTIFICATION_SERVICE_URL: http://notification-service:3008
       AI_SERVICE_URL: http://ai-matching-service:3010
+      CORS_ORIGIN: ${CORS_ORIGIN:-*}
     volumes:
       - ./security/certs:/etc/mtls:ro
     depends_on:
@@ -354,7 +355,7 @@ services:
     build:
       context: ./cab-ui
       args:
-        VITE_API_URL: http://localhost:3000
+        VITE_API_URL: ${VITE_API_URL:-}
     container_name: cab-ui
     ports:
       - "5173:80"

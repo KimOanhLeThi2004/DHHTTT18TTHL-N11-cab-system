@@ -11,7 +11,7 @@ env:
   NODE_VERSION: "20"
   REGISTRY: docker.io
   IMAGE_NAMESPACE: kietlu
-  VITE_API_URL: ${{ vars.VITE_API_URL || 'http://localhost:3000' }}
+  VITE_API_URL: ${{ vars.VITE_API_URL || '' }}
 
 jobs:
   test:
