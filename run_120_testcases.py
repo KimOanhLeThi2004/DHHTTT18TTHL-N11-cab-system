@@ -3,7 +3,10 @@ import base64
 import json
 import os
 import random
+import re
+import shutil
 import string
+import subprocess
 import time
 import urllib.error
 import urllib.request
@@ -73,6 +76,86 @@ def rand_email():
 
 
 @dataclass
+class CaseMeta:
+    cid: int
+    title: str
+    method: str = ""
+    path: str = ""
+    source: str = ""
+
+
+def ensure_pdf_text(
+    pdf_path="final_PROJECT_grading-factor.pdf",
+    txt_path="final_PROJECT_grading-factor.txt",
+    jar_path="pdfbox-app.jar",
+):
+    pdf_file = ROOT / pdf_path
+    txt_file = ROOT / txt_path
+    jar_file = ROOT / jar_path
+
+    if txt_file.exists() and txt_file.stat().st_size > 0:
+        return txt_file
+    if not pdf_file.exists():
+        return None
+    if not jar_file.exists():
+        return None
+    if shutil.which("java") is None:
+        return None
+
+    try:
+        subprocess.run(
+            ["java", "-jar", str(jar_file), "ExtractText", str(pdf_file), str(txt_file)],
+            check=False,
+            cwd=str(ROOT),
+            timeout=120,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
+    except Exception:
+        return None
+
+    if txt_file.exists() and txt_file.stat().st_size > 0:
+        return txt_file
+    return None
+
+
+def load_case_catalog_from_pdf():
+    catalog = {}
+    txt_file = ensure_pdf_text()
+    if not txt_file:
+        return catalog
+
+    case_line_re = re.compile(r"^\s*(\d{1,3})\s+(.+?)\s*$")
+    endpoint_re = re.compile(r"\b(GET|POST|PUT|PATCH|DELETE)\s+(/[^\s,]+)")
+
+    for raw_line in txt_file.read_text(encoding="utf-8", errors="ignore").splitlines():
+        line = raw_line.strip()
+        if not line:
+            continue
+        match = case_line_re.match(line)
+        if not match:
+            continue
+
+        cid = int(match.group(1))
+        if cid < 0 or cid > 120:
+            continue
+
+        title = match.group(2).strip()
+        endpoint = endpoint_re.search(line)
+        method = endpoint.group(1) if endpoint else ""
+        path = endpoint.group(2) if endpoint else ""
+
+        catalog[cid] = CaseMeta(
+            cid=cid,
+            title=title,
+            method=method,
+            path=path,
+            source="pdf",
+        )
+    return catalog
+
+
+@dataclass
 class Ctx:
     email: str = rand_email()
     password: str = "123456"
@@ -84,6 +167,14 @@ class Ctx:
 
 ctx = Ctx()
 results = []
+CASE_CATALOG = load_case_catalog_from_pdf()
+if not CASE_CATALOG:
+    print(
+        "ERROR: Cannot load case catalog from final_PROJECT_grading-factor.pdf. "
+        "Provide final_PROJECT_grading-factor.txt (PDF extracted text) "
+        "or place pdfbox-app.jar with Java available."
+    )
+    raise SystemExit(2)
 
 
 def auth():
@@ -91,12 +182,20 @@ def auth():
 
 
 def run(cid, fn, name=None):
-    label = name or f"Case {cid}"
+    meta = CASE_CATALOG.get(cid)
+    endpoint = f"{meta.method} {meta.path}".strip() if meta and meta.path else "-"
+    title = meta.title if meta else (name or f"Case {cid}")
+    label = f"TC{cid:03d} {title}"
+    started = time.perf_counter()
     try:
         ok, reason = fn()
     except Exception as e:
         ok, reason = False, f"Exception: {e}"
-    results.append((cid, label, ok, reason))
+    elapsed_ms = int((time.perf_counter() - started) * 1000)
+    normalized_reason = " ".join(str(reason).split())
+    status = "PASS" if ok else "FAIL"
+    print(f"[{status}] TC{cid:03d} | {title} | {endpoint} | {elapsed_ms}ms | {normalized_reason}")
+    results.append((cid, label, ok, normalized_reason, elapsed_ms, endpoint, title))
 
 
 def sim(msg, checks):
@@ -566,14 +665,15 @@ for cid in range(1, 121):
     else:
         run(cid, lambda c=cid: (True, f"covered by hybrid simulation {c}"))
 
-print("ID | Name | Result | Reason")
-print("---|------|--------|-------")
+print(f"\nLoaded case catalog: {len(CASE_CATALOG)} cases from final_PROJECT_grading-factor.pdf")
+print("ID | Title | Endpoint | Result | Duration(ms) | Reason")
+print("---|-------|----------|--------|-------------|-------")
 pass_count = 0
-for cid, name, ok, reason in sorted(results, key=lambda x: x[0]):
+for cid, _name, ok, reason, elapsed_ms, endpoint, title in sorted(results, key=lambda x: x[0]):
     status = "PASS" if ok else "FAIL"
     if ok:
         pass_count += 1
-    print(f"{cid} | {name} | {status} | {reason}")
+    print(f"{cid:03d} | {title} | {endpoint} | {status} | {elapsed_ms} | {reason}")
 
 print(f"\nTOTAL: {pass_count}/120 passed")
 raise SystemExit(0 if pass_count == 120 else 1)
