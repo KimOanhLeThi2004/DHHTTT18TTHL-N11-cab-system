@@ -26,17 +26,24 @@ async function setDriverOffline(driverId) {
 }
 
 async function findNearbyDrivers(lat, lng, radiusKm = 5, vehicleType = "CAR") {
-  const results = await redis.geoRadius(
-    `drivers:geo:${vehicleType}`,
-    Number(lng),
-    Number(lat),
-    Number(radiusKm),
+  const normalizedVehicleType = String(vehicleType || "CAR").toUpperCase();
+  const key = `drivers:geo:${normalizedVehicleType}`;
+  const results = await redis.sendCommand([
+    "GEOSEARCH",
+    key,
+    "FROMLONLAT",
+    String(Number(lng)),
+    String(Number(lat)),
+    "BYRADIUS",
+    String(Number(radiusKm)),
     "km",
-    "WITHDIST"
-  );
+    "WITHDIST",
+  ]);
 
   const drivers = [];
-  for (const [driverId, distance] of results) {
+  for (const row of results || []) {
+    const [driverId, distance] = Array.isArray(row) ? row : [];
+    if (!driverId) continue;
     const data = await redis.hGetAll(`driver:${driverId}`);
     if (data.status === "ONLINE") {
       drivers.push({

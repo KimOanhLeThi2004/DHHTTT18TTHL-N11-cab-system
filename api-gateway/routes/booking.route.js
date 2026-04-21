@@ -5,8 +5,9 @@ const {
   cancelBooking,
   getMyBookings,
 } = require("../services/booking.service");
+const { findNearbyDrivers } = require("../services/driver.service");
 
-const router = express.Router();
+const   router = express.Router();
 const idempotencyCache = new Map();
 const pricingCircuit = {
   failures: 0,
@@ -126,19 +127,35 @@ router.post("/", async (req, res) => {
       }
     }
 
-    const booking = await createBooking(
-      {
-        pickup,
-        dropoff,
-        vehicleType,
-        distanceKm,
-        durationMin,
-        requestTime,
-        totalPrice: pricing.totalPrice,
-        idempotencyKey,
-      },
-      token
-    );
+    let noDriversAvailable = false;
+    try {
+      const nearbyDrivers = await withRetry(() =>
+        findNearbyDrivers({
+          lat: pickup.lat,
+          lng: pickup.lng,
+          radiusKm: Number(process.env.DRIVER_SEARCH_RADIUS_KM || 5),
+          vehicleType: String(vehicleType).toUpperCase(),
+        })
+      );
+      noDriversAvailable = !Array.isArray(nearbyDrivers) || nearbyDrivers.length === 0;
+    } catch (driverLookupErr) {
+      console.error("Driver availability check error:", driverLookupErr.message);
+      noDriversAvailable = true;
+    }
+
+    const bookingPayload = {
+      pickup,
+      dropoff,
+      vehicleType,
+      distanceKm,
+      durationMin,
+      requestTime,
+      totalPrice: pricing.totalPrice,
+      idempotencyKey,
+      status: noDriversAvailable ? "FAILED" : "REQUESTED",
+    };
+
+    const booking = await createBooking(bookingPayload, token);
 
     const response = {
       booking_id: booking._id || booking.booking_id,
@@ -147,6 +164,10 @@ router.post("/", async (req, res) => {
       price: Number(booking.estimatedPrice ?? pricing.totalPrice),
       surge_multiplier: pricing.surgeMultiplier,
     };
+
+    if (noDriversAvailable) {
+      response.message = "No drivers available";
+    }
 
     if (cacheKey) {
       idempotencyCache.set(cacheKey, response);

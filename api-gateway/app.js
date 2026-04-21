@@ -28,9 +28,12 @@ const metrics = {
   startedAt: Date.now(),
 };
 
-const rateLimitWindowMs = Number(process.env.RATE_LIMIT_WINDOW_MS || 1000);
-const rateLimitMax = Number(process.env.RATE_LIMIT_MAX || 100);
-const ipBuckets = new Map();
+const healthRateLimitWindowMs = Number(process.env.RATE_LIMIT_WINDOW_MS || 1000);
+const healthRateLimitMax = Number(process.env.RATE_LIMIT_MAX || 100);
+const bookingRateLimitWindowMs = Number(process.env.BOOKING_RATE_LIMIT_WINDOW_MS || 1000);
+const bookingRateLimitMax = Number(process.env.BOOKING_RATE_LIMIT_MAX || 80);
+const healthBuckets = new Map();
+const bookingBuckets = new Map();
 const ACCESS_COOKIE_NAME = process.env.ACCESS_COOKIE_NAME || "access_token";
 
 function parseCookieHeader(cookieHeader = "") {
@@ -140,6 +143,36 @@ function toBearerToken(token) {
   return `Bearer ${token}`;
 }
 
+function resolveClientIp(req) {
+  return req.ip || req.connection?.remoteAddress || req.socket?.remoteAddress || "unknown";
+}
+
+function enforceSlidingWindowRateLimit(req, res, {
+  buckets,
+  windowMs,
+  max,
+  errorMessage = "Too many requests",
+}) {
+  const ip = resolveClientIp(req);
+  const now = Date.now();
+  const bucket = buckets.get(ip);
+
+  if (!bucket || now - bucket.windowStart >= windowMs) {
+    buckets.set(ip, { windowStart: now, count: 1 });
+    return false;
+  }
+
+  bucket.count += 1;
+  if (bucket.count <= max) {
+    return false;
+  }
+
+  const retryAfterSec = Math.max(1, Math.ceil(windowMs / 1000));
+  res.setHeader("Retry-After", String(retryAfterSec));
+  res.status(429).json({ message: errorMessage });
+  return true;
+}
+
 function isOriginAllowed(origin = "", allowedOrigins = []) {
   const normalizedOrigin = normalizeOrigin(origin);
   if (!normalizedOrigin) return false;
@@ -213,23 +246,32 @@ app.use((req, res, next) => {
   if (req.path !== "/health") {
     return next();
   }
+  const blocked = enforceSlidingWindowRateLimit(req, res, {
+    buckets: healthBuckets,
+    windowMs: healthRateLimitWindowMs,
+    max: healthRateLimitMax,
+    errorMessage: "Too many requests",
+  });
+  if (blocked) {
+    return;
+  }
+  next();
+});
 
-  const ip = req.ip || req.connection.remoteAddress || "unknown";
-  const now = Date.now();
-  const bucket = ipBuckets.get(ip);
-
-  if (!bucket || now - bucket.windowStart >= rateLimitWindowMs) {
-    ipBuckets.set(ip, { windowStart: now, count: 1 });
+app.use((req, res, next) => {
+  if (req.method !== "POST" || !req.path.startsWith("/booking")) {
     return next();
   }
-
-  bucket.count += 1;
-  if (bucket.count > rateLimitMax) {
-    // Reset bucket after throttling so subsequent probes can recover quickly.
-    ipBuckets.set(ip, { windowStart: now, count: 0 });
-    return res.status(429).json({ message: "Too many requests" });
+  const blocked = enforceSlidingWindowRateLimit(req, res, {
+    buckets: bookingBuckets,
+    windowMs: bookingRateLimitWindowMs,
+    max: bookingRateLimitMax,
+    errorMessage: "Too many booking requests",
+  });
+  if (blocked) {
+    return;
   }
-  return next();
+  next();
 });
 
 const withServiceToken = () => `Bearer ${signServiceToken()}`;

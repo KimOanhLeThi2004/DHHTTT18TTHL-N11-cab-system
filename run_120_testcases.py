@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import base64
 import json
+import math
 import os
 import random
 import re
@@ -14,7 +15,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass
 from pathlib import Path
 
-API_BASE = os.getenv("API_BASE_URL", "http://192.168.57.101:3000").rstrip("/")
+API_BASE = os.getenv("API_BASE_URL", "http://localhost:3000").rstrip("/")
 ROOT = Path(__file__).resolve().parent
 
 
@@ -303,26 +304,62 @@ def c15():
 
 def c16():
     s, d = req("POST", "/pricing/calculate", {"distance_km": 5, "demand_index": 0, "supply_index": 1, "vehicleType": "CAR"})
-    return s == 200 and d.get("surgeMultiplier", 0) >= 1 and d.get("totalPrice", 0) > 0, f"{s} {d}"
+    surge = d.get("surge_multiplier", d.get("surgeMultiplier"))
+    total = d.get("total_price", d.get("totalPrice"))
+    return (
+        s == 200
+        and isinstance(surge, (int, float))
+        and math.isfinite(surge)
+        and surge >= 1
+        and isinstance(total, (int, float))
+        and math.isfinite(total)
+        and total > 0
+    ), f"{s} {d}"
 
 
 def c17():
     s, d = req("POST", "/ai/fraud", {"user_id": "USR123"})
-    return s == 400, f"{s} {d}"
+    expected_missing = {"driver_id", "booking_id", "amount", "location", "device_fingerprint"}
+    missing = set(d.get("missing", []))
+    no_model_output = all(k not in d for k in ("fraud_score", "flagged", "model_version"))
+    return (
+        s == 400
+        and d.get("message") == "missing required fields"
+        and expected_missing.issubset(missing)
+        and no_model_output
+    ), f"{s} {d}"
 
 
 def c18():
-    s, d = req("GET", "/booking", headers={"Authorization": "Bearer expired.token.value"})
-    return s == 401, f"{s} {d}"
+    s, d = req("POST", "/booking", {}, headers={"Authorization": "Bearer expired_token"})
+    no_business_output = all(k not in d for k in ("booking_id", "status", "fare", "driver_id"))
+    return s == 401 and d.get("message") == "Token expired" and no_business_output, f"{s} {d}"
 
 
 def c19():
-    key = f"idem-{int(time.time()*1000)}"
+    headers = auth()
+    s0, d0 = req("GET", "/booking", headers=headers)
+    before_count = len(d0) if s0 == 200 and isinstance(d0, list) else None
+    key = f"idem-{int(time.time()*1000)}-{random.randint(1000, 9999)}"
     body = {"pickup": {"lat": 10.76, "lng": 106.66}, "dropoff": {"lat": 10.77, "lng": 106.70}, "distanceKm": 5, "durationMin": 10, "vehicleType": "CAR"}
-    h = auth(); h["Idempotency-Key"] = key
+    h = dict(headers)
+    h["Idempotency-Key"] = key
     s1, d1 = req("POST", "/booking", body, h)
     s2, d2 = req("POST", "/booking", body, h)
-    return s1 in (200, 201) and s2 in (200, 201) and d1.get("booking_id") == d2.get("booking_id"), f"{s1}/{s2}"
+    s3, d3 = req("GET", "/booking", headers=headers)
+    after_count = len(d3) if s3 == 200 and isinstance(d3, list) else None
+    created_once = (
+        before_count is not None
+        and after_count is not None
+        and after_count == before_count + 1
+    )
+    return (
+        s1 == 201
+        and s2 == 200
+        and d1 == d2
+        and bool(d1.get("booking_id"))
+        and created_once
+    ), f"{s0}/{s1}/{s2}/{s3} {before_count}->{after_count} {d1} {d2}"
 
 
 def c20():
@@ -435,8 +472,30 @@ def c57():
 
 
 def c58():
-    s, d = req("POST", "/ai/agent/select-driver", {"drivers": [{"id": "D1", "distanceKm": 1}]})
-    return s == 200 and "decision_log" in d, f"{d}"
+    base = int(time.time() * 1000)
+    d1 = f"DRV_AI_{base}"
+    d2 = f"DRV_AI_{base + 1}"
+    req("POST", "/drivers/online", {"driverId": d1, "lat": 10.7601, "lng": 106.6601, "vehicleType": "CAR"})
+    req("POST", "/drivers/online", {"driverId": d2, "lat": 10.7606, "lng": 106.6606, "vehicleType": "CAR"})
+    s0, nearby = req("GET", "/drivers/nearby?lat=10.7603&lng=106.6603&radiusKm=5&vehicleType=CAR")
+    if s0 != 200 or not isinstance(nearby, list) or not nearby:
+        return False, f"nearby={s0} {nearby}"
+    online_map = {
+        str(x.get("id")): str(x.get("status", "")).upper()
+        for x in nearby
+        if x.get("id")
+    }
+    s, d = req("POST", "/ai/agent/select-driver", {"strategy": "nearest", "drivers": nearby})
+    selected = d.get("selected_driver") or {}
+    selected_id = str(selected.get("id") or "")
+    selected_status = str(selected.get("status") or online_map.get(selected_id, "")).upper()
+    return (
+        s == 200
+        and d.get("mode") in {"ai", "fallback"}
+        and bool(selected_id)
+        and selected_id in online_map
+        and selected_status == "ONLINE"
+    ), f"{s0}/{s} {d}"
 
 
 def c59():

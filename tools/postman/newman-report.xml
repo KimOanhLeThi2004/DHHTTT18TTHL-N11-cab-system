@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="Taxi Booking - Auto API Tests" tests="22" time="0.381">
+  <testsuite name="Init Variables" id="4d7164f0-181c-4b75-9ee9-f110ccecc9fe" timestamp="2026-04-21T11:25:17.315Z" tests="1" failures="0" errors="0" time="0.021">
+    <testcase name="Health check reachable" time="0.021" classname="InitVariables"/>
+  </testsuite>
+  <testsuite name="Register Customer" id="4b4c072d-75f8-45c6-96cd-7975f73a3b1d" timestamp="2026-04-21T11:25:17.315Z" tests="1" failures="0" errors="0" time="0.079">
+    <testcase name="Register customer success or exists" time="0.079" classname="RegisterCustomer"/>
+  </testsuite>
+  <testsuite name="Login Customer" id="ea8914e6-ee9d-4f60-af79-ade036d1a29f" timestamp="2026-04-21T11:25:17.315Z" tests="2" failures="0" errors="0" time="0.056">
+    <testcase name="Login customer success" time="0.056" classname="LoginCustomer"/>
+    <testcase name="Customer token captured" time="0.056" classname="LoginCustomer"/>
+  </testsuite>
+  <testsuite name="Register Driver" id="c98228d4-9468-4645-b7fb-00e007d0f631" timestamp="2026-04-21T11:25:17.315Z" tests="1" failures="1" errors="0" time="0.071">
+    <testcase name="Register driver success or exists" time="0.071" classname="RegisterDriver">
+      <failure type="AssertionFailure" message="expected [ 201, 400 ] to include 500">
+        <![CDATA[Failed 1 times.]]>
+        <![CDATA[Collection JSON ID: 44bf65dd-326d-427f-9420-adf0ee0d607f.]]>
+        <![CDATA[Collection name: Taxi Booking - Auto API Tests.]]>
+        <![CDATA[Request name: Register Driver.]]>
+        <![CDATA[Test description: Register driver success or exists.]]>
+        <![CDATA[Error message: expected [ 201, 400 ] to include 500.]]>
+        <![CDATA[Stacktrace: AssertionError: expected [ 201, 400 ] to include 500
+   at Object.eval sandbox-script.js:1:4).]]>
+      </failure>
+    </testcase>
+  </testsuite>
+  <testsuite name="Login Driver" id="96ffdb59-ff98-4e8a-ad02-3423208e162f" timestamp="2026-04-21T11:25:17.315Z" tests="2" failures="2" errors="0" time="0.008">
+    <testcase name="Login driver success" time="0.008" classname="LoginDriver">
+      <failure type="AssertionFailure" message="expected response to have status code 200 but got 404">
+        <![CDATA[Failed 1 times.]]>
+        <![CDATA[Collection JSON ID: 44bf65dd-326d-427f-9420-adf0ee0d607f.]]>
+        <![CDATA[Collection name: Taxi Booking - Auto API Tests.]]>
+        <![CDATA[Request name: Login Driver.]]>
+        <![CDATA[Test description: Login driver success.]]>
+        <![CDATA[Error message: expected response to have status code 200 but got 404.]]>
+        <![CDATA[Stacktrace: AssertionError: expected response to have status code 200 but got 404
+   at Object.eval sandbox-script.js:1:5).]]>
+      </failure>
+    </testcase>
+    <testcase name="Driver token and id captured" time="0.008" classname="LoginDriver">
+      <failure type="AssertionFailure" message="expected '' to not deeply equal ''">
+        <![CDATA[Failed 1 times.]]>
+        <![CDATA[Collection JSON ID: 44bf65dd-326d-427f-9420-adf0ee0d607f.]]>
+        <![CDATA[Collection name: Taxi Booking - Auto API Tests.]]>
+        <![CDATA[Request name: Login Driver.]]>
+        <![CDATA[Test description: Driver token and id captured.]]>
+        <![CDATA[Error message: expected '' to not deeply equal ''.]]>
+        <![CDATA[Stacktrace: AssertionError: expected '' to not deeply equal ''
+   at Object.eval sandbox-script.js:2:5).]]>
+      </failure>
+    </testcase>
+  </testsuite>
+  <testsuite name="Fraud Missing Fields -> 400 + No Model" id="ee467a31-b279-4bbb-a4ed-29a9af76afe1" timestamp="2026-04-21T11:25:17.315Z" tests="4" failures="0" errors="0" time="0.006">
+    <testcase name="HTTP 400" time="0.006" classname="FraudMissingFields400NoModel"/>
+    <testcase name="Message is missing required fields" time="0.006" classname="FraudMissingFields400NoModel"/>
+    <testcase name="Missing fields list includes required keys" time="0.006" classname="FraudMissingFields400NoModel"/>
+    <testcase name="No model output in validation failure" time="0.006" classname="FraudMissingFields400NoModel"/>
+  </testsuite>
+  <testsuite name="Expired Token -> 401" id="665a58dc-9a02-422b-8674-92e769aeb708" timestamp="2026-04-21T11:25:17.315Z" tests="2" failures="0" errors="0" time="0.007">
+    <testcase name="HTTP 401" time="0.007" classname="ExpiredToken401"/>
+    <testcase name="Request is rejected before business output" time="0.007" classname="ExpiredToken401"/>
+  </testsuite>
+  <testsuite name="Pricing demand_index=0" id="1a657b52-97be-42ae-ad9f-27d4a4afa172" timestamp="2026-04-21T11:25:17.315Z" tests="4" failures="0" errors="0" time="0.006">
+    <testcase name="HTTP 200" time="0.006" classname="PricingDemandIndex0"/>
+    <testcase name="Surge >= 1" time="0.006" classname="PricingDemandIndex0"/>
+    <testcase name="Price is valid > 0" time="0.006" classname="PricingDemandIndex0"/>
+    <testcase name="No division-by-zero NaN/Infinity" time="0.006" classname="PricingDemandIndex0"/>
+  </testsuite>
+  <testsuite name="Idempotency Count Before" id="fe22328a-43bc-4bea-bb34-bc9362eb73de" timestamp="2026-04-21T11:25:17.315Z" tests="1" failures="0" errors="0" time="0.011">
+    <testcase name="List bookings success" time="0.011" classname="IdempotencyCountBefore"/>
+  </testsuite>
+  <testsuite name="Idempotency First Request" id="24e4625b-6508-4041-8b3e-aaf6a987b9bb" timestamp="2026-04-21T11:25:17.315Z" tests="1" failures="0" errors="0" time="0.019">
+    <testcase name="First booking creates resource" time="0.019" classname="IdempotencyFirstRequest"/>
+  </testsuite>
+  <testsuite name="Idempotency Second Request (Same Key)" id="8782a1d5-8ef6-4bd9-a847-801fae16cac5" timestamp="2026-04-21T11:25:17.315Z" tests="1" failures="0" errors="0" time="0.006">
+    <testcase name="Second request returns previous result" time="0.006" classname="IdempotencySecondRequestSameKey"/>
+  </testsuite>
+  <testsuite name="Idempotency Count After" id="7f9743da-60b2-4fe6-a5fa-dda27076d444" timestamp="2026-04-21T11:25:17.315Z" tests="2" failures="0" errors="0" time="0.007">
+    <testcase name="List bookings success" time="0.007" classname="IdempotencyCountAfter"/>
+    <testcase name="No duplicate booking is created" time="0.007" classname="IdempotencyCountAfter"/>
+  </testsuite>
+  <testsuite name="Large Payload Count Before" id="cc9d03e5-a849-46ed-a9ea-41ab0b015f0b" timestamp="2026-04-21T11:25:17.315Z" tests="1" failures="0" errors="0" time="0.008">
+    <testcase name="List bookings success" time="0.008" classname="LargePayloadCountBefore"/>
+  </testsuite>
+  <testsuite name="Large Payload -> 413" id="5f2b9c93-3555-41ab-a5ac-6894c2995b2c" timestamp="2026-04-21T11:25:17.315Z" tests="2" failures="0" errors="0" time="0.008">
+    <testcase name="HTTP 413 Payload Too Large" time="0.008" classname="LargePayload413"/>
+    <testcase name="No business output for rejected request" time="0.008" classname="LargePayload413"/>
+  </testsuite>
+  <testsuite name="Large Payload Count After" id="40dfbd08-6e75-466d-986d-cfdbe8b08dfb" timestamp="2026-04-21T11:25:17.315Z" tests="2" failures="0" errors="0" time="0.010">
+    <testcase name="List bookings success" time="0.010" classname="LargePayloadCountAfter"/>
+    <testcase name="Rejected payload does not create booking" time="0.010" classname="LargePayloadCountAfter"/>
+  </testsuite>
+  <testsuite name="AI Driver 1 Online" id="e2380498-1dbd-4f2e-843b-1587d34e09b8" timestamp="2026-04-21T11:25:17.315Z" tests="1" failures="0" errors="0" time="0.006">
+    <testcase name="Driver1 online success" time="0.006" classname="AiDriver1Online"/>
+  </testsuite>
+  <testsuite name="AI Driver 2 Online" id="667c5a3c-d583-48b8-a721-fc421446bfb8" timestamp="2026-04-21T11:25:17.315Z" tests="1" failures="0" errors="0" time="0.008">
+    <testcase name="Driver2 online success" time="0.008" classname="AiDriver2Online"/>
+  </testsuite>
+  <testsuite name="Get Nearby Drivers From Driver Service" id="e41eb57d-b277-4359-a89d-3fef0babe121" timestamp="2026-04-21T11:25:17.315Z" tests="2" failures="0" errors="0" time="0.008">
+    <testcase name="Nearby drivers fetched" time="0.008" classname="GetNearbyDriversFromDriverService"/>
+    <testcase name="Nearby list is non-empty" time="0.008" classname="GetNearbyDriversFromDriverService"/>
+  </testsuite>
+  <testsuite name="AI Select Driver From Driver-Service List" id="b5781a7b-0254-4cdb-8f88-b59576032ea6" timestamp="2026-04-21T11:25:17.315Z" tests="3" failures="0" errors="0" time="0.006">
+    <testcase name="AI select endpoint success" time="0.006" classname="AiSelectDriverFromDriverServiceList"/>
+    <testcase name="Selected driver exists" time="0.006" classname="AiSelectDriverFromDriverServiceList"/>
+    <testcase name="Selected driver belongs to nearby list and online" time="0.006" classname="AiSelectDriverFromDriverServiceList"/>
+  </testsuite>
+  <testsuite name="Assignment Driver Online (For Latency Test)" id="037133fd-17a6-48de-9998-d94b19579ec3" timestamp="2026-04-21T11:25:17.315Z" tests="1" failures="1" errors="0" time="0.007">
+    <testcase name="Assignment driver online success" time="0.007" classname="AssignmentDriverOnlineForLatencyTest">
+      <failure type="AssertionFailure" message="expected response to have status code 200 but got 400">
+        <![CDATA[Failed 1 times.]]>
+        <![CDATA[Collection JSON ID: 44bf65dd-326d-427f-9420-adf0ee0d607f.]]>
+        <![CDATA[Collection name: Taxi Booking - Auto API Tests.]]>
+        <![CDATA[Request name: Assignment Driver Online (For Latency Test).]]>
+        <![CDATA[Test description: Assignment driver online success.]]>
+        <![CDATA[Error message: expected response to have status code 200 but got 400.]]>
+        <![CDATA[Stacktrace: AssertionError: expected response to have status code 200 but got 400
+   at Object.eval sandbox-script.js:1:20).]]>
+      </failure>
+    </testcase>
+  </testsuite>
+  <testsuite name="Create Booking For Assignment Latency" id="9f0471f4-5e22-42c4-bcf4-12ffdc498177" timestamp="2026-04-21T11:25:17.315Z" tests="3" failures="0" errors="0" time="0.018">
+    <testcase name="Booking created for assignment test" time="0.018" classname="CreateBookingForAssignmentLatency"/>
+    <testcase name="Booking id captured" time="0.018" classname="CreateBookingForAssignmentLatency"/>
+    <testcase name="Booking must not be FAILED for assignment flow" time="0.018" classname="CreateBookingForAssignmentLatency"/>
+  </testsuite>
+  <testsuite name="Poll Driver Accept (Assignment Latency)" id="f536b2f3-d158-41a8-9054-5a764331f366" timestamp="2026-04-21T11:25:17.315Z" tests="1" failures="1" errors="0" time="0.005">
+    <testcase name="Driver receives assignment within latency SLO" time="0.005" classname="PollDriverAcceptAssignmentLatency">
+      <failure type="AssertionFailure" message="Assignment not accepted in time. status=401, body={&quot;message&quot;:&quot;Invalid token format&quot;}, elapsedMs=74, tries=0">
+        <![CDATA[Failed 1 times.]]>
+        <![CDATA[Collection JSON ID: 44bf65dd-326d-427f-9420-adf0ee0d607f.]]>
+        <![CDATA[Collection name: Taxi Booking - Auto API Tests.]]>
+        <![CDATA[Request name: Poll Driver Accept (Assignment Latency).]]>
+        <![CDATA[Test description: Driver receives assignment within latency SLO.]]>
+        <![CDATA[Error message: Assignment not accepted in time. status=401, body={"message":"Invalid token format"}, elapsedMs=74, tries=0.]]>
+        <![CDATA[Stacktrace: AssertionError: Assignment not accepted in time. status=401, body={"message":"Invalid token format"}, elapsedMs=74, tries=0
+   at Object.eval sandbox-script.js:1:22).]]>
+      </failure>
+    </testcase>
+  </testsuite>
+</testsuites>

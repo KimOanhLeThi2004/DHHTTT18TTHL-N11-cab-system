@@ -1,3 +1,4 @@
+const crypto = require("crypto");
 const { createServer } = require("./mtls");
 const { consumer, producer } = require("./kafka");
 const { findNearbyDrivers, reserveDriver } = require("./driverRepository");
@@ -92,22 +93,27 @@ function forecastPayload(input) {
   };
 }
 
-function chooseDriver(drivers = [], strategy = "balanced") {
+function rankDrivers(drivers = [], strategy = "balanced") {
   const candidates = drivers.filter((d) => d.status !== "OFFLINE");
-  if (!candidates.length) return null;
+  if (!candidates.length) return [];
   if (strategy === "nearest") {
     return [...candidates].sort(
       (a, b) => (a.distanceKm || a.distance || 999) - (b.distanceKm || b.distance || 999)
-    )[0];
+    );
   }
   if (strategy === "rating") {
-    return [...candidates].sort((a, b) => (b.rating || 0) - (a.rating || 0))[0];
+    return [...candidates].sort((a, b) => (b.rating || 0) - (a.rating || 0));
   }
   return [...candidates].sort((a, b) => {
     const aScore = (a.rating || 0) * 1.5 - (a.eta || 0) * 0.8 - (a.price || 0) * 0.2;
     const bScore = (b.rating || 0) * 1.5 - (b.eta || 0) * 0.8 - (b.price || 0) * 0.2;
     return bScore - aScore;
-  })[0];
+  });
+}
+
+function chooseDriver(drivers = [], strategy = "balanced") {
+  const ranked = rankDrivers(drivers, strategy);
+  return ranked[0] || null;
 }
 
 function normalizeDriverId(value) {
@@ -147,12 +153,14 @@ async function selectDriverWithOllama(trip, scoredDrivers = []) {
     "Pick exactly one best driver from the candidates list.",
     "Must only use driverId values from candidates.",
     "Return strict JSON with keys driverId and reason.",
+    "Candidates are pre-ranked by strategy, prefer rank 1 unless there is a clear reason.",
     `booking=${JSON.stringify({
       bookingId: trip.bookingId,
       pickup: trip.pickup,
       dropoff: trip.dropoff,
       vehicleType: trip.vehicleType,
       estimatedPrice: trip.estimatedPrice,
+      strategy: trip.strategy || "balanced",
     })}`,
     `candidates=${JSON.stringify(candidates)}`,
   ].join("\n");
@@ -240,6 +248,7 @@ async function publishMatchingAudit({ eventType, trip, selectedDriverId = null, 
 async function handleHttp(req, res) {
   metrics.requests += 1;
   const path = req.url.split("?")[0];
+  const traceId = req.headers["x-request-id"] || crypto.randomUUID();
   try {
     if (req.method === "GET" && path === "/health") {
       return json(res, 200, { status: "ok", service: "ai-matching-service" });
@@ -304,17 +313,68 @@ async function handleHttp(req, res) {
       (path === "/ai/agent/select-driver" || path === "/agent/select-driver")
     ) {
       const body = await readJsonBody(req);
-      const selected = chooseDriver(body.drivers || [], body.strategy || "balanced");
+      const strategy = body.strategy || "balanced";
+      const rankedDrivers = rankDrivers(body.drivers || [], strategy);
+      if (!rankedDrivers.length) {
+        metrics.fallbackCount += 1;
+        return json(res, 200, {
+          mode: "fallback",
+          selected_driver: null,
+          reason: "no_driver",
+          decision_log: {
+            strategy,
+            selection_reason: "no_driver",
+            trace_id: traceId,
+            timestamp: new Date().toISOString(),
+          },
+        });
+      }
+
+      const trip = {
+        bookingId: body.bookingId ?? body.booking_id ?? "adhoc-selection",
+        pickup: body.pickup ?? null,
+        dropoff: body.dropoff ?? null,
+        vehicleType:
+          body.vehicleType ??
+          body.vehicle_type ??
+          rankedDrivers[0]?.vehicleType ??
+          "CAR",
+        estimatedPrice: Number(body.estimatedPrice ?? body.estimated_price ?? body.price ?? 0),
+        strategy,
+      };
+      const aiSelection = await selectDriverWithOllama(trip, rankedDrivers);
+      const aiSelected = aiSelection
+        ? rankedDrivers.find((d) => String(d.id) === String(aiSelection.driverId))
+        : null;
+      const selected = aiSelected || chooseDriver(rankedDrivers, strategy);
       if (!selected) {
         metrics.fallbackCount += 1;
-        return json(res, 200, { mode: "fallback", selected_driver: null, reason: "no_driver" });
+        return json(res, 200, {
+          mode: "fallback",
+          selected_driver: null,
+          reason: "no_driver",
+          decision_log: {
+            strategy,
+            selection_reason: "no_driver",
+            trace_id: traceId,
+            timestamp: new Date().toISOString(),
+          },
+        });
+      }
+
+      if (aiSelected) {
+        metrics.aiPreferredMatches += 1;
+      } else {
+        metrics.ruleFallbackMatches += 1;
       }
 
       return json(res, 200, {
-        mode: "ai",
+        mode: aiSelected ? "ai" : "fallback",
         selected_driver: selected,
         decision_log: {
-          strategy: body.strategy || "balanced",
+          strategy,
+          selection_reason: aiSelection?.reason || "rule_base_fallback",
+          trace_id: traceId,
           timestamp: new Date().toISOString(),
         },
       });

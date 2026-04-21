@@ -58,23 +58,46 @@ async function createBooking(userId, data) {
     }
   }
 
-  const booking = await Booking.create({
-    userId,
-    pickup: {
-      lat: Number(data.pickup.lat),
-      lng: Number(data.pickup.lng),
-    },
-    dropoff: {
-      lat: Number(data.dropoff.lat),
-      lng: Number(data.dropoff.lng),
-    },
-    distanceKm: Number(data.distanceKm ?? 0),
-    durationMin: Number(data.durationMin ?? 0),
-    vehicleType: data.vehicleType,
-    estimatedPrice: Number(data.totalPrice),
-    status: "REQUESTED",
-    idempotencyKey: data.idempotencyKey || undefined,
-  });
+  const initialStatus = String(data.status || "REQUESTED").toUpperCase() === "FAILED"
+    ? "FAILED"
+    : "REQUESTED";
+
+  let booking;
+  try {
+    booking = await Booking.create({
+      userId,
+      pickup: {
+        lat: Number(data.pickup.lat),
+        lng: Number(data.pickup.lng),
+      },
+      dropoff: {
+        lat: Number(data.dropoff.lat),
+        lng: Number(data.dropoff.lng),
+      },
+      distanceKm: Number(data.distanceKm ?? 0),
+      durationMin: Number(data.durationMin ?? 0),
+      vehicleType: data.vehicleType,
+      estimatedPrice: Number(data.totalPrice),
+      status: initialStatus,
+      idempotencyKey: data.idempotencyKey || undefined,
+    });
+  } catch (err) {
+    // Handle race on idempotency key: return existing booking instead of failing.
+    if (err?.code === 11000 && data.idempotencyKey) {
+      const existed = await Booking.findOne({
+        userId,
+        idempotencyKey: data.idempotencyKey,
+      });
+      if (existed) {
+        return existed;
+      }
+    }
+    throw err;
+  }
+
+  if (initialStatus === "FAILED") {
+    return booking;
+  }
 
   const eventPayload = {
     event_type: "ride_requested",
@@ -87,17 +110,14 @@ async function createBooking(userId, data) {
     timestamp: new Date().toISOString(),
   };
 
-  // New unified event stream
-  await emitEvent("ride_events", eventPayload);
-  // Backward compatibility topics used by existing services
-  await emitEvent("BOOKING_CREATED", {
-    bookingId: booking._id.toString(),
-    userId: booking.userId,
-    pickup: booking.pickup,
-    dropoff: booking.dropoff,
-    vehicleType: booking.vehicleType,
-    estimatedPrice: booking.estimatedPrice,
-  });
+  try {
+    // Unified event stream for downstream matching/dispatch.
+    await emitEvent("ride_events", eventPayload);
+  } catch (err) {
+    // Best-effort compensation for "inserted booking but event publish failed".
+    await Booking.deleteOne({ _id: booking._id, userId });
+    throwHttp(503, "Booking creation failed during event publish");
+  }
 
   return booking;
 }

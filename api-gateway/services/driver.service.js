@@ -64,8 +64,33 @@ async function getDriver(token) {
   }
 }
 
+async function findNearbyDrivers({ lat, lng, radiusKm = 5, vehicleType = "CAR" }) {
+  try {
+    const params = new URLSearchParams({
+      lat: String(lat),
+      lng: String(lng),
+      radiusKm: String(radiusKm),
+      vehicleType: String(vehicleType || "CAR"),
+    });
+
+    const response = await axios.get(
+      `${DRIVER_SERVICE_URL}/drivers/nearby?${params.toString()}`,
+      {
+        timeout: 5000,
+      }
+    );
+
+    return Array.isArray(response.data) ? response.data : [];
+  } catch (error) {
+    const e = new Error(error.response?.data?.message || "Driver service error");
+    e.status = error.response?.status || 500;
+    throw e;
+  }
+}
+
 module.exports = {
   acceptRide,
   rejectRide,
-  getDriver
+  getDriver,
+  findNearbyDrivers,
 };

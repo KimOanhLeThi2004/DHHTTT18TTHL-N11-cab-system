@@ -1,4 +1,4 @@
-const { DataTypes } = require("sequelize");
+const { DataTypes, Op } = require("sequelize");
 const { sequelize } = require("../db/postgres");
 
 const Payment = sequelize.define("Payment", {
@@ -10,7 +10,8 @@ const Payment = sequelize.define("Payment", {
 
   bookingId: {
     type: DataTypes.STRING,
-    allowNull: false
+    allowNull: false,
+    unique: true
   },
 
   userId: {
@@ -35,7 +36,20 @@ const Payment = sequelize.define("Payment", {
   status: {
     type: DataTypes.STRING, // PENDING, SUCCESS, FAILED
     defaultValue: "PENDING"
+  },
+
+  idempotencyKey: {
+    type: DataTypes.STRING,
+    allowNull: true
   }
+}, {
+  indexes: [
+    {
+      unique: true,
+      fields: ["bookingId", "idempotencyKey"],
+      where: { idempotencyKey: { [Op.ne]: null } }
+    }
+  ]
 });
 
 module.exports = { Payment };
