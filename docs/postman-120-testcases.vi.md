@@ -588,142 +588,120 @@ Cac buoc thao tac tay tren Postman:
 ## TC048
 
 - Nguon script: `simulated range (48-60)`
-- Muc tieu: Simulated AI agent: yeu cau `services/ai-matching-service/index.js` ton tai va chua chuoi `select-driver`
-
-Cac buoc thao tac tay tren Postman:
-
-1. Testcase nay khong thuc thi duoc bang request Postman thuan.
-2. Neu can doi chieu thu cong, mo file/ha tang duoc neu trong testcase va kiem tra dieu kien ton tai/chuoi.
+- Muc tieu: Kiem tra endpoint AI Agent hoat dong co ban.
+- Request: `POST {{baseUrl}}/ai/agent/select-driver`
+- Headers: `Content-Type: application/json`, `x-request-id: tc48-smoke-001`
+- Body: `{"strategy":"nearest","force_ai_fail":true,"drivers":[{"id":"D1","distanceKm":2,"status":"ONLINE"}]}`
+- Expected: HTTP `200`, response co `mode`, `selected_driver`, `decision_log.trace_id`.
 
 ## TC049
 
 - Nguon script: `explicit c49`
-- Muc tieu: API: POST /ai/agent/select-driver
-
-Cac buoc thao tac tay tren Postman:
-
-1. Mo Postman va tao request moi.
-2. 1. POST /ai/agent/select-driver: {"drivers": []}
-10. Bam Send va doi chieu status/response voi ky vong trong testcase.
+- Muc tieu: Khong co driver thi fallback an toan, khong crash.
+- Request: `POST {{baseUrl}}/ai/agent/select-driver`
+- Headers: `Content-Type: application/json`, `x-request-id: tc49-no-driver-001`
+- Body: `{"strategy":"nearest","drivers":[]}`
+- Expected: HTTP `200`, `mode="fallback"`, `selected_driver=null`, `reason="no_driver"`, co `decision_log.trace_id`.
 
 ## TC050
 
 - Nguon script: `explicit c50`
-- Muc tieu: API: POST /ai/eta
-
-Cac buoc thao tac tay tren Postman:
-
-1. Mo Postman va tao request moi.
-2. 1. POST /ai/eta: {"distance_km": -1}
-10. Bam Send va doi chieu status/response voi ky vong trong testcase.
+- Muc tieu: ETA xu ly outlier hop le, khong crash.
+- Request: `POST {{baseUrl}}/ai/eta`
+- Headers: `Content-Type: application/json`
+- Body: `{"distance_km":1200,"traffic_level":1}`
+- Expected: HTTP `200`, `eta > 0`, service khong timeout/crash.
 
 ## TC051
 
 - Nguon script: `explicit c51`
-- Muc tieu: API: POST /ai/agent/select-driver
-
-Cac buoc thao tac tay tren Postman:
-
-1. Mo Postman va tao request moi.
-2. 1. POST /ai/agent/select-driver: {"strategy": "nearest", "drivers": [{"id": "D1", "distanceKm": 3}, {"id": "D2", "distanceKm": 1}]}
-10. Bam Send va doi chieu status/response voi ky vong trong testcase.
+- Muc tieu: Agent chon driver gan nhat, khong random.
+- Request: `POST {{baseUrl}}/ai/agent/select-driver`
+- Headers: `Content-Type: application/json`, `x-request-id: tc51-nearest-001`
+- Body: `{"strategy":"nearest","force_ai_fail":true,"drivers":[{"id":"D1","distanceKm":5,"rating":4.3,"status":"ONLINE"},{"id":"D2","distanceKm":2,"rating":4.1,"status":"ONLINE"},{"id":"D3","distanceKm":3,"rating":4.5,"status":"ONLINE"}]}`
+- Expected: HTTP `200`, `selected_driver.id="D2"`, co `decision_log.trace_id`.
 
 ## TC052
 
 - Nguon script: `explicit c52`
-- Muc tieu: API: POST /ai/agent/select-driver
-
-Cac buoc thao tac tay tren Postman:
-
-1. Mo Postman va tao request moi.
-2. 1. POST /ai/agent/select-driver: {"strategy": "rating", "drivers": [{"id": "D1", "rating": 4.2}, {"id": "D2", "rating": 4.9}]}
-10. Bam Send va doi chieu status/response voi ky vong trong testcase.
+- Muc tieu: Agent uu tien rating cao hon, khong chi dua vao distance.
+- Request: `POST {{baseUrl}}/ai/agent/select-driver`
+- Headers: `Content-Type: application/json`, `x-request-id: tc52-rating-001`
+- Body: `{"strategy":"balanced","force_ai_fail":true,"drivers":[{"id":"D1","distanceKm":2,"rating":4.0,"eta":6,"price":50000,"status":"ONLINE"},{"id":"D2","distanceKm":3,"rating":4.9,"eta":7,"price":52000,"status":"ONLINE"}]}`
+- Expected: HTTP `200`, `selected_driver.id="D2"` (rating cao hon du distance xa hon).
 
 ## TC053
 
 - Nguon script: `explicit c53`
-- Muc tieu: API: POST /ai/agent/select-driver
-
-Cac buoc thao tac tay tren Postman:
-
-1. Mo Postman va tao request moi.
-2. 1. POST /ai/agent/select-driver: {"strategy": "balanced", "drivers": [{"id": "D1", "rating": 4.8, "eta": 7, "price": 100}, {"id": "D2", "rating": 4.5, "eta": 4, "price": 120}]}
-10. Bam Send va doi chieu status/response voi ky vong trong testcase.
+- Muc tieu: Agent can bang ETA va price (multi-objective trade-off).
+- Request: `POST {{baseUrl}}/ai/agent/select-driver`
+- Headers: `Content-Type: application/json`, `x-request-id: tc53-tradeoff-001`
+- Body: `{"strategy":"balanced","force_ai_fail":true,"drivers":[{"id":"A","distanceKm":2.5,"rating":4.5,"eta":5,"price":50000,"status":"ONLINE"},{"id":"B","distanceKm":2.5,"rating":4.5,"eta":8,"price":40000,"status":"ONLINE"}]}`
+- Expected: HTTP `200`, ky vong `selected_driver.id="B"` cho trade-off ETA/price.
 
 ## TC054
 
-- Nguon script: `simulated range (48-60)`
-- Muc tieu: Simulated AI agent: yeu cau `services/ai-matching-service/index.js` ton tai va chua chuoi `select-driver`
-
-Cac buoc thao tac tay tren Postman:
-
-1. Testcase nay khong thuc thi duoc bang request Postman thuan.
-2. Neu can doi chieu thu cong, mo file/ha tang duoc neu trong testcase va kiem tra dieu kien ton tai/chuoi.
+- Nguon script: `explicit lv6-tool-order`
+- Muc tieu: Agent goi dung tool theo thu tu ETA -> Pricing, khong goi du thua.
+- Request: `POST {{baseUrl}}/ai/agent/select-driver`
+- Headers: `Content-Type: application/json`, `x-request-id: tc54-tool-order-001`
+- Body: `{"strategy":"balanced","force_ai_fail":true,"drivers":[{"id":"D1","distanceKm":2.2,"rating":4.4,"status":"ONLINE"},{"id":"D2","distanceKm":3.1,"rating":4.6,"status":"ONLINE"}]}`
+- Expected: HTTP `200`, `decision_log.tools_called` ton tai; thu tu tool la `eta` truoc `pricing`; khong co tool du thua.
 
 ## TC055
 
-- Nguon script: `simulated range (48-60)`
-- Muc tieu: Simulated AI agent: yeu cau `services/ai-matching-service/index.js` ton tai va chua chuoi `select-driver`
-
-Cac buoc thao tac tay tren Postman:
-
-1. Testcase nay khong thuc thi duoc bang request Postman thuan.
-2. Neu can doi chieu thu cong, mo file/ha tang duoc neu trong testcase va kiem tra dieu kien ton tai/chuoi.
+- Nguon script: `explicit lv6-missing-context`
+- Muc tieu: Context thieu du lieu, agent khong crash, fallback/warning hop ly.
+- Request: `POST {{baseUrl}}/ai/agent/select-driver`
+- Headers: `Content-Type: application/json`, `x-request-id: tc55-missing-ctx-001`
+- Body: `{"strategy":"balanced","force_ai_fail":true,"drivers":[{"id":"D1","rating":4.8,"status":"ONLINE"},{"id":"D2","distanceKm":2.0,"status":"ONLINE"}]}`
+- Expected: HTTP `200`, khong `500`; co `decision_log`; co the co `decision_log.warnings` (vd `missing_distance`) hoac fallback.
 
 ## TC056
 
-- Nguon script: `simulated range (48-60)`
-- Muc tieu: Simulated AI agent: yeu cau `services/ai-matching-service/index.js` ton tai va chua chuoi `select-driver`
-
-Cac buoc thao tac tay tren Postman:
-
-1. Testcase nay khong thuc thi duoc bang request Postman thuan.
-2. Neu can doi chieu thu cong, mo file/ha tang duoc neu trong testcase va kiem tra dieu kien ton tai/chuoi.
+- Nguon script: `explicit lv6-retry-eta`
+- Muc tieu: ETA tool fail tam thoi thi agent retry, khong fail ngay.
+- Request: `POST {{baseUrl}}/ai/agent/select-driver`
+- Headers: `Content-Type: application/json`, `x-request-id: tc56-retry-eta-001`
+- Body: `{"strategy":"balanced","force_ai_fail":true,"tool_failures":{"eta":2},"drivers":[{"id":"D1","distanceKm":2.0,"rating":4.6,"status":"ONLINE"}]}`
+- Expected: HTTP `200`, `decision_log.tools_called` cho thay ETA retry (attempt 1 error, 2 error, 3 ok), sau do moi den pricing.
 
 ## TC057
 
 - Nguon script: `explicit c57`
-- Muc tieu: API: POST /ai/agent/select-driver
-
-Cac buoc thao tac tay tren Postman:
-
-1. Mo Postman va tao request moi.
-2. 1. POST /ai/agent/select-driver: {"strategy": "nearest", "drivers": [{"id": "D1", "distanceKm": 1, "status": "OFFLINE"}]}
-10. Bam Send va doi chieu status/response voi ky vong trong testcase.
+- Muc tieu: Khong duoc chon driver offline.
+- Request: `POST {{baseUrl}}/ai/agent/select-driver`
+- Headers: `Content-Type: application/json`, `x-request-id: tc57-offline-001`
+- Body: `{"strategy":"nearest","force_ai_fail":true,"drivers":[{"id":"OFF","distanceKm":1,"rating":5.0,"status":"OFFLINE"},{"id":"ON","distanceKm":3,"rating":4.2,"status":"ONLINE"}]}`
+- Expected: HTTP `200`, `selected_driver.id="ON"`, khong bao gio chon `OFF`.
 
 ## TC058
 
 - Nguon script: `explicit c58`
-- Muc tieu: AI phai chon driver ton tai trong danh sach nearby va driver do ONLINE.
-
-Cac buoc thao tac tay tren Postman:
-
-1. POST /drivers/online cho it nhat 2 driver (lat/lng gan nhau, vehicleType CAR).
-2. GET {{baseUrl}}/drivers/nearby?lat=...&lng=...&radiusKm=5&vehicleType=CAR de lay list tu Driver Service.
-3. POST {{baseUrl}}/ai/agent/select-driver voi body {"strategy":"nearest","drivers":<list tu buoc 2>}.
-4. Ky vong HTTP 200, selected_driver.id ton tai trong list buoc 2, selected_driver.status = ONLINE.
-5. mode co the la ai hoac fallback (tuy tinh trang Ollama).
+- Muc tieu: Agent log decision day du, co trace_id.
+- Request: `POST {{baseUrl}}/ai/agent/select-driver`
+- Headers: `Content-Type: application/json`, `x-request-id: tc58-trace-001`
+- Body: `{"strategy":"balanced","drivers":[{"id":"D1","distanceKm":2.2,"rating":4.3,"status":"ONLINE"},{"id":"D2","distanceKm":2.8,"rating":4.7,"status":"ONLINE"}]}`
+- Expected: HTTP `200`, `decision_log` co `trace_id`, `selection_reason`, `timestamp`, `candidate_count`; neu can enrich thi co `tools_called`.
 
 ## TC059
 
 - Nguon script: `explicit c59`
-- Muc tieu: API: POST /ai/eta
-
-Cac buoc thao tac tay tren Postman:
-
-1. Mo Postman va tao request moi.
-2. 1. POST /ai/eta: {"distance_km": 2, "traffic_level": 0.2}
-10. Bam Send va doi chieu status/response voi ky vong trong testcase.
+- Muc tieu: Xu ly nhieu request gan dong thoi, khong race/conflict.
+- Request: `POST {{baseUrl}}/ai/agent/select-driver`
+- Headers: `Content-Type: application/json`, `x-request-id: tc59-concurrency-{{$timestamp}}`
+- Body: `{"strategy":"nearest","force_ai_fail":true,"drivers":[{"id":"D1","distanceKm":5,"status":"ONLINE"},{"id":"D2","distanceKm":2,"status":"ONLINE"},{"id":"D3","distanceKm":3,"status":"ONLINE"}]}`
+- Run: Collection Runner 50-100 iterations, delay `0ms`.
+- Expected: khong co `500`, response on dinh, `selected_driver` hop le va online.
 
 ## TC060
 
 - Nguon script: `explicit c60`
-- Muc tieu: Alias: chay lai TC049
-
-Cac buoc thao tac tay tren Postman:
-
-1. Day la testcase alias, khong co request rieng.
-2. Thao tac lai dung testcase goc theo mo ta: chay lai TC049.
+- Muc tieu: AI fail thi fallback rule-based, he thong van chay.
+- Request: `POST {{baseUrl}}/ai/agent/select-driver`
+- Headers: `Content-Type: application/json`, `x-request-id: tc60-ai-fail-001`
+- Body: `{"strategy":"nearest","force_ai_fail":true,"drivers":[{"id":"D1","distanceKm":5,"status":"ONLINE"},{"id":"D2","distanceKm":2,"status":"ONLINE"}]}`
+- Expected: HTTP `200`, `mode="fallback"`, van co `selected_driver` theo rule-base (ky vong `D2`), `decision_log.selection_reason` la `forced_ai_failure` hoac `rule_base_fallback`.
 
 ## TC061
 

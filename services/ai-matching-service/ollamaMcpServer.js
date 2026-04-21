@@ -5,8 +5,16 @@ const OLLAMA_BASE_URL = process.env.OLLAMA_BASE_URL || "http://ollama:11434";
 const OLLAMA_MODEL = process.env.OLLAMA_MODEL || "qwen2.5:3b";
 const OLLAMA_TIMEOUT_MS = Math.max(100, Number(process.env.OLLAMA_TIMEOUT_MS || 60000));
 const TOOL_NAME = process.env.OLLAMA_MCP_TOOL || "ollama.generate";
+const MCP_FORCE_ERROR = process.env.OLLAMA_MCP_FORCE_ERROR === "true";
+const MCP_FORCE_ERROR_COUNT = Math.max(0, Number(process.env.OLLAMA_MCP_FORCE_ERROR_COUNT || 0));
+const MCP_FORCE_DELAY_MS = Math.max(0, Number(process.env.OLLAMA_MCP_FORCE_DELAY_MS || 0));
 
 let buffer = Buffer.alloc(0);
+let forcedErrorRemaining = MCP_FORCE_ERROR_COUNT;
+
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
 
 function writeMessage(message) {
   const payload = Buffer.from(JSON.stringify(message), "utf8");
@@ -61,6 +69,15 @@ async function handleToolCall(params = {}) {
   }
 
   const args = params.arguments || {};
+  if (MCP_FORCE_DELAY_MS > 0) {
+    await sleep(MCP_FORCE_DELAY_MS);
+  }
+  if (MCP_FORCE_ERROR || forcedErrorRemaining > 0 || args.forceError === true) {
+    if (forcedErrorRemaining > 0) {
+      forcedErrorRemaining -= 1;
+    }
+    return toolError("forced_ollama_failure");
+  }
   const prompt = typeof args.prompt === "string" ? args.prompt : "";
   if (!prompt.trim()) {
     return toolError("Missing required field: prompt");

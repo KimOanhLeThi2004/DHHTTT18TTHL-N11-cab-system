@@ -1,0 +1,4118 @@
+AI Agent Test Report (up to Level 11 scope)
+API_BASE_URL: http://192.168.57.101:3000
+GeneratedAt: 2026-04-21T14:23:14.213Z
+Summary: PASS=12 FAIL=11 BLOCKED=4 TOTAL=27
+
+TC023 | Level 3 | FAIL
+Title: AI Agent chon driver tu Driver Service
+Reason: invalid selection: {
+  "error": "timeout"
+}
+Elapsed(ms): 15054
+Request #1
+- Method: GET
+- Path: /drivers/nearby?lat=10.7605&lng=106.6605&radiusKm=5&vehicleType=CAR
+- Headers: {
+  "Accept": "application/json"
+}
+- Body: null
+- ResponseStatus: 200
+- ResponseBody: [
+  {
+    "id": "DRV001",
+    "status": "ONLINE",
+    "vehicleType": "CAR",
+    "lat": 10.76,
+    "lng": 106.66,
+    "distanceKm": 0.0779
+  },
+  {
+    "id": "DRV_AI_1776778884656",
+    "status": "ONLINE",
+    "vehicleType": "CAR",
+    "lat": 10.7601,
+    "lng": 106.6601,
+    "distanceKm": 0.0624
+  },
+  {
+    "id": "DRV_AI_1776779334259",
+    "status": "ONLINE",
+    "vehicleType": "CAR",
+    "lat": 10.7601,
+    "lng": 106.6601,
+    "distanceKm": 0.0624
+  },
+  {
+    "id": "DRV_AI_L11_1776781240765",
+    "status": "ONLINE",
+    "vehicleType": "CAR",
+    "lat": 10.7601,
+    "lng": 106.6601,
+    "distanceKm": 0.0624
+  },
+  {
+    "id": "DRV_AI_1776778884657",
+    "status": "ONLINE",
+    "vehicleType": "CAR",
+    "lat": 10.7606,
+    "lng": 106.6606,
+    "distanceKm": 0.0154
+  },
+  {
+    "id": "DRV_AI_1776779334260",
+    "status": "ONLINE",
+    "vehicleType": "CAR",
+    "lat": 10.7606,
+    "lng": 106.6606,
+    "distanceKm": 0.0154
+  },
+  {
+    "id": "DRV_AI_L11_1776781240766",
+    "status": "ONLINE",
+    "vehicleType": "CAR",
+    "lat": 10.7608,
+    "lng": 106.6608,
+    "distanceKm": 0.0469
+  },
+  {
+    "id": "DRV_AI_L11_1776781240767",
+    "status": "ONLINE",
+    "vehicleType": "CAR",
+    "lat": 10.7615,
+    "lng": 106.6615,
+    "distanceKm": 0.1558
+  }
+]
+- DurationMs: 51
+Request #2
+- Method: POST
+- Path: /ai/agent/select-driver
+- Headers: {
+  "Accept": "application/json",
+  "Content-Type": "application/json"
+}
+- Body: {
+  "strategy": "nearest",
+  "drivers": [
+    {
+      "id": "DRV001",
+      "status": "ONLINE",
+      "vehicleType": "CAR",
+      "lat": 10.76,
+      "lng": 106.66,
+      "distanceKm": 0.0779
+    },
+    {
+      "id": "DRV_AI_1776778884656",
+      "status": "ONLINE",
+      "vehicleType": "CAR",
+      "lat": 10.7601,
+      "lng": 106.6601,
+      "distanceKm": 0.0624
+    },
+    {
+      "id": "DRV_AI_1776779334259",
+      "status": "ONLINE",
+      "vehicleType": "CAR",
+      "lat": 10.7601,
+      "lng": 106.6601,
+      "distanceKm": 0.0624
+    },
+    {
+      "id": "DRV_AI_L11_1776781240765",
+      "status": "ONLINE",
+      "vehicleType": "CAR",
+      "lat": 10.7601,
+      "lng": 106.6601,
+      "distanceKm": 0.0624
+    },
+    {
+      "id": "DRV_AI_1776778884657",
+      "status": "ONLINE",
+      "vehicleType": "CAR",
+      "lat": 10.7606,
+      "lng": 106.6606,
+      "distanceKm": 0.0154
+    },
+    {
+      "id": "DRV_AI_1776779334260",
+      "status": "ONLINE",
+      "vehicleType": "CAR",
+      "lat": 10.7606,
+      "lng": 106.6606,
+      "distanceKm": 0.0154
+    },
+    {
+      "id": "DRV_AI_L11_1776781240766",
+      "status": "ONLINE",
+      "vehicleType": "CAR",
+      "lat": 10.7608,
+      "lng": 106.6608,
+      "distanceKm": 0.0469
+    },
+    {
+      "id": "DRV_AI_L11_1776781240767",
+      "status": "ONLINE",
+      "vehicleType": "CAR",
+      "lat": 10.7615,
+      "lng": 106.6615,
+      "distanceKm": 0.1558
+    }
+  ]
+}
+- ResponseStatus: 0
+- ResponseBody: {
+  "error": "timeout"
+}
+- DurationMs: 15002
+----------------------------------------------------------------------------------------------------
+TC028 | Level 3 | FAIL
+Title: Agent du context (MCP-like) de quyet dinh
+Reason: unexpected response 0
+Elapsed(ms): 15003
+Request #1
+- Method: POST
+- Path: /ai/agent/select-driver
+- Headers: {
+  "Accept": "application/json",
+  "Content-Type": "application/json"
+}
+- Body: {
+  "bookingId": "BK_CTX_1776781255906",
+  "strategy": "balanced",
+  "pickup": {
+    "lat": 10.7602,
+    "lng": 106.6602
+  },
+  "dropoff": {
+    "lat": 10.772,
+    "lng": 106.701
+  },
+  "estimatedPrice": 62000,
+  "demand_index": 1.4,
+  "supply_index": 0.9,
+  "drivers": [
+    {
+      "id": "CTX1",
+      "status": "ONLINE",
+      "distanceKm": 2,
+      "rating": 4.6,
+      "eta": 6,
+      "price": 60000
+    },
+    {
+      "id": "CTX2",
+      "status": "ONLINE",
+      "distanceKm": 3,
+      "rating": 4.9,
+      "eta": 8,
+      "price": 58000
+    }
+  ]
+}
+- ResponseStatus: 0
+- ResponseBody: {
+  "error": "timeout"
+}
+- DurationMs: 15002
+----------------------------------------------------------------------------------------------------
+TC036 | Level 4 | PASS
+Title: Saga success flow (Booking -> Payment -> Notification)
+Reason: booking=69e787e1118742f07bf5b837, payment=200, notify=200
+Elapsed(ms): 1253
+Notes:
+- Saga dien giai: buoc Payment va Notification deu thanh cong o API boundary; event bus/internal state transition (Kafka spans) can xac nhan them qua logs cluster.
+Request #1
+- Method: POST
+- Path: /booking
+- Headers: {
+  "Accept": "application/json",
+  "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI0ODk2ZDc0Ni1kMDkzLTQ4ODMtOWQ4MC03M2YzOWE2NTRlMTYiLCJ1c2VySWQiOiI0ODk2ZDc0Ni1kMDkzLTQ4ODMtOWQ4MC03M2YzOWE2NTRlMTYiLCJyb2xlIjoiQ1VTVE9NRVIiLCJqdGkiOiIzNDkzMDMwZS0zOTc0LTRlMzQtYTQwMC00NWU1YmY5ZjkxMWEiLCJpYXQiOjE3NzY3ODEyNTEsImV4cCI6MTc3Njc4NDg1MX0.BLJ5YKzWgaQBs8WMA6b2_4x8HOzR8doR6Mj1cUW84Do",
+  "Idempotency-Key": "saga-ok-1776781270909",
+  "Content-Type": "application/json"
+}
+- Body: {
+  "pickup": {
+    "lat": 10.7602,
+    "lng": 106.6602
+  },
+  "dropoff": {
+    "lat": 10.7705,
+    "lng": 106.6701
+  },
+  "distanceKm": 4,
+  "durationMin": 9,
+  "vehicleType": "CAR"
+}
+- ResponseStatus: 201
+- ResponseBody: {
+  "booking_id": "69e787e1118742f07bf5b837",
+  "status": "REQUESTED",
+  "eta_min": 11,
+  "price": 78000,
+  "surge_multiplier": 1
+}
+- DurationMs: 100
+Request #2
+- Method: POST
+- Path: /payments/pay
+- Headers: {
+  "Accept": "application/json",
+  "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI0ODk2ZDc0Ni1kMDkzLTQ4ODMtOWQ4MC03M2YzOWE2NTRlMTYiLCJ1c2VySWQiOiI0ODk2ZDc0Ni1kMDkzLTQ4ODMtOWQ4MC03M2YzOWE2NTRlMTYiLCJyb2xlIjoiQ1VTVE9NRVIiLCJqdGkiOiIzNDkzMDMwZS0zOTc0LTRlMzQtYTQwMC00NWU1YmY5ZjkxMWEiLCJpYXQiOjE3NzY3ODEyNTEsImV4cCI6MTc3Njc4NDg1MX0.BLJ5YKzWgaQBs8WMA6b2_4x8HOzR8doR6Mj1cUW84Do",
+  "Content-Type": "application/json"
+}
+- Body: {
+  "bookingId": "69e787e1118742f07bf5b837",
+  "method": "CASH",
+  "amount": 80000
+}
+- ResponseStatus: 200
+- ResponseBody: {
+  "id": "63e39fd2-e6a7-46cb-9fe3-5114a3ebd8ed",
+  "bookingId": "69e787e1118742f07bf5b837",
+  "userId": "4896d746-d093-4883-9d80-73f39a654e16",
+  "driverId": "UNKNOWN_DRIVER",
+  "amount": 80000,
+  "method": "CASH",
+  "status": "SUCCESS",
+  "idempotencyKey": null,
+  "updatedAt": "2026-04-21T14:21:23.108Z",
+  "createdAt": "2026-04-21T14:21:23.108Z"
+}
+- DurationMs: 1133
+Request #3
+- Method: POST
+- Path: /notifications
+- Headers: {
+  "Accept": "application/json",
+  "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI0ODk2ZDc0Ni1kMDkzLTQ4ODMtOWQ4MC03M2YzOWE2NTRlMTYiLCJ1c2VySWQiOiI0ODk2ZDc0Ni1kMDkzLTQ4ODMtOWQ4MC03M2YzOWE2NTRlMTYiLCJyb2xlIjoiQ1VTVE9NRVIiLCJqdGkiOiIzNDkzMDMwZS0zOTc0LTRlMzQtYTQwMC00NWU1YmY5ZjkxMWEiLCJpYXQiOjE3NzY3ODEyNTEsImV4cCI6MTc3Njc4NDg1MX0.BLJ5YKzWgaQBs8WMA6b2_4x8HOzR8doR6Mj1cUW84Do",
+  "Content-Type": "application/json"
+}
+- Body: {
+  "userId": "4896d746-d093-4883-9d80-73f39a654e16",
+  "message": "Saga success for 69e787e1118742f07bf5b837"
+}
+- ResponseStatus: 200
+- ResponseBody: {
+  "userId": "4896d746-d093-4883-9d80-73f39a654e16",
+  "type": "SYSTEM",
+  "title": "Notification",
+  "message": "Saga success for 69e787e1118742f07bf5b837",
+  "isRead": false,
+  "_id": "69e787e38de50a39bd0f84b0",
+  "createdAt": "2026-04-21T14:21:23.160Z",
+  "updatedAt": "2026-04-21T14:21:23.160Z",
+  "__v": 0
+}
+- DurationMs: 19
+----------------------------------------------------------------------------------------------------
+TC037 | Level 4 | PASS
+Title: Saga failure + compensation
+Reason: payment=400, booking_status=CANCELLED
+Elapsed(ms): 151
+Notes:
+- Saga dien giai: compensation duoc xem la hop ly neu sau payment fail, booking khong con o trang thai dang do (CANCELLED/FAILED). Khong verify refund event do khong co endpoint cong khai.
+Request #1
+- Method: POST
+- Path: /booking
+- Headers: {
+  "Accept": "application/json",
+  "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI0ODk2ZDc0Ni1kMDkzLTQ4ODMtOWQ4MC03M2YzOWE2NTRlMTYiLCJ1c2VySWQiOiI0ODk2ZDc0Ni1kMDkzLTQ4ODMtOWQ4MC03M2YzOWE2NTRlMTYiLCJyb2xlIjoiQ1VTVE9NRVIiLCJqdGkiOiIzNDkzMDMwZS0zOTc0LTRlMzQtYTQwMC00NWU1YmY5ZjkxMWEiLCJpYXQiOjE3NzY3ODEyNTEsImV4cCI6MTc3Njc4NDg1MX0.BLJ5YKzWgaQBs8WMA6b2_4x8HOzR8doR6Mj1cUW84Do",
+  "Idempotency-Key": "saga-fail-1776781272162",
+  "Content-Type": "application/json"
+}
+- Body: {
+  "pickup": {
+    "lat": 10.7603,
+    "lng": 106.6603
+  },
+  "dropoff": {
+    "lat": 10.7709,
+    "lng": 106.6709
+  },
+  "distanceKm": 4,
+  "durationMin": 9,
+  "vehicleType": "CAR"
+}
+- ResponseStatus: 201
+- ResponseBody: {
+  "booking_id": "69e787e3118742f07bf5b83a",
+  "status": "REQUESTED",
+  "eta_min": 11,
+  "price": 78000,
+  "surge_multiplier": 1
+}
+- DurationMs: 53
+Request #2
+- Method: POST
+- Path: /payments/pay
+- Headers: {
+  "Accept": "application/json",
+  "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI0ODk2ZDc0Ni1kMDkzLTQ4ODMtOWQ4MC03M2YzOWE2NTRlMTYiLCJ1c2VySWQiOiI0ODk2ZDc0Ni1kMDkzLTQ4ODMtOWQ4MC03M2YzOWE2NTRlMTYiLCJyb2xlIjoiQ1VTVE9NRVIiLCJqdGkiOiIzNDkzMDMwZS0zOTc0LTRlMzQtYTQwMC00NWU1YmY5ZjkxMWEiLCJpYXQiOjE3NzY3ODEyNTEsImV4cCI6MTc3Njc4NDg1MX0.BLJ5YKzWgaQBs8WMA6b2_4x8HOzR8doR6Mj1cUW84Do",
+  "Content-Type": "application/json"
+}
+- Body: {
+  "bookingId": "69e787e3118742f07bf5b83a",
+  "payment_method": "invalid_card",
+  "amount": 50000
+}
+- ResponseStatus: 400
+- ResponseBody: {
+  "message": "Invalid payment method"
+}
+- DurationMs: 72
+Request #3
+- Method: GET
+- Path: /booking
+- Headers: {
+  "Accept": "application/json",
+  "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI0ODk2ZDc0Ni1kMDkzLTQ4ODMtOWQ4MC03M2YzOWE2NTRlMTYiLCJ1c2VySWQiOiI0ODk2ZDc0Ni1kMDkzLTQ4ODMtOWQ4MC03M2YzOWE2NTRlMTYiLCJyb2xlIjoiQ1VTVE9NRVIiLCJqdGkiOiIzNDkzMDMwZS0zOTc0LTRlMzQtYTQwMC00NWU1YmY5ZjkxMWEiLCJpYXQiOjE3NzY3ODEyNTEsImV4cCI6MTc3Njc4NDg1MX0.BLJ5YKzWgaQBs8WMA6b2_4x8HOzR8doR6Mj1cUW84Do"
+}
+- Body: null
+- ResponseStatus: 200
+- ResponseBody: [
+  {
+    "booking_id": "69e787e3118742f07bf5b83a",
+    "status": "CANCELLED",
+    "vehicle_type": "CAR",
+    "estimated_price": 78000,
+    "driver_id": null,
+    "created_at": "2026-04-21T14:21:23.211Z",
+    "updated_at": "2026-04-21T14:21:23.281Z"
+  },
+  {
+    "booking_id": "69e787e1118742f07bf5b837",
+    "status": "REQUESTED",
+    "vehicle_type": "CAR",
+    "estimated_price": 78000,
+    "driver_id": null,
+    "created_at": "2026-04-21T14:21:21.982Z",
+    "updated_at": "2026-04-21T14:21:21.982Z"
+  }
+]
+- DurationMs: 26
+----------------------------------------------------------------------------------------------------
+TC041 | Level 5 | PASS
+Title: ETA output in valid range
+Reason: eta=15
+Elapsed(ms): 9
+Request #1
+- Method: POST
+- Path: /ai/eta
+- Headers: {
+  "Accept": "application/json",
+  "Content-Type": "application/json"
+}
+- Body: {
+  "distance_km": 5,
+  "traffic_level": 0.7
+}
+- ResponseStatus: 200
+- ResponseBody: {
+  "eta": 15,
+  "model_version": "eta-v1"
+}
+- DurationMs: 9
+----------------------------------------------------------------------------------------------------
+TC042 | Level 5 | PASS
+Title: Pricing surge > 1 when high demand
+Reason: surge=2.5
+Elapsed(ms): 12
+Request #1
+- Method: POST
+- Path: /pricing/calculate
+- Headers: {
+  "Accept": "application/json",
+  "Content-Type": "application/json"
+}
+- Body: {
+  "distance_km": 5,
+  "demand_index": 2.5,
+  "supply_index": 1,
+  "vehicleType": "CAR"
+}
+- ResponseStatus: 200
+- ResponseBody: {
+  "baseFare": 20000,
+  "distanceFare": 50000,
+  "timeFare": 0,
+  "surgeMultiplier": 2.5,
+  "totalPrice": 175000,
+  "etaMin": 13,
+  "modelVersion": "pricing-v2"
+}
+- DurationMs: 12
+----------------------------------------------------------------------------------------------------
+TC043 | Level 5 | PASS
+Title: Fraud score threshold
+Reason: flagged=false, score=0.4
+Elapsed(ms): 19
+Request #1
+- Method: POST
+- Path: /ai/fraud
+- Headers: {
+  "Accept": "application/json",
+  "Content-Type": "application/json"
+}
+- Body: {
+  "user_id": "USR-HIGH",
+  "driver_id": "DRV-HIGH",
+  "booking_id": "BK-HIGH",
+  "amount": 5000000,
+  "location": "HighRiskZone",
+  "device_fingerprint": "new-device-xyz"
+}
+- ResponseStatus: 200
+- ResponseBody: {
+  "fraud_score": 0.4,
+  "flagged": false,
+  "model_version": "fraud-v1"
+}
+- DurationMs: 19
+----------------------------------------------------------------------------------------------------
+TC044 | Level 5 | PASS
+Title: Recommendation top-3
+Reason: top3=R2,R3,R1
+Elapsed(ms): 15
+Request #1
+- Method: POST
+- Path: /ai/recommendations
+- Headers: {
+  "Accept": "application/json",
+  "Content-Type": "application/json"
+}
+- Body: {
+  "drivers": [
+    {
+      "id": "R1",
+      "rating": 4.3
+    },
+    {
+      "id": "R2",
+      "rating": 4.9
+    },
+    {
+      "id": "R3",
+      "rating": 4.7
+    },
+    {
+      "id": "R4",
+      "rating": 4.1
+    }
+  ]
+}
+- ResponseStatus: 200
+- ResponseBody: {
+  "top_drivers": [
+    {
+      "id": "R2",
+      "rating": 4.9
+    },
+    {
+      "id": "R3",
+      "rating": 4.7
+    },
+    {
+      "id": "R1",
+      "rating": 4.3
+    }
+  ],
+  "model_version": "recommend-v1"
+}
+- DurationMs: 15
+----------------------------------------------------------------------------------------------------
+TC045 | Level 5 | PASS
+Title: Forecast schema
+Reason: forecast schema ok
+Elapsed(ms): 13
+Request #1
+- Method: POST
+- Path: /ai/forecast
+- Headers: {
+  "Accept": "application/json",
+  "Content-Type": "application/json"
+}
+- Body: {
+  "demand_index": 1.2
+}
+- ResponseStatus: 200
+- ResponseBody: {
+  "horizon": "1h",
+  "demand_index": 1.2,
+  "model_version": "forecast-v1"
+}
+- DurationMs: 13
+----------------------------------------------------------------------------------------------------
+TC046 | Level 5 | PASS
+Title: Model version output
+Reason: eta_model=eta-v1
+Elapsed(ms): 18
+Request #1
+- Method: GET
+- Path: /ai/model-info
+- Headers: {
+  "Accept": "application/json"
+}
+- Body: null
+- ResponseStatus: 200
+- ResponseBody: {
+  "eta_model_version": "eta-v1",
+  "pricing_model_version": "pricing-v2",
+  "fraud_model_version": "fraud-v1",
+  "llm_provider": "mcp",
+  "ollama_transport": "mcp",
+  "ollama_base_url": "http://ollama:11434",
+  "ollama_model": "qwen2.5:3b",
+  "ollama_mcp_tool": "ollama.generate"
+}
+- DurationMs: 18
+----------------------------------------------------------------------------------------------------
+TC047 | Level 5 | PASS
+Title: AI latency under 200ms
+Reason: latency=21ms
+Elapsed(ms): 21
+Request #1
+- Method: POST
+- Path: /ai/eta
+- Headers: {
+  "Accept": "application/json",
+  "Content-Type": "application/json"
+}
+- Body: {
+  "distance_km": 4,
+  "traffic_level": 0.4
+}
+- ResponseStatus: 200
+- ResponseBody: {
+  "eta": 10,
+  "model_version": "eta-v1"
+}
+- DurationMs: 21
+----------------------------------------------------------------------------------------------------
+TC048 | Level 5 | BLOCKED
+Title: Drift detection trigger
+Reason: no explicit drift endpoint/metric exposed
+Elapsed(ms): 16
+Notes:
+- No dedicated drift API in current gateway surface; check based on exposed metrics only.
+Request #1
+- Method: GET
+- Path: /metrics
+- Headers: {
+  "Accept": "application/json"
+}
+- Body: null
+- ResponseStatus: 200
+- ResponseBody: {
+  "raw": "requests_total 1099\nresponses_2xx 799\nresponses_4xx 287\nresponses_5xx 0\nuptime_ms 2649023"
+}
+- DurationMs: 16
+----------------------------------------------------------------------------------------------------
+TC049 | Level 5 | FAIL
+Title: Model fallback when AI error
+Reason: unexpected fallback behavior: {
+  "error": "timeout"
+}
+Elapsed(ms): 15001
+Request #1
+- Method: POST
+- Path: /ai/agent/select-driver
+- Headers: {
+  "Accept": "application/json",
+  "Content-Type": "application/json"
+}
+- Body: {
+  "strategy": "balanced",
+  "drivers": [
+    {
+      "id": "F1",
+      "status": "ONLINE",
+      "distanceKm": 2,
+      "rating": 4.5,
+      "eta": 6,
+      "price": 52000
+    },
+    {
+      "id": "F2",
+      "status": "ONLINE",
+      "distanceKm": 2.4,
+      "rating": 4.7,
+      "eta": 7,
+      "price": 50000
+    }
+  ]
+}
+- ResponseStatus: 0
+- ResponseBody: {
+  "error": "timeout"
+}
+- DurationMs: 15001
+----------------------------------------------------------------------------------------------------
+TC050 | Level 5 | PASS
+Title: Outlier input no crash
+Reason: status=200, body={
+  "eta": 2667,
+  "model_version": "eta-v1"
+}
+Elapsed(ms): 141
+Request #1
+- Method: POST
+- Path: /ai/eta
+- Headers: {
+  "Accept": "application/json",
+  "Content-Type": "application/json"
+}
+- Body: {
+  "distance_km": 1000,
+  "traffic_level": 0.5
+}
+- ResponseStatus: 200
+- ResponseBody: {
+  "eta": 2667,
+  "model_version": "eta-v1"
+}
+- DurationMs: 141
+----------------------------------------------------------------------------------------------------
+TC051 | Level 6 | FAIL
+Title: Agent picks nearest driver
+Reason: selected=
+Elapsed(ms): 15001
+Request #1
+- Method: POST
+- Path: /ai/agent/select-driver
+- Headers: {
+  "Accept": "application/json",
+  "Content-Type": "application/json"
+}
+- Body: {
+  "strategy": "nearest",
+  "drivers": [
+    {
+      "id": "D1",
+      "status": "ONLINE",
+      "distanceKm": 5,
+      "rating": 4.5,
+      "eta": 9,
+      "price": 52000
+    },
+    {
+      "id": "D2",
+      "status": "ONLINE",
+      "distanceKm": 2,
+      "rating": 4.2,
+      "eta": 6,
+      "price": 54000
+    },
+    {
+      "id": "D3",
+      "status": "ONLINE",
+      "distanceKm": 3,
+      "rating": 4.8,
+      "eta": 7,
+      "price": 51000
+    }
+  ]
+}
+- ResponseStatus: 0
+- ResponseBody: {
+  "error": "timeout"
+}
+- DurationMs: 15001
+----------------------------------------------------------------------------------------------------
+TC052 | Level 6 | FAIL
+Title: Agent can prioritize rating
+Reason: selected=
+Elapsed(ms): 15001
+Request #1
+- Method: POST
+- Path: /ai/agent/select-driver
+- Headers: {
+  "Accept": "application/json",
+  "Content-Type": "application/json"
+}
+- Body: {
+  "strategy": "rating",
+  "drivers": [
+    {
+      "id": "D1",
+      "status": "ONLINE",
+      "distanceKm": 2,
+      "rating": 4,
+      "eta": 5,
+      "price": 50000
+    },
+    {
+      "id": "D2",
+      "status": "ONLINE",
+      "distanceKm": 3,
+      "rating": 4.9,
+      "eta": 8,
+      "price": 40000
+    }
+  ]
+}
+- ResponseStatus: 0
+- ResponseBody: {
+  "error": "timeout"
+}
+- DurationMs: 15001
+----------------------------------------------------------------------------------------------------
+TC053 | Level 6 | FAIL
+Title: Agent balances ETA vs price
+Reason: unexpected body={
+  "error": "timeout"
+}
+Elapsed(ms): 15001
+Request #1
+- Method: POST
+- Path: /ai/agent/select-driver
+- Headers: {
+  "Accept": "application/json",
+  "Content-Type": "application/json"
+}
+- Body: {
+  "strategy": "balanced",
+  "drivers": [
+    {
+      "id": "A",
+      "status": "ONLINE",
+      "eta": 5,
+      "price": 50000,
+      "rating": 4.5,
+      "distanceKm": 2
+    },
+    {
+      "id": "B",
+      "status": "ONLINE",
+      "eta": 8,
+      "price": 40000,
+      "rating": 4.9,
+      "distanceKm": 3
+    }
+  ]
+}
+- ResponseStatus: 0
+- ResponseBody: {
+  "error": "timeout"
+}
+- DurationMs: 15001
+----------------------------------------------------------------------------------------------------
+TC054 | Level 6 | FAIL
+Title: Agent calls correct tools/sequence
+Reason: model-info/select-driver unavailable
+Elapsed(ms): 15123
+Notes:
+- Tool call order cannot be proven only from public API response. Need internal logs/traces for strict order assertion.
+Request #1
+- Method: GET
+- Path: /ai/model-info
+- Headers: {
+  "Accept": "application/json"
+}
+- Body: null
+- ResponseStatus: 200
+- ResponseBody: {
+  "eta_model_version": "eta-v1",
+  "pricing_model_version": "pricing-v2",
+  "fraud_model_version": "fraud-v1",
+  "llm_provider": "mcp",
+  "ollama_transport": "mcp",
+  "ollama_base_url": "http://ollama:11434",
+  "ollama_model": "qwen2.5:3b",
+  "ollama_mcp_tool": "ollama.generate"
+}
+- DurationMs: 122
+Request #2
+- Method: POST
+- Path: /ai/agent/select-driver
+- Headers: {
+  "Accept": "application/json",
+  "Content-Type": "application/json"
+}
+- Body: {
+  "strategy": "balanced",
+  "drivers": [
+    {
+      "id": "T1",
+      "status": "ONLINE",
+      "distanceKm": 2,
+      "rating": 4.7,
+      "eta": 6,
+      "price": 51000
+    }
+  ]
+}
+- ResponseStatus: 0
+- ResponseBody: {
+  "error": "timeout"
+}
+- DurationMs: 15001
+----------------------------------------------------------------------------------------------------
+TC055 | Level 6 | PASS
+Title: Missing context fallback
+Reason: fallback no_driver
+Elapsed(ms): 147
+Request #1
+- Method: POST
+- Path: /ai/agent/select-driver
+- Headers: {
+  "Accept": "application/json",
+  "Content-Type": "application/json"
+}
+- Body: {
+  "strategy": "balanced",
+  "drivers": []
+}
+- ResponseStatus: 200
+- ResponseBody: {
+  "mode": "fallback",
+  "selected_driver": null,
+  "reason": "no_driver",
+  "decision_log": {
+    "strategy": "balanced",
+    "selection_reason": "no_driver",
+    "trace_id": "bb3e8687-c679-4f80-bbbb-292bb7d7f37a",
+    "timestamp": "2026-04-21T14:22:38.830Z"
+  }
+}
+- DurationMs: 147
+----------------------------------------------------------------------------------------------------
+TC056 | Level 6 | BLOCKED
+Title: Retry when ETA service fails
+Reason: no fault-injection path to verify retry logic
+Elapsed(ms): 29
+Notes:
+- Cannot inject ETA downstream failure from black-box HTTP only; retry behavior requires chaos/fault injection.
+Request #1
+- Method: POST
+- Path: /ai/eta
+- Headers: {
+  "Accept": "application/json",
+  "Content-Type": "application/json"
+}
+- Body: {
+  "distance_km": 5,
+  "traffic_level": 0.5
+}
+- ResponseStatus: 200
+- ResponseBody: {
+  "eta": 13,
+  "model_version": "eta-v1"
+}
+- DurationMs: 29
+----------------------------------------------------------------------------------------------------
+TC057 | Level 6 | PASS
+Title: Do not select offline driver
+Reason: offline drivers filtered out
+Elapsed(ms): 24
+Request #1
+- Method: POST
+- Path: /ai/agent/select-driver
+- Headers: {
+  "Accept": "application/json",
+  "Content-Type": "application/json"
+}
+- Body: {
+  "strategy": "nearest",
+  "drivers": [
+    {
+      "id": "O1",
+      "status": "OFFLINE",
+      "distanceKm": 1,
+      "rating": 4.9,
+      "eta": 3,
+      "price": 50000
+    },
+    {
+      "id": "O2",
+      "status": "OFFLINE",
+      "distanceKm": 2,
+      "rating": 4.8,
+      "eta": 4,
+      "price": 52000
+    }
+  ]
+}
+- ResponseStatus: 200
+- ResponseBody: {
+  "mode": "fallback",
+  "selected_driver": null,
+  "reason": "no_driver",
+  "decision_log": {
+    "strategy": "nearest",
+    "selection_reason": "no_driver",
+    "trace_id": "c8bb1066-62fe-4cd0-9d06-69a8667e56e6",
+    "timestamp": "2026-04-21T14:22:38.905Z"
+  }
+}
+- DurationMs: 24
+----------------------------------------------------------------------------------------------------
+TC058 | Level 6 | FAIL
+Title: Decision log completeness
+Reason: missing decision log fields: {
+  "error": "timeout"
+}
+Elapsed(ms): 15001
+Request #1
+- Method: POST
+- Path: /ai/agent/select-driver
+- Headers: {
+  "Accept": "application/json",
+  "x-request-id": "trace-1776781347905",
+  "Content-Type": "application/json"
+}
+- Body: {
+  "strategy": "balanced",
+  "drivers": [
+    {
+      "id": "L1",
+      "status": "ONLINE",
+      "distanceKm": 2.1,
+      "rating": 4.7,
+      "eta": 6,
+      "price": 52000
+    },
+    {
+      "id": "L2",
+      "status": "ONLINE",
+      "distanceKm": 2.5,
+      "rating": 4.6,
+      "eta": 5,
+      "price": 53000
+    }
+  ]
+}
+- ResponseStatus: 0
+- ResponseBody: {
+  "error": "timeout"
+}
+- DurationMs: 15001
+----------------------------------------------------------------------------------------------------
+TC059 | Level 6 | FAIL
+Title: Concurrent requests handling
+Reason: success_rate=0.0%
+Elapsed(ms): 15013
+Request #1
+- Method: POST
+- Path: /ai/agent/select-driver
+- Headers: {
+  "Accept": "application/json",
+  "Content-Type": "application/json"
+}
+- Body: {
+  "strategy": "balanced",
+  "drivers": [
+    {
+      "id": "C1",
+      "status": "ONLINE",
+      "distanceKm": 2,
+      "rating": 4.7,
+      "eta": 6,
+      "price": 51000
+    },
+    {
+      "id": "C2",
+      "status": "ONLINE",
+      "distanceKm": 3,
+      "rating": 4.9,
+      "eta": 8,
+      "price": 49000
+    },
+    {
+      "id": "C3",
+      "status": "ONLINE",
+      "distanceKm": 1.8,
+      "rating": 4.4,
+      "eta": 5,
+      "price": 56000
+    }
+  ]
+}
+- ResponseStatus: 0
+- ResponseBody: {
+  "error": "timeout"
+}
+- DurationMs: 15000
+Request #2
+- Method: POST
+- Path: /ai/agent/select-driver
+- Headers: {
+  "Accept": "application/json",
+  "Content-Type": "application/json"
+}
+- Body: {
+  "strategy": "balanced",
+  "drivers": [
+    {
+      "id": "C1",
+      "status": "ONLINE",
+      "distanceKm": 2,
+      "rating": 4.7,
+      "eta": 6,
+      "price": 51000
+    },
+    {
+      "id": "C2",
+      "status": "ONLINE",
+      "distanceKm": 3,
+      "rating": 4.9,
+      "eta": 8,
+      "price": 49000
+    },
+    {
+      "id": "C3",
+      "status": "ONLINE",
+      "distanceKm": 1.8,
+      "rating": 4.4,
+      "eta": 5,
+      "price": 56000
+    }
+  ]
+}
+- ResponseStatus: 0
+- ResponseBody: {
+  "error": "timeout"
+}
+- DurationMs: 15000
+Request #3
+- Method: POST
+- Path: /ai/agent/select-driver
+- Headers: {
+  "Accept": "application/json",
+  "Content-Type": "application/json"
+}
+- Body: {
+  "strategy": "balanced",
+  "drivers": [
+    {
+      "id": "C1",
+      "status": "ONLINE",
+      "distanceKm": 2,
+      "rating": 4.7,
+      "eta": 6,
+      "price": 51000
+    },
+    {
+      "id": "C2",
+      "status": "ONLINE",
+      "distanceKm": 3,
+      "rating": 4.9,
+      "eta": 8,
+      "price": 49000
+    },
+    {
+      "id": "C3",
+      "status": "ONLINE",
+      "distanceKm": 1.8,
+      "rating": 4.4,
+      "eta": 5,
+      "price": 56000
+    }
+  ]
+}
+- ResponseStatus: 0
+- ResponseBody: {
+  "error": "timeout"
+}
+- DurationMs: 15001
+Request #4
+- Method: POST
+- Path: /ai/agent/select-driver
+- Headers: {
+  "Accept": "application/json",
+  "Content-Type": "application/json"
+}
+- Body: {
+  "strategy": "balanced",
+  "drivers": [
+    {
+      "id": "C1",
+      "status": "ONLINE",
+      "distanceKm": 2,
+      "rating": 4.7,
+      "eta": 6,
+      "price": 51000
+    },
+    {
+      "id": "C2",
+      "status": "ONLINE",
+      "distanceKm": 3,
+      "rating": 4.9,
+      "eta": 8,
+      "price": 49000
+    },
+    {
+      "id": "C3",
+      "status": "ONLINE",
+      "distanceKm": 1.8,
+      "rating": 4.4,
+      "eta": 5,
+      "price": 56000
+    }
+  ]
+}
+- ResponseStatus: 0
+- ResponseBody: {
+  "error": "timeout"
+}
+- DurationMs: 15001
+Request #5
+- Method: POST
+- Path: /ai/agent/select-driver
+- Headers: {
+  "Accept": "application/json",
+  "Content-Type": "application/json"
+}
+- Body: {
+  "strategy": "balanced",
+  "drivers": [
+    {
+      "id": "C1",
+      "status": "ONLINE",
+      "distanceKm": 2,
+      "rating": 4.7,
+      "eta": 6,
+      "price": 51000
+    },
+    {
+      "id": "C2",
+      "status": "ONLINE",
+      "distanceKm": 3,
+      "rating": 4.9,
+      "eta": 8,
+      "price": 49000
+    },
+    {
+      "id": "C3",
+      "status": "ONLINE",
+      "distanceKm": 1.8,
+      "rating": 4.4,
+      "eta": 5,
+      "price": 56000
+    }
+  ]
+}
+- ResponseStatus: 0
+- ResponseBody: {
+  "error": "timeout"
+}
+- DurationMs: 15001
+Request #6
+- Method: POST
+- Path: /ai/agent/select-driver
+- Headers: {
+  "Accept": "application/json",
+  "Content-Type": "application/json"
+}
+- Body: {
+  "strategy": "balanced",
+  "drivers": [
+    {
+      "id": "C1",
+      "status": "ONLINE",
+      "distanceKm": 2,
+      "rating": 4.7,
+      "eta": 6,
+      "price": 51000
+    },
+    {
+      "id": "C2",
+      "status": "ONLINE",
+      "distanceKm": 3,
+      "rating": 4.9,
+      "eta": 8,
+      "price": 49000
+    },
+    {
+      "id": "C3",
+      "status": "ONLINE",
+      "distanceKm": 1.8,
+      "rating": 4.4,
+      "eta": 5,
+      "price": 56000
+    }
+  ]
+}
+- ResponseStatus: 0
+- ResponseBody: {
+  "error": "timeout"
+}
+- DurationMs: 15001
+Request #7
+- Method: POST
+- Path: /ai/agent/select-driver
+- Headers: {
+  "Accept": "application/json",
+  "Content-Type": "application/json"
+}
+- Body: {
+  "strategy": "balanced",
+  "drivers": [
+    {
+      "id": "C1",
+      "status": "ONLINE",
+      "distanceKm": 2,
+      "rating": 4.7,
+      "eta": 6,
+      "price": 51000
+    },
+    {
+      "id": "C2",
+      "status": "ONLINE",
+      "distanceKm": 3,
+      "rating": 4.9,
+      "eta": 8,
+      "price": 49000
+    },
+    {
+      "id": "C3",
+      "status": "ONLINE",
+      "distanceKm": 1.8,
+      "rating": 4.4,
+      "eta": 5,
+      "price": 56000
+    }
+  ]
+}
+- ResponseStatus: 0
+- ResponseBody: {
+  "error": "timeout"
+}
+- DurationMs: 15001
+Request #8
+- Method: POST
+- Path: /ai/agent/select-driver
+- Headers: {
+  "Accept": "application/json",
+  "Content-Type": "application/json"
+}
+- Body: {
+  "strategy": "balanced",
+  "drivers": [
+    {
+      "id": "C1",
+      "status": "ONLINE",
+      "distanceKm": 2,
+      "rating": 4.7,
+      "eta": 6,
+      "price": 51000
+    },
+    {
+      "id": "C2",
+      "status": "ONLINE",
+      "distanceKm": 3,
+      "rating": 4.9,
+      "eta": 8,
+      "price": 49000
+    },
+    {
+      "id": "C3",
+      "status": "ONLINE",
+      "distanceKm": 1.8,
+      "rating": 4.4,
+      "eta": 5,
+      "price": 56000
+    }
+  ]
+}
+- ResponseStatus: 0
+- ResponseBody: {
+  "error": "timeout"
+}
+- DurationMs: 15001
+Request #9
+- Method: POST
+- Path: /ai/agent/select-driver
+- Headers: {
+  "Accept": "application/json",
+  "Content-Type": "application/json"
+}
+- Body: {
+  "strategy": "balanced",
+  "drivers": [
+    {
+      "id": "C1",
+      "status": "ONLINE",
+      "distanceKm": 2,
+      "rating": 4.7,
+      "eta": 6,
+      "price": 51000
+    },
+    {
+      "id": "C2",
+      "status": "ONLINE",
+      "distanceKm": 3,
+      "rating": 4.9,
+      "eta": 8,
+      "price": 49000
+    },
+    {
+      "id": "C3",
+      "status": "ONLINE",
+      "distanceKm": 1.8,
+      "rating": 4.4,
+      "eta": 5,
+      "price": 56000
+    }
+  ]
+}
+- ResponseStatus: 0
+- ResponseBody: {
+  "error": "timeout"
+}
+- DurationMs: 15002
+Request #10
+- Method: POST
+- Path: /ai/agent/select-driver
+- Headers: {
+  "Accept": "application/json",
+  "Content-Type": "application/json"
+}
+- Body: {
+  "strategy": "balanced",
+  "drivers": [
+    {
+      "id": "C1",
+      "status": "ONLINE",
+      "distanceKm": 2,
+      "rating": 4.7,
+      "eta": 6,
+      "price": 51000
+    },
+    {
+      "id": "C2",
+      "status": "ONLINE",
+      "distanceKm": 3,
+      "rating": 4.9,
+      "eta": 8,
+      "price": 49000
+    },
+    {
+      "id": "C3",
+      "status": "ONLINE",
+      "distanceKm": 1.8,
+      "rating": 4.4,
+      "eta": 5,
+      "price": 56000
+    }
+  ]
+}
+- ResponseStatus: 0
+- ResponseBody: {
+  "error": "timeout"
+}
+- DurationMs: 15002
+Request #11
+- Method: POST
+- Path: /ai/agent/select-driver
+- Headers: {
+  "Accept": "application/json",
+  "Content-Type": "application/json"
+}
+- Body: {
+  "strategy": "balanced",
+  "drivers": [
+    {
+      "id": "C1",
+      "status": "ONLINE",
+      "distanceKm": 2,
+      "rating": 4.7,
+      "eta": 6,
+      "price": 51000
+    },
+    {
+      "id": "C2",
+      "status": "ONLINE",
+      "distanceKm": 3,
+      "rating": 4.9,
+      "eta": 8,
+      "price": 49000
+    },
+    {
+      "id": "C3",
+      "status": "ONLINE",
+      "distanceKm": 1.8,
+      "rating": 4.4,
+      "eta": 5,
+      "price": 56000
+    }
+  ]
+}
+- ResponseStatus: 0
+- ResponseBody: {
+  "error": "timeout"
+}
+- DurationMs: 15002
+Request #12
+- Method: POST
+- Path: /ai/agent/select-driver
+- Headers: {
+  "Accept": "application/json",
+  "Content-Type": "application/json"
+}
+- Body: {
+  "strategy": "balanced",
+  "drivers": [
+    {
+      "id": "C1",
+      "status": "ONLINE",
+      "distanceKm": 2,
+      "rating": 4.7,
+      "eta": 6,
+      "price": 51000
+    },
+    {
+      "id": "C2",
+      "status": "ONLINE",
+      "distanceKm": 3,
+      "rating": 4.9,
+      "eta": 8,
+      "price": 49000
+    },
+    {
+      "id": "C3",
+      "status": "ONLINE",
+      "distanceKm": 1.8,
+      "rating": 4.4,
+      "eta": 5,
+      "price": 56000
+    }
+  ]
+}
+- ResponseStatus: 0
+- ResponseBody: {
+  "error": "timeout"
+}
+- DurationMs: 15002
+Request #13
+- Method: POST
+- Path: /ai/agent/select-driver
+- Headers: {
+  "Accept": "application/json",
+  "Content-Type": "application/json"
+}
+- Body: {
+  "strategy": "balanced",
+  "drivers": [
+    {
+      "id": "C1",
+      "status": "ONLINE",
+      "distanceKm": 2,
+      "rating": 4.7,
+      "eta": 6,
+      "price": 51000
+    },
+    {
+      "id": "C2",
+      "status": "ONLINE",
+      "distanceKm": 3,
+      "rating": 4.9,
+      "eta": 8,
+      "price": 49000
+    },
+    {
+      "id": "C3",
+      "status": "ONLINE",
+      "distanceKm": 1.8,
+      "rating": 4.4,
+      "eta": 5,
+      "price": 56000
+    }
+  ]
+}
+- ResponseStatus: 0
+- ResponseBody: {
+  "error": "timeout"
+}
+- DurationMs: 15002
+Request #14
+- Method: POST
+- Path: /ai/agent/select-driver
+- Headers: {
+  "Accept": "application/json",
+  "Content-Type": "application/json"
+}
+- Body: {
+  "strategy": "balanced",
+  "drivers": [
+    {
+      "id": "C1",
+      "status": "ONLINE",
+      "distanceKm": 2,
+      "rating": 4.7,
+      "eta": 6,
+      "price": 51000
+    },
+    {
+      "id": "C2",
+      "status": "ONLINE",
+      "distanceKm": 3,
+      "rating": 4.9,
+      "eta": 8,
+      "price": 49000
+    },
+    {
+      "id": "C3",
+      "status": "ONLINE",
+      "distanceKm": 1.8,
+      "rating": 4.4,
+      "eta": 5,
+      "price": 56000
+    }
+  ]
+}
+- ResponseStatus: 0
+- ResponseBody: {
+  "error": "timeout"
+}
+- DurationMs: 15002
+Request #15
+- Method: POST
+- Path: /ai/agent/select-driver
+- Headers: {
+  "Accept": "application/json",
+  "Content-Type": "application/json"
+}
+- Body: {
+  "strategy": "balanced",
+  "drivers": [
+    {
+      "id": "C1",
+      "status": "ONLINE",
+      "distanceKm": 2,
+      "rating": 4.7,
+      "eta": 6,
+      "price": 51000
+    },
+    {
+      "id": "C2",
+      "status": "ONLINE",
+      "distanceKm": 3,
+      "rating": 4.9,
+      "eta": 8,
+      "price": 49000
+    },
+    {
+      "id": "C3",
+      "status": "ONLINE",
+      "distanceKm": 1.8,
+      "rating": 4.4,
+      "eta": 5,
+      "price": 56000
+    }
+  ]
+}
+- ResponseStatus: 0
+- ResponseBody: {
+  "error": "timeout"
+}
+- DurationMs: 15003
+Request #16
+- Method: POST
+- Path: /ai/agent/select-driver
+- Headers: {
+  "Accept": "application/json",
+  "Content-Type": "application/json"
+}
+- Body: {
+  "strategy": "balanced",
+  "drivers": [
+    {
+      "id": "C1",
+      "status": "ONLINE",
+      "distanceKm": 2,
+      "rating": 4.7,
+      "eta": 6,
+      "price": 51000
+    },
+    {
+      "id": "C2",
+      "status": "ONLINE",
+      "distanceKm": 3,
+      "rating": 4.9,
+      "eta": 8,
+      "price": 49000
+    },
+    {
+      "id": "C3",
+      "status": "ONLINE",
+      "distanceKm": 1.8,
+      "rating": 4.4,
+      "eta": 5,
+      "price": 56000
+    }
+  ]
+}
+- ResponseStatus: 0
+- ResponseBody: {
+  "error": "timeout"
+}
+- DurationMs: 15003
+Request #17
+- Method: POST
+- Path: /ai/agent/select-driver
+- Headers: {
+  "Accept": "application/json",
+  "Content-Type": "application/json"
+}
+- Body: {
+  "strategy": "balanced",
+  "drivers": [
+    {
+      "id": "C1",
+      "status": "ONLINE",
+      "distanceKm": 2,
+      "rating": 4.7,
+      "eta": 6,
+      "price": 51000
+    },
+    {
+      "id": "C2",
+      "status": "ONLINE",
+      "distanceKm": 3,
+      "rating": 4.9,
+      "eta": 8,
+      "price": 49000
+    },
+    {
+      "id": "C3",
+      "status": "ONLINE",
+      "distanceKm": 1.8,
+      "rating": 4.4,
+      "eta": 5,
+      "price": 56000
+    }
+  ]
+}
+- ResponseStatus: 0
+- ResponseBody: {
+  "error": "timeout"
+}
+- DurationMs: 15003
+Request #18
+- Method: POST
+- Path: /ai/agent/select-driver
+- Headers: {
+  "Accept": "application/json",
+  "Content-Type": "application/json"
+}
+- Body: {
+  "strategy": "balanced",
+  "drivers": [
+    {
+      "id": "C1",
+      "status": "ONLINE",
+      "distanceKm": 2,
+      "rating": 4.7,
+      "eta": 6,
+      "price": 51000
+    },
+    {
+      "id": "C2",
+      "status": "ONLINE",
+      "distanceKm": 3,
+      "rating": 4.9,
+      "eta": 8,
+      "price": 49000
+    },
+    {
+      "id": "C3",
+      "status": "ONLINE",
+      "distanceKm": 1.8,
+      "rating": 4.4,
+      "eta": 5,
+      "price": 56000
+    }
+  ]
+}
+- ResponseStatus: 0
+- ResponseBody: {
+  "error": "timeout"
+}
+- DurationMs: 15003
+Request #19
+- Method: POST
+- Path: /ai/agent/select-driver
+- Headers: {
+  "Accept": "application/json",
+  "Content-Type": "application/json"
+}
+- Body: {
+  "strategy": "balanced",
+  "drivers": [
+    {
+      "id": "C1",
+      "status": "ONLINE",
+      "distanceKm": 2,
+      "rating": 4.7,
+      "eta": 6,
+      "price": 51000
+    },
+    {
+      "id": "C2",
+      "status": "ONLINE",
+      "distanceKm": 3,
+      "rating": 4.9,
+      "eta": 8,
+      "price": 49000
+    },
+    {
+      "id": "C3",
+      "status": "ONLINE",
+      "distanceKm": 1.8,
+      "rating": 4.4,
+      "eta": 5,
+      "price": 56000
+    }
+  ]
+}
+- ResponseStatus: 0
+- ResponseBody: {
+  "error": "timeout"
+}
+- DurationMs: 15003
+Request #20
+- Method: POST
+- Path: /ai/agent/select-driver
+- Headers: {
+  "Accept": "application/json",
+  "Content-Type": "application/json"
+}
+- Body: {
+  "strategy": "balanced",
+  "drivers": [
+    {
+      "id": "C1",
+      "status": "ONLINE",
+      "distanceKm": 2,
+      "rating": 4.7,
+      "eta": 6,
+      "price": 51000
+    },
+    {
+      "id": "C2",
+      "status": "ONLINE",
+      "distanceKm": 3,
+      "rating": 4.9,
+      "eta": 8,
+      "price": 49000
+    },
+    {
+      "id": "C3",
+      "status": "ONLINE",
+      "distanceKm": 1.8,
+      "rating": 4.4,
+      "eta": 5,
+      "price": 56000
+    }
+  ]
+}
+- ResponseStatus: 0
+- ResponseBody: {
+  "error": "timeout"
+}
+- DurationMs: 15003
+Request #21
+- Method: POST
+- Path: /ai/agent/select-driver
+- Headers: {
+  "Accept": "application/json",
+  "Content-Type": "application/json"
+}
+- Body: {
+  "strategy": "balanced",
+  "drivers": [
+    {
+      "id": "C1",
+      "status": "ONLINE",
+      "distanceKm": 2,
+      "rating": 4.7,
+      "eta": 6,
+      "price": 51000
+    },
+    {
+      "id": "C2",
+      "status": "ONLINE",
+      "distanceKm": 3,
+      "rating": 4.9,
+      "eta": 8,
+      "price": 49000
+    },
+    {
+      "id": "C3",
+      "status": "ONLINE",
+      "distanceKm": 1.8,
+      "rating": 4.4,
+      "eta": 5,
+      "price": 56000
+    }
+  ]
+}
+- ResponseStatus: 0
+- ResponseBody: {
+  "error": "timeout"
+}
+- DurationMs: 15003
+Request #22
+- Method: POST
+- Path: /ai/agent/select-driver
+- Headers: {
+  "Accept": "application/json",
+  "Content-Type": "application/json"
+}
+- Body: {
+  "strategy": "balanced",
+  "drivers": [
+    {
+      "id": "C1",
+      "status": "ONLINE",
+      "distanceKm": 2,
+      "rating": 4.7,
+      "eta": 6,
+      "price": 51000
+    },
+    {
+      "id": "C2",
+      "status": "ONLINE",
+      "distanceKm": 3,
+      "rating": 4.9,
+      "eta": 8,
+      "price": 49000
+    },
+    {
+      "id": "C3",
+      "status": "ONLINE",
+      "distanceKm": 1.8,
+      "rating": 4.4,
+      "eta": 5,
+      "price": 56000
+    }
+  ]
+}
+- ResponseStatus: 0
+- ResponseBody: {
+  "error": "timeout"
+}
+- DurationMs: 15003
+Request #23
+- Method: POST
+- Path: /ai/agent/select-driver
+- Headers: {
+  "Accept": "application/json",
+  "Content-Type": "application/json"
+}
+- Body: {
+  "strategy": "balanced",
+  "drivers": [
+    {
+      "id": "C1",
+      "status": "ONLINE",
+      "distanceKm": 2,
+      "rating": 4.7,
+      "eta": 6,
+      "price": 51000
+    },
+    {
+      "id": "C2",
+      "status": "ONLINE",
+      "distanceKm": 3,
+      "rating": 4.9,
+      "eta": 8,
+      "price": 49000
+    },
+    {
+      "id": "C3",
+      "status": "ONLINE",
+      "distanceKm": 1.8,
+      "rating": 4.4,
+      "eta": 5,
+      "price": 56000
+    }
+  ]
+}
+- ResponseStatus: 0
+- ResponseBody: {
+  "error": "timeout"
+}
+- DurationMs: 15003
+Request #24
+- Method: POST
+- Path: /ai/agent/select-driver
+- Headers: {
+  "Accept": "application/json",
+  "Content-Type": "application/json"
+}
+- Body: {
+  "strategy": "balanced",
+  "drivers": [
+    {
+      "id": "C1",
+      "status": "ONLINE",
+      "distanceKm": 2,
+      "rating": 4.7,
+      "eta": 6,
+      "price": 51000
+    },
+    {
+      "id": "C2",
+      "status": "ONLINE",
+      "distanceKm": 3,
+      "rating": 4.9,
+      "eta": 8,
+      "price": 49000
+    },
+    {
+      "id": "C3",
+      "status": "ONLINE",
+      "distanceKm": 1.8,
+      "rating": 4.4,
+      "eta": 5,
+      "price": 56000
+    }
+  ]
+}
+- ResponseStatus: 0
+- ResponseBody: {
+  "error": "timeout"
+}
+- DurationMs: 15003
+Request #25
+- Method: POST
+- Path: /ai/agent/select-driver
+- Headers: {
+  "Accept": "application/json",
+  "Content-Type": "application/json"
+}
+- Body: {
+  "strategy": "balanced",
+  "drivers": [
+    {
+      "id": "C1",
+      "status": "ONLINE",
+      "distanceKm": 2,
+      "rating": 4.7,
+      "eta": 6,
+      "price": 51000
+    },
+    {
+      "id": "C2",
+      "status": "ONLINE",
+      "distanceKm": 3,
+      "rating": 4.9,
+      "eta": 8,
+      "price": 49000
+    },
+    {
+      "id": "C3",
+      "status": "ONLINE",
+      "distanceKm": 1.8,
+      "rating": 4.4,
+      "eta": 5,
+      "price": 56000
+    }
+  ]
+}
+- ResponseStatus: 0
+- ResponseBody: {
+  "error": "timeout"
+}
+- DurationMs: 15003
+Request #26
+- Method: POST
+- Path: /ai/agent/select-driver
+- Headers: {
+  "Accept": "application/json",
+  "Content-Type": "application/json"
+}
+- Body: {
+  "strategy": "balanced",
+  "drivers": [
+    {
+      "id": "C1",
+      "status": "ONLINE",
+      "distanceKm": 2,
+      "rating": 4.7,
+      "eta": 6,
+      "price": 51000
+    },
+    {
+      "id": "C2",
+      "status": "ONLINE",
+      "distanceKm": 3,
+      "rating": 4.9,
+      "eta": 8,
+      "price": 49000
+    },
+    {
+      "id": "C3",
+      "status": "ONLINE",
+      "distanceKm": 1.8,
+      "rating": 4.4,
+      "eta": 5,
+      "price": 56000
+    }
+  ]
+}
+- ResponseStatus: 0
+- ResponseBody: {
+  "error": "timeout"
+}
+- DurationMs: 15003
+Request #27
+- Method: POST
+- Path: /ai/agent/select-driver
+- Headers: {
+  "Accept": "application/json",
+  "Content-Type": "application/json"
+}
+- Body: {
+  "strategy": "balanced",
+  "drivers": [
+    {
+      "id": "C1",
+      "status": "ONLINE",
+      "distanceKm": 2,
+      "rating": 4.7,
+      "eta": 6,
+      "price": 51000
+    },
+    {
+      "id": "C2",
+      "status": "ONLINE",
+      "distanceKm": 3,
+      "rating": 4.9,
+      "eta": 8,
+      "price": 49000
+    },
+    {
+      "id": "C3",
+      "status": "ONLINE",
+      "distanceKm": 1.8,
+      "rating": 4.4,
+      "eta": 5,
+      "price": 56000
+    }
+  ]
+}
+- ResponseStatus: 0
+- ResponseBody: {
+  "error": "timeout"
+}
+- DurationMs: 15003
+Request #28
+- Method: POST
+- Path: /ai/agent/select-driver
+- Headers: {
+  "Accept": "application/json",
+  "Content-Type": "application/json"
+}
+- Body: {
+  "strategy": "balanced",
+  "drivers": [
+    {
+      "id": "C1",
+      "status": "ONLINE",
+      "distanceKm": 2,
+      "rating": 4.7,
+      "eta": 6,
+      "price": 51000
+    },
+    {
+      "id": "C2",
+      "status": "ONLINE",
+      "distanceKm": 3,
+      "rating": 4.9,
+      "eta": 8,
+      "price": 49000
+    },
+    {
+      "id": "C3",
+      "status": "ONLINE",
+      "distanceKm": 1.8,
+      "rating": 4.4,
+      "eta": 5,
+      "price": 56000
+    }
+  ]
+}
+- ResponseStatus: 0
+- ResponseBody: {
+  "error": "timeout"
+}
+- DurationMs: 15003
+Request #29
+- Method: POST
+- Path: /ai/agent/select-driver
+- Headers: {
+  "Accept": "application/json",
+  "Content-Type": "application/json"
+}
+- Body: {
+  "strategy": "balanced",
+  "drivers": [
+    {
+      "id": "C1",
+      "status": "ONLINE",
+      "distanceKm": 2,
+      "rating": 4.7,
+      "eta": 6,
+      "price": 51000
+    },
+    {
+      "id": "C2",
+      "status": "ONLINE",
+      "distanceKm": 3,
+      "rating": 4.9,
+      "eta": 8,
+      "price": 49000
+    },
+    {
+      "id": "C3",
+      "status": "ONLINE",
+      "distanceKm": 1.8,
+      "rating": 4.4,
+      "eta": 5,
+      "price": 56000
+    }
+  ]
+}
+- ResponseStatus: 0
+- ResponseBody: {
+  "error": "timeout"
+}
+- DurationMs: 15003
+Request #30
+- Method: POST
+- Path: /ai/agent/select-driver
+- Headers: {
+  "Accept": "application/json",
+  "Content-Type": "application/json"
+}
+- Body: {
+  "strategy": "balanced",
+  "drivers": [
+    {
+      "id": "C1",
+      "status": "ONLINE",
+      "distanceKm": 2,
+      "rating": 4.7,
+      "eta": 6,
+      "price": 51000
+    },
+    {
+      "id": "C2",
+      "status": "ONLINE",
+      "distanceKm": 3,
+      "rating": 4.9,
+      "eta": 8,
+      "price": 49000
+    },
+    {
+      "id": "C3",
+      "status": "ONLINE",
+      "distanceKm": 1.8,
+      "rating": 4.4,
+      "eta": 5,
+      "price": 56000
+    }
+  ]
+}
+- ResponseStatus: 0
+- ResponseBody: {
+  "error": "timeout"
+}
+- DurationMs: 15003
+Request #31
+- Method: POST
+- Path: /ai/agent/select-driver
+- Headers: {
+  "Accept": "application/json",
+  "Content-Type": "application/json"
+}
+- Body: {
+  "strategy": "balanced",
+  "drivers": [
+    {
+      "id": "C1",
+      "status": "ONLINE",
+      "distanceKm": 2,
+      "rating": 4.7,
+      "eta": 6,
+      "price": 51000
+    },
+    {
+      "id": "C2",
+      "status": "ONLINE",
+      "distanceKm": 3,
+      "rating": 4.9,
+      "eta": 8,
+      "price": 49000
+    },
+    {
+      "id": "C3",
+      "status": "ONLINE",
+      "distanceKm": 1.8,
+      "rating": 4.4,
+      "eta": 5,
+      "price": 56000
+    }
+  ]
+}
+- ResponseStatus: 0
+- ResponseBody: {
+  "error": "timeout"
+}
+- DurationMs: 15003
+Request #32
+- Method: POST
+- Path: /ai/agent/select-driver
+- Headers: {
+  "Accept": "application/json",
+  "Content-Type": "application/json"
+}
+- Body: {
+  "strategy": "balanced",
+  "drivers": [
+    {
+      "id": "C1",
+      "status": "ONLINE",
+      "distanceKm": 2,
+      "rating": 4.7,
+      "eta": 6,
+      "price": 51000
+    },
+    {
+      "id": "C2",
+      "status": "ONLINE",
+      "distanceKm": 3,
+      "rating": 4.9,
+      "eta": 8,
+      "price": 49000
+    },
+    {
+      "id": "C3",
+      "status": "ONLINE",
+      "distanceKm": 1.8,
+      "rating": 4.4,
+      "eta": 5,
+      "price": 56000
+    }
+  ]
+}
+- ResponseStatus: 0
+- ResponseBody: {
+  "error": "timeout"
+}
+- DurationMs: 15003
+Request #33
+- Method: POST
+- Path: /ai/agent/select-driver
+- Headers: {
+  "Accept": "application/json",
+  "Content-Type": "application/json"
+}
+- Body: {
+  "strategy": "balanced",
+  "drivers": [
+    {
+      "id": "C1",
+      "status": "ONLINE",
+      "distanceKm": 2,
+      "rating": 4.7,
+      "eta": 6,
+      "price": 51000
+    },
+    {
+      "id": "C2",
+      "status": "ONLINE",
+      "distanceKm": 3,
+      "rating": 4.9,
+      "eta": 8,
+      "price": 49000
+    },
+    {
+      "id": "C3",
+      "status": "ONLINE",
+      "distanceKm": 1.8,
+      "rating": 4.4,
+      "eta": 5,
+      "price": 56000
+    }
+  ]
+}
+- ResponseStatus: 0
+- ResponseBody: {
+  "error": "timeout"
+}
+- DurationMs: 15007
+Request #34
+- Method: POST
+- Path: /ai/agent/select-driver
+- Headers: {
+  "Accept": "application/json",
+  "Content-Type": "application/json"
+}
+- Body: {
+  "strategy": "balanced",
+  "drivers": [
+    {
+      "id": "C1",
+      "status": "ONLINE",
+      "distanceKm": 2,
+      "rating": 4.7,
+      "eta": 6,
+      "price": 51000
+    },
+    {
+      "id": "C2",
+      "status": "ONLINE",
+      "distanceKm": 3,
+      "rating": 4.9,
+      "eta": 8,
+      "price": 49000
+    },
+    {
+      "id": "C3",
+      "status": "ONLINE",
+      "distanceKm": 1.8,
+      "rating": 4.4,
+      "eta": 5,
+      "price": 56000
+    }
+  ]
+}
+- ResponseStatus: 0
+- ResponseBody: {
+  "error": "timeout"
+}
+- DurationMs: 15007
+Request #35
+- Method: POST
+- Path: /ai/agent/select-driver
+- Headers: {
+  "Accept": "application/json",
+  "Content-Type": "application/json"
+}
+- Body: {
+  "strategy": "balanced",
+  "drivers": [
+    {
+      "id": "C1",
+      "status": "ONLINE",
+      "distanceKm": 2,
+      "rating": 4.7,
+      "eta": 6,
+      "price": 51000
+    },
+    {
+      "id": "C2",
+      "status": "ONLINE",
+      "distanceKm": 3,
+      "rating": 4.9,
+      "eta": 8,
+      "price": 49000
+    },
+    {
+      "id": "C3",
+      "status": "ONLINE",
+      "distanceKm": 1.8,
+      "rating": 4.4,
+      "eta": 5,
+      "price": 56000
+    }
+  ]
+}
+- ResponseStatus: 0
+- ResponseBody: {
+  "error": "timeout"
+}
+- DurationMs: 15007
+Request #36
+- Method: POST
+- Path: /ai/agent/select-driver
+- Headers: {
+  "Accept": "application/json",
+  "Content-Type": "application/json"
+}
+- Body: {
+  "strategy": "balanced",
+  "drivers": [
+    {
+      "id": "C1",
+      "status": "ONLINE",
+      "distanceKm": 2,
+      "rating": 4.7,
+      "eta": 6,
+      "price": 51000
+    },
+    {
+      "id": "C2",
+      "status": "ONLINE",
+      "distanceKm": 3,
+      "rating": 4.9,
+      "eta": 8,
+      "price": 49000
+    },
+    {
+      "id": "C3",
+      "status": "ONLINE",
+      "distanceKm": 1.8,
+      "rating": 4.4,
+      "eta": 5,
+      "price": 56000
+    }
+  ]
+}
+- ResponseStatus: 0
+- ResponseBody: {
+  "error": "timeout"
+}
+- DurationMs: 15007
+Request #37
+- Method: POST
+- Path: /ai/agent/select-driver
+- Headers: {
+  "Accept": "application/json",
+  "Content-Type": "application/json"
+}
+- Body: {
+  "strategy": "balanced",
+  "drivers": [
+    {
+      "id": "C1",
+      "status": "ONLINE",
+      "distanceKm": 2,
+      "rating": 4.7,
+      "eta": 6,
+      "price": 51000
+    },
+    {
+      "id": "C2",
+      "status": "ONLINE",
+      "distanceKm": 3,
+      "rating": 4.9,
+      "eta": 8,
+      "price": 49000
+    },
+    {
+      "id": "C3",
+      "status": "ONLINE",
+      "distanceKm": 1.8,
+      "rating": 4.4,
+      "eta": 5,
+      "price": 56000
+    }
+  ]
+}
+- ResponseStatus: 0
+- ResponseBody: {
+  "error": "timeout"
+}
+- DurationMs: 15007
+Request #38
+- Method: POST
+- Path: /ai/agent/select-driver
+- Headers: {
+  "Accept": "application/json",
+  "Content-Type": "application/json"
+}
+- Body: {
+  "strategy": "balanced",
+  "drivers": [
+    {
+      "id": "C1",
+      "status": "ONLINE",
+      "distanceKm": 2,
+      "rating": 4.7,
+      "eta": 6,
+      "price": 51000
+    },
+    {
+      "id": "C2",
+      "status": "ONLINE",
+      "distanceKm": 3,
+      "rating": 4.9,
+      "eta": 8,
+      "price": 49000
+    },
+    {
+      "id": "C3",
+      "status": "ONLINE",
+      "distanceKm": 1.8,
+      "rating": 4.4,
+      "eta": 5,
+      "price": 56000
+    }
+  ]
+}
+- ResponseStatus: 0
+- ResponseBody: {
+  "error": "timeout"
+}
+- DurationMs: 15007
+Request #39
+- Method: POST
+- Path: /ai/agent/select-driver
+- Headers: {
+  "Accept": "application/json",
+  "Content-Type": "application/json"
+}
+- Body: {
+  "strategy": "balanced",
+  "drivers": [
+    {
+      "id": "C1",
+      "status": "ONLINE",
+      "distanceKm": 2,
+      "rating": 4.7,
+      "eta": 6,
+      "price": 51000
+    },
+    {
+      "id": "C2",
+      "status": "ONLINE",
+      "distanceKm": 3,
+      "rating": 4.9,
+      "eta": 8,
+      "price": 49000
+    },
+    {
+      "id": "C3",
+      "status": "ONLINE",
+      "distanceKm": 1.8,
+      "rating": 4.4,
+      "eta": 5,
+      "price": 56000
+    }
+  ]
+}
+- ResponseStatus: 0
+- ResponseBody: {
+  "error": "timeout"
+}
+- DurationMs: 15007
+Request #40
+- Method: POST
+- Path: /ai/agent/select-driver
+- Headers: {
+  "Accept": "application/json",
+  "Content-Type": "application/json"
+}
+- Body: {
+  "strategy": "balanced",
+  "drivers": [
+    {
+      "id": "C1",
+      "status": "ONLINE",
+      "distanceKm": 2,
+      "rating": 4.7,
+      "eta": 6,
+      "price": 51000
+    },
+    {
+      "id": "C2",
+      "status": "ONLINE",
+      "distanceKm": 3,
+      "rating": 4.9,
+      "eta": 8,
+      "price": 49000
+    },
+    {
+      "id": "C3",
+      "status": "ONLINE",
+      "distanceKm": 1.8,
+      "rating": 4.4,
+      "eta": 5,
+      "price": 56000
+    }
+  ]
+}
+- ResponseStatus: 0
+- ResponseBody: {
+  "error": "timeout"
+}
+- DurationMs: 15007
+----------------------------------------------------------------------------------------------------
+TC060 | Level 6 | FAIL
+Title: Rule-based fallback when AI fails
+Reason: unexpected body={
+  "error": "timeout"
+}
+Elapsed(ms): 15001
+Notes:
+- Mode=ai means model path healthy; fallback path not forced in this run.
+Request #1
+- Method: POST
+- Path: /ai/agent/select-driver
+- Headers: {
+  "Accept": "application/json",
+  "Content-Type": "application/json"
+}
+- Body: {
+  "strategy": "balanced",
+  "drivers": [
+    {
+      "id": "RB1",
+      "status": "ONLINE",
+      "distanceKm": 2.2,
+      "rating": 4.6,
+      "eta": 6,
+      "price": 51000
+    },
+    {
+      "id": "RB2",
+      "status": "ONLINE",
+      "distanceKm": 2.7,
+      "rating": 4.8,
+      "eta": 7,
+      "price": 49000
+    }
+  ]
+}
+- ResponseStatus: 0
+- ResponseBody: {
+  "error": "timeout"
+}
+- DurationMs: 15001
+----------------------------------------------------------------------------------------------------
+TC062 | Level 7 | FAIL
+Title: ETA service under load
+Reason: ok=80/80, p95=393ms
+Elapsed(ms): 408
+Request #1
+- Method: POST
+- Path: /ai/eta
+- Headers: {
+  "Accept": "application/json",
+  "Content-Type": "application/json"
+}
+- Body: {
+  "distance_km": 5,
+  "traffic_level": 0.6
+}
+- ResponseStatus: 200
+- ResponseBody: {
+  "eta": 14,
+  "model_version": "eta-v1"
+}
+- DurationMs: 118
+Request #2
+- Method: POST
+- Path: /ai/eta
+- Headers: {
+  "Accept": "application/json",
+  "Content-Type": "application/json"
+}
+- Body: {
+  "distance_km": 5,
+  "traffic_level": 0.6
+}
+- ResponseStatus: 200
+- ResponseBody: {
+  "eta": 14,
+  "model_version": "eta-v1"
+}
+- DurationMs: 121
+Request #3
+- Method: POST
+- Path: /ai/eta
+- Headers: {
+  "Accept": "application/json",
+  "Content-Type": "application/json"
+}
+- Body: {
+  "distance_km": 5,
+  "traffic_level": 0.6
+}
+- ResponseStatus: 200
+- ResponseBody: {
+  "eta": 14,
+  "model_version": "eta-v1"
+}
+- DurationMs: 122
+Request #4
+- Method: POST
+- Path: /ai/eta
+- Headers: {
+  "Accept": "application/json",
+  "Content-Type": "application/json"
+}
+- Body: {
+  "distance_km": 5,
+  "traffic_level": 0.6
+}
+- ResponseStatus: 200
+- ResponseBody: {
+  "eta": 14,
+  "model_version": "eta-v1"
+}
+- DurationMs: 122
+Request #5
+- Method: POST
+- Path: /ai/eta
+- Headers: {
+  "Accept": "application/json",
+  "Content-Type": "application/json"
+}
+- Body: {
+  "distance_km": 5,
+  "traffic_level": 0.6
+}
+- ResponseStatus: 200
+- ResponseBody: {
+  "eta": 14,
+  "model_version": "eta-v1"
+}
+- DurationMs: 134
+Request #6
+- Method: POST
+- Path: /ai/eta
+- Headers: {
+  "Accept": "application/json",
+  "Content-Type": "application/json"
+}
+- Body: {
+  "distance_km": 5,
+  "traffic_level": 0.6
+}
+- ResponseStatus: 200
+- ResponseBody: {
+  "eta": 14,
+  "model_version": "eta-v1"
+}
+- DurationMs: 135
+Request #7
+- Method: POST
+- Path: /ai/eta
+- Headers: {
+  "Accept": "application/json",
+  "Content-Type": "application/json"
+}
+- Body: {
+  "distance_km": 5,
+  "traffic_level": 0.6
+}
+- ResponseStatus: 200
+- ResponseBody: {
+  "eta": 14,
+  "model_version": "eta-v1"
+}
+- DurationMs: 135
+Request #8
+- Method: POST
+- Path: /ai/eta
+- Headers: {
+  "Accept": "application/json",
+  "Content-Type": "application/json"
+}
+- Body: {
+  "distance_km": 5,
+  "traffic_level": 0.6
+}
+- ResponseStatus: 200
+- ResponseBody: {
+  "eta": 14,
+  "model_version": "eta-v1"
+}
+- DurationMs: 147
+Request #9
+- Method: POST
+- Path: /ai/eta
+- Headers: {
+  "Accept": "application/json",
+  "Content-Type": "application/json"
+}
+- Body: {
+  "distance_km": 5,
+  "traffic_level": 0.6
+}
+- ResponseStatus: 200
+- ResponseBody: {
+  "eta": 14,
+  "model_version": "eta-v1"
+}
+- DurationMs: 152
+Request #10
+- Method: POST
+- Path: /ai/eta
+- Headers: {
+  "Accept": "application/json",
+  "Content-Type": "application/json"
+}
+- Body: {
+  "distance_km": 5,
+  "traffic_level": 0.6
+}
+- ResponseStatus: 200
+- ResponseBody: {
+  "eta": 14,
+  "model_version": "eta-v1"
+}
+- DurationMs: 153
+Request #11
+- Method: POST
+- Path: /ai/eta
+- Headers: {
+  "Accept": "application/json",
+  "Content-Type": "application/json"
+}
+- Body: {
+  "distance_km": 5,
+  "traffic_level": 0.6
+}
+- ResponseStatus: 200
+- ResponseBody: {
+  "eta": 14,
+  "model_version": "eta-v1"
+}
+- DurationMs: 159
+Request #12
+- Method: POST
+- Path: /ai/eta
+- Headers: {
+  "Accept": "application/json",
+  "Content-Type": "application/json"
+}
+- Body: {
+  "distance_km": 5,
+  "traffic_level": 0.6
+}
+- ResponseStatus: 200
+- ResponseBody: {
+  "eta": 14,
+  "model_version": "eta-v1"
+}
+- DurationMs: 167
+Request #13
+- Method: POST
+- Path: /ai/eta
+- Headers: {
+  "Accept": "application/json",
+  "Content-Type": "application/json"
+}
+- Body: {
+  "distance_km": 5,
+  "traffic_level": 0.6
+}
+- ResponseStatus: 200
+- ResponseBody: {
+  "eta": 14,
+  "model_version": "eta-v1"
+}
+- DurationMs: 175
+Request #14
+- Method: POST
+- Path: /ai/eta
+- Headers: {
+  "Accept": "application/json",
+  "Content-Type": "application/json"
+}
+- Body: {
+  "distance_km": 5,
+  "traffic_level": 0.6
+}
+- ResponseStatus: 200
+- ResponseBody: {
+  "eta": 14,
+  "model_version": "eta-v1"
+}
+- DurationMs: 179
+Request #15
+- Method: POST
+- Path: /ai/eta
+- Headers: {
+  "Accept": "application/json",
+  "Content-Type": "application/json"
+}
+- Body: {
+  "distance_km": 5,
+  "traffic_level": 0.6
+}
+- ResponseStatus: 200
+- ResponseBody: {
+  "eta": 14,
+  "model_version": "eta-v1"
+}
+- DurationMs: 194
+Request #16
+- Method: POST
+- Path: /ai/eta
+- Headers: {
+  "Accept": "application/json",
+  "Content-Type": "application/json"
+}
+- Body: {
+  "distance_km": 5,
+  "traffic_level": 0.6
+}
+- ResponseStatus: 200
+- ResponseBody: {
+  "eta": 14,
+  "model_version": "eta-v1"
+}
+- DurationMs: 197
+Request #17
+- Method: POST
+- Path: /ai/eta
+- Headers: {
+  "Accept": "application/json",
+  "Content-Type": "application/json"
+}
+- Body: {
+  "distance_km": 5,
+  "traffic_level": 0.6
+}
+- ResponseStatus: 200
+- ResponseBody: {
+  "eta": 14,
+  "model_version": "eta-v1"
+}
+- DurationMs: 197
+Request #18
+- Method: POST
+- Path: /ai/eta
+- Headers: {
+  "Accept": "application/json",
+  "Content-Type": "application/json"
+}
+- Body: {
+  "distance_km": 5,
+  "traffic_level": 0.6
+}
+- ResponseStatus: 200
+- ResponseBody: {
+  "eta": 14,
+  "model_version": "eta-v1"
+}
+- DurationMs: 198
+Request #19
+- Method: POST
+- Path: /ai/eta
+- Headers: {
+  "Accept": "application/json",
+  "Content-Type": "application/json"
+}
+- Body: {
+  "distance_km": 5,
+  "traffic_level": 0.6
+}
+- ResponseStatus: 200
+- ResponseBody: {
+  "eta": 14,
+  "model_version": "eta-v1"
+}
+- DurationMs: 204
+Request #20
+- Method: POST
+- Path: /ai/eta
+- Headers: {
+  "Accept": "application/json",
+  "Content-Type": "application/json"
+}
+- Body: {
+  "distance_km": 5,
+  "traffic_level": 0.6
+}
+- ResponseStatus: 200
+- ResponseBody: {
+  "eta": 14,
+  "model_version": "eta-v1"
+}
+- DurationMs: 208
+Request #21
+- Method: POST
+- Path: /ai/eta
+- Headers: {
+  "Accept": "application/json",
+  "Content-Type": "application/json"
+}
+- Body: {
+  "distance_km": 5,
+  "traffic_level": 0.6
+}
+- ResponseStatus: 200
+- ResponseBody: {
+  "eta": 14,
+  "model_version": "eta-v1"
+}
+- DurationMs: 214
+Request #22
+- Method: POST
+- Path: /ai/eta
+- Headers: {
+  "Accept": "application/json",
+  "Content-Type": "application/json"
+}
+- Body: {
+  "distance_km": 5,
+  "traffic_level": 0.6
+}
+- ResponseStatus: 200
+- ResponseBody: {
+  "eta": 14,
+  "model_version": "eta-v1"
+}
+- DurationMs: 226
+Request #23
+- Method: POST
+- Path: /ai/eta
+- Headers: {
+  "Accept": "application/json",
+  "Content-Type": "application/json"
+}
+- Body: {
+  "distance_km": 5,
+  "traffic_level": 0.6
+}
+- ResponseStatus: 200
+- ResponseBody: {
+  "eta": 14,
+  "model_version": "eta-v1"
+}
+- DurationMs: 246
+Request #24
+- Method: POST
+- Path: /ai/eta
+- Headers: {
+  "Accept": "application/json",
+  "Content-Type": "application/json"
+}
+- Body: {
+  "distance_km": 5,
+  "traffic_level": 0.6
+}
+- ResponseStatus: 200
+- ResponseBody: {
+  "eta": 14,
+  "model_version": "eta-v1"
+}
+- DurationMs: 251
+Request #25
+- Method: POST
+- Path: /ai/eta
+- Headers: {
+  "Accept": "application/json",
+  "Content-Type": "application/json"
+}
+- Body: {
+  "distance_km": 5,
+  "traffic_level": 0.6
+}
+- ResponseStatus: 200
+- ResponseBody: {
+  "eta": 14,
+  "model_version": "eta-v1"
+}
+- DurationMs: 252
+Request #26
+- Method: POST
+- Path: /ai/eta
+- Headers: {
+  "Accept": "application/json",
+  "Content-Type": "application/json"
+}
+- Body: {
+  "distance_km": 5,
+  "traffic_level": 0.6
+}
+- ResponseStatus: 200
+- ResponseBody: {
+  "eta": 14,
+  "model_version": "eta-v1"
+}
+- DurationMs: 260
+Request #27
+- Method: POST
+- Path: /ai/eta
+- Headers: {
+  "Accept": "application/json",
+  "Content-Type": "application/json"
+}
+- Body: {
+  "distance_km": 5,
+  "traffic_level": 0.6
+}
+- ResponseStatus: 200
+- ResponseBody: {
+  "eta": 14,
+  "model_version": "eta-v1"
+}
+- DurationMs: 260
+Request #28
+- Method: POST
+- Path: /ai/eta
+- Headers: {
+  "Accept": "application/json",
+  "Content-Type": "application/json"
+}
+- Body: {
+  "distance_km": 5,
+  "traffic_level": 0.6
+}
+- ResponseStatus: 200
+- ResponseBody: {
+  "eta": 14,
+  "model_version": "eta-v1"
+}
+- DurationMs: 279
+Request #29
+- Method: POST
+- Path: /ai/eta
+- Headers: {
+  "Accept": "application/json",
+  "Content-Type": "application/json"
+}
+- Body: {
+  "distance_km": 5,
+  "traffic_level": 0.6
+}
+- ResponseStatus: 200
+- ResponseBody: {
+  "eta": 14,
+  "model_version": "eta-v1"
+}
+- DurationMs: 280
+Request #30
+- Method: POST
+- Path: /ai/eta
+- Headers: {
+  "Accept": "application/json",
+  "Content-Type": "application/json"
+}
+- Body: {
+  "distance_km": 5,
+  "traffic_level": 0.6
+}
+- ResponseStatus: 200
+- ResponseBody: {
+  "eta": 14,
+  "model_version": "eta-v1"
+}
+- DurationMs: 284
+Request #31
+- Method: POST
+- Path: /ai/eta
+- Headers: {
+  "Accept": "application/json",
+  "Content-Type": "application/json"
+}
+- Body: {
+  "distance_km": 5,
+  "traffic_level": 0.6
+}
+- ResponseStatus: 200
+- ResponseBody: {
+  "eta": 14,
+  "model_version": "eta-v1"
+}
+- DurationMs: 285
+Request #32
+- Method: POST
+- Path: /ai/eta
+- Headers: {
+  "Accept": "application/json",
+  "Content-Type": "application/json"
+}
+- Body: {
+  "distance_km": 5,
+  "traffic_level": 0.6
+}
+- ResponseStatus: 200
+- ResponseBody: {
+  "eta": 14,
+  "model_version": "eta-v1"
+}
+- DurationMs: 296
+Request #33
+- Method: POST
+- Path: /ai/eta
+- Headers: {
+  "Accept": "application/json",
+  "Content-Type": "application/json"
+}
+- Body: {
+  "distance_km": 5,
+  "traffic_level": 0.6
+}
+- ResponseStatus: 200
+- ResponseBody: {
+  "eta": 14,
+  "model_version": "eta-v1"
+}
+- DurationMs: 296
+Request #34
+- Method: POST
+- Path: /ai/eta
+- Headers: {
+  "Accept": "application/json",
+  "Content-Type": "application/json"
+}
+- Body: {
+  "distance_km": 5,
+  "traffic_level": 0.6
+}
+- ResponseStatus: 200
+- ResponseBody: {
+  "eta": 14,
+  "model_version": "eta-v1"
+}
+- DurationMs: 300
+Request #35
+- Method: POST
+- Path: /ai/eta
+- Headers: {
+  "Accept": "application/json",
+  "Content-Type": "application/json"
+}
+- Body: {
+  "distance_km": 5,
+  "traffic_level": 0.6
+}
+- ResponseStatus: 200
+- ResponseBody: {
+  "eta": 14,
+  "model_version": "eta-v1"
+}
+- DurationMs: 302
+Request #36
+- Method: POST
+- Path: /ai/eta
+- Headers: {
+  "Accept": "application/json",
+  "Content-Type": "application/json"
+}
+- Body: {
+  "distance_km": 5,
+  "traffic_level": 0.6
+}
+- ResponseStatus: 200
+- ResponseBody: {
+  "eta": 14,
+  "model_version": "eta-v1"
+}
+- DurationMs: 306
+Request #37
+- Method: POST
+- Path: /ai/eta
+- Headers: {
+  "Accept": "application/json",
+  "Content-Type": "application/json"
+}
+- Body: {
+  "distance_km": 5,
+  "traffic_level": 0.6
+}
+- ResponseStatus: 200
+- ResponseBody: {
+  "eta": 14,
+  "model_version": "eta-v1"
+}
+- DurationMs: 309
+Request #38
+- Method: POST
+- Path: /ai/eta
+- Headers: {
+  "Accept": "application/json",
+  "Content-Type": "application/json"
+}
+- Body: {
+  "distance_km": 5,
+  "traffic_level": 0.6
+}
+- ResponseStatus: 200
+- ResponseBody: {
+  "eta": 14,
+  "model_version": "eta-v1"
+}
+- DurationMs: 311
+Request #39
+- Method: POST
+- Path: /ai/eta
+- Headers: {
+  "Accept": "application/json",
+  "Content-Type": "application/json"
+}
+- Body: {
+  "distance_km": 5,
+  "traffic_level": 0.6
+}
+- ResponseStatus: 200
+- ResponseBody: {
+  "eta": 14,
+  "model_version": "eta-v1"
+}
+- DurationMs: 314
+Request #40
+- Method: POST
+- Path: /ai/eta
+- Headers: {
+  "Accept": "application/json",
+  "Content-Type": "application/json"
+}
+- Body: {
+  "distance_km": 5,
+  "traffic_level": 0.6
+}
+- ResponseStatus: 200
+- ResponseBody: {
+  "eta": 14,
+  "model_version": "eta-v1"
+}
+- DurationMs: 320
+Request #41
+- Method: POST
+- Path: /ai/eta
+- Headers: {
+  "Accept": "application/json",
+  "Content-Type": "application/json"
+}
+- Body: {
+  "distance_km": 5,
+  "traffic_level": 0.6
+}
+- ResponseStatus: 200
+- ResponseBody: {
+  "eta": 14,
+  "model_version": "eta-v1"
+}
+- DurationMs: 321
+Request #42
+- Method: POST
+- Path: /ai/eta
+- Headers: {
+  "Accept": "application/json",
+  "Content-Type": "application/json"
+}
+- Body: {
+  "distance_km": 5,
+  "traffic_level": 0.6
+}
+- ResponseStatus: 200
+- ResponseBody: {
+  "eta": 14,
+  "model_version": "eta-v1"
+}
+- DurationMs: 329
+Request #43
+- Method: POST
+- Path: /ai/eta
+- Headers: {
+  "Accept": "application/json",
+  "Content-Type": "application/json"
+}
+- Body: {
+  "distance_km": 5,
+  "traffic_level": 0.6
+}
+- ResponseStatus: 200
+- ResponseBody: {
+  "eta": 14,
+  "model_version": "eta-v1"
+}
+- DurationMs: 335
+Request #44
+- Method: POST
+- Path: /ai/eta
+- Headers: {
+  "Accept": "application/json",
+  "Content-Type": "application/json"
+}
+- Body: {
+  "distance_km": 5,
+  "traffic_level": 0.6
+}
+- ResponseStatus: 200
+- ResponseBody: {
+  "eta": 14,
+  "model_version": "eta-v1"
+}
+- DurationMs: 336
+Request #45
+- Method: POST
+- Path: /ai/eta
+- Headers: {
+  "Accept": "application/json",
+  "Content-Type": "application/json"
+}
+- Body: {
+  "distance_km": 5,
+  "traffic_level": 0.6
+}
+- ResponseStatus: 200
+- ResponseBody: {
+  "eta": 14,
+  "model_version": "eta-v1"
+}
+- DurationMs: 337
+Request #46
+- Method: POST
+- Path: /ai/eta
+- Headers: {
+  "Accept": "application/json",
+  "Content-Type": "application/json"
+}
+- Body: {
+  "distance_km": 5,
+  "traffic_level": 0.6
+}
+- ResponseStatus: 200
+- ResponseBody: {
+  "eta": 14,
+  "model_version": "eta-v1"
+}
+- DurationMs: 337
+Request #47
+- Method: POST
+- Path: /ai/eta
+- Headers: {
+  "Accept": "application/json",
+  "Content-Type": "application/json"
+}
+- Body: {
+  "distance_km": 5,
+  "traffic_level": 0.6
+}
+- ResponseStatus: 200
+- ResponseBody: {
+  "eta": 14,
+  "model_version": "eta-v1"
+}
+- DurationMs: 343
+Request #48
+- Method: POST
+- Path: /ai/eta
+- Headers: {
+  "Accept": "application/json",
+  "Content-Type": "application/json"
+}
+- Body: {
+  "distance_km": 5,
+  "traffic_level": 0.6
+}
+- ResponseStatus: 200
+- ResponseBody: {
+  "eta": 14,
+  "model_version": "eta-v1"
+}
+- DurationMs: 343
+Request #49
+- Method: POST
+- Path: /ai/eta
+- Headers: {
+  "Accept": "application/json",
+  "Content-Type": "application/json"
+}
+- Body: {
+  "distance_km": 5,
+  "traffic_level": 0.6
+}
+- ResponseStatus: 200
+- ResponseBody: {
+  "eta": 14,
+  "model_version": "eta-v1"
+}
+- DurationMs: 344
+Request #50
+- Method: POST
+- Path: /ai/eta
+- Headers: {
+  "Accept": "application/json",
+  "Content-Type": "application/json"
+}
+- Body: {
+  "distance_km": 5,
+  "traffic_level": 0.6
+}
+- ResponseStatus: 200
+- ResponseBody: {
+  "eta": 14,
+  "model_version": "eta-v1"
+}
+- DurationMs: 347
+Request #51
+- Method: POST
+- Path: /ai/eta
+- Headers: {
+  "Accept": "application/json",
+  "Content-Type": "application/json"
+}
+- Body: {
+  "distance_km": 5,
+  "traffic_level": 0.6
+}
+- ResponseStatus: 200
+- ResponseBody: {
+  "eta": 14,
+  "model_version": "eta-v1"
+}
+- DurationMs: 347
+Request #52
+- Method: POST
+- Path: /ai/eta
+- Headers: {
+  "Accept": "application/json",
+  "Content-Type": "application/json"
+}
+- Body: {
+  "distance_km": 5,
+  "traffic_level": 0.6
+}
+- ResponseStatus: 200
+- ResponseBody: {
+  "eta": 14,
+  "model_version": "eta-v1"
+}
+- DurationMs: 349
+Request #53
+- Method: POST
+- Path: /ai/eta
+- Headers: {
+  "Accept": "application/json",
+  "Content-Type": "application/json"
+}
+- Body: {
+  "distance_km": 5,
+  "traffic_level": 0.6
+}
+- ResponseStatus: 200
+- ResponseBody: {
+  "eta": 14,
+  "model_version": "eta-v1"
+}
+- DurationMs: 364
+Request #54
+- Method: POST
+- Path: /ai/eta
+- Headers: {
+  "Accept": "application/json",
+  "Content-Type": "application/json"
+}
+- Body: {
+  "distance_km": 5,
+  "traffic_level": 0.6
+}
+- ResponseStatus: 200
+- ResponseBody: {
+  "eta": 14,
+  "model_version": "eta-v1"
+}
+- DurationMs: 365
+Request #55
+- Method: POST
+- Path: /ai/eta
+- Headers: {
+  "Accept": "application/json",
+  "Content-Type": "application/json"
+}
+- Body: {
+  "distance_km": 5,
+  "traffic_level": 0.6
+}
+- ResponseStatus: 200
+- ResponseBody: {
+  "eta": 14,
+  "model_version": "eta-v1"
+}
+- DurationMs: 366
+Request #56
+- Method: POST
+- Path: /ai/eta
+- Headers: {
+  "Accept": "application/json",
+  "Content-Type": "application/json"
+}
+- Body: {
+  "distance_km": 5,
+  "traffic_level": 0.6
+}
+- ResponseStatus: 200
+- ResponseBody: {
+  "eta": 14,
+  "model_version": "eta-v1"
+}
+- DurationMs: 366
+Request #57
+- Method: POST
+- Path: /ai/eta
+- Headers: {
+  "Accept": "application/json",
+  "Content-Type": "application/json"
+}
+- Body: {
+  "distance_km": 5,
+  "traffic_level": 0.6
+}
+- ResponseStatus: 200
+- ResponseBody: {
+  "eta": 14,
+  "model_version": "eta-v1"
+}
+- DurationMs: 367
+Request #58
+- Method: POST
+- Path: /ai/eta
+- Headers: {
+  "Accept": "application/json",
+  "Content-Type": "application/json"
+}
+- Body: {
+  "distance_km": 5,
+  "traffic_level": 0.6
+}
+- ResponseStatus: 200
+- ResponseBody: {
+  "eta": 14,
+  "model_version": "eta-v1"
+}
+- DurationMs: 367
+Request #59
+- Method: POST
+- Path: /ai/eta
+- Headers: {
+  "Accept": "application/json",
+  "Content-Type": "application/json"
+}
+- Body: {
+  "distance_km": 5,
+  "traffic_level": 0.6
+}
+- ResponseStatus: 200
+- ResponseBody: {
+  "eta": 14,
+  "model_version": "eta-v1"
+}
+- DurationMs: 367
+Request #60
+- Method: POST
+- Path: /ai/eta
+- Headers: {
+  "Accept": "application/json",
+  "Content-Type": "application/json"
+}
+- Body: {
+  "distance_km": 5,
+  "traffic_level": 0.6
+}
+- ResponseStatus: 200
+- ResponseBody: {
+  "eta": 14,
+  "model_version": "eta-v1"
+}
+- DurationMs: 368
+Request #61
+- Method: POST
+- Path: /ai/eta
+- Headers: {
+  "Accept": "application/json",
+  "Content-Type": "application/json"
+}
+- Body: {
+  "distance_km": 5,
+  "traffic_level": 0.6
+}
+- ResponseStatus: 200
+- ResponseBody: {
+  "eta": 14,
+  "model_version": "eta-v1"
+}
+- DurationMs: 369
+Request #62
+- Method: POST
+- Path: /ai/eta
+- Headers: {
+  "Accept": "application/json",
+  "Content-Type": "application/json"
+}
+- Body: {
+  "distance_km": 5,
+  "traffic_level": 0.6
+}
+- ResponseStatus: 200
+- ResponseBody: {
+  "eta": 14,
+  "model_version": "eta-v1"
+}
+- DurationMs: 369
+Request #63
+- Method: POST
+- Path: /ai/eta
+- Headers: {
+  "Accept": "application/json",
+  "Content-Type": "application/json"
+}
+- Body: {
+  "distance_km": 5,
+  "traffic_level": 0.6
+}
+- ResponseStatus: 200
+- ResponseBody: {
+  "eta": 14,
+  "model_version": "eta-v1"
+}
+- DurationMs: 372
+Request #64
+- Method: POST
+- Path: /ai/eta
+- Headers: {
+  "Accept": "application/json",
+  "Content-Type": "application/json"
+}
+- Body: {
+  "distance_km": 5,
+  "traffic_level": 0.6
+}
+- ResponseStatus: 200
+- ResponseBody: {
+  "eta": 14,
+  "model_version": "eta-v1"
+}
+- DurationMs: 374
+Request #65
+- Method: POST
+- Path: /ai/eta
+- Headers: {
+  "Accept": "application/json",
+  "Content-Type": "application/json"
+}
+- Body: {
+  "distance_km": 5,
+  "traffic_level": 0.6
+}
+- ResponseStatus: 200
+- ResponseBody: {
+  "eta": 14,
+  "model_version": "eta-v1"
+}
+- DurationMs: 375
+Request #66
+- Method: POST
+- Path: /ai/eta
+- Headers: {
+  "Accept": "application/json",
+  "Content-Type": "application/json"
+}
+- Body: {
+  "distance_km": 5,
+  "traffic_level": 0.6
+}
+- ResponseStatus: 200
+- ResponseBody: {
+  "eta": 14,
+  "model_version": "eta-v1"
+}
+- DurationMs: 378
+Request #67
+- Method: POST
+- Path: /ai/eta
+- Headers: {
+  "Accept": "application/json",
+  "Content-Type": "application/json"
+}
+- Body: {
+  "distance_km": 5,
+  "traffic_level": 0.6
+}
+- ResponseStatus: 200
+- ResponseBody: {
+  "eta": 14,
+  "model_version": "eta-v1"
+}
+- DurationMs: 380
+Request #68
+- Method: POST
+- Path: /ai/eta
+- Headers: {
+  "Accept": "application/json",
+  "Content-Type": "application/json"
+}
+- Body: {
+  "distance_km": 5,
+  "traffic_level": 0.6
+}
+- ResponseStatus: 200
+- ResponseBody: {
+  "eta": 14,
+  "model_version": "eta-v1"
+}
+- DurationMs: 382
+Request #69
+- Method: POST
+- Path: /ai/eta
+- Headers: {
+  "Accept": "application/json",
+  "Content-Type": "application/json"
+}
+- Body: {
+  "distance_km": 5,
+  "traffic_level": 0.6
+}
+- ResponseStatus: 200
+- ResponseBody: {
+  "eta": 14,
+  "model_version": "eta-v1"
+}
+- DurationMs: 382
+Request #70
+- Method: POST
+- Path: /ai/eta
+- Headers: {
+  "Accept": "application/json",
+  "Content-Type": "application/json"
+}
+- Body: {
+  "distance_km": 5,
+  "traffic_level": 0.6
+}
+- ResponseStatus: 200
+- ResponseBody: {
+  "eta": 14,
+  "model_version": "eta-v1"
+}
+- DurationMs: 385
+Request #71
+- Method: POST
+- Path: /ai/eta
+- Headers: {
+  "Accept": "application/json",
+  "Content-Type": "application/json"
+}
+- Body: {
+  "distance_km": 5,
+  "traffic_level": 0.6
+}
+- ResponseStatus: 200
+- ResponseBody: {
+  "eta": 14,
+  "model_version": "eta-v1"
+}
+- DurationMs: 386
+Request #72
+- Method: POST
+- Path: /ai/eta
+- Headers: {
+  "Accept": "application/json",
+  "Content-Type": "application/json"
+}
+- Body: {
+  "distance_km": 5,
+  "traffic_level": 0.6
+}
+- ResponseStatus: 200
+- ResponseBody: {
+  "eta": 14,
+  "model_version": "eta-v1"
+}
+- DurationMs: 388
+Request #73
+- Method: POST
+- Path: /ai/eta
+- Headers: {
+  "Accept": "application/json",
+  "Content-Type": "application/json"
+}
+- Body: {
+  "distance_km": 5,
+  "traffic_level": 0.6
+}
+- ResponseStatus: 200
+- ResponseBody: {
+  "eta": 14,
+  "model_version": "eta-v1"
+}
+- DurationMs: 390
+Request #74
+- Method: POST
+- Path: /ai/eta
+- Headers: {
+  "Accept": "application/json",
+  "Content-Type": "application/json"
+}
+- Body: {
+  "distance_km": 5,
+  "traffic_level": 0.6
+}
+- ResponseStatus: 200
+- ResponseBody: {
+  "eta": 14,
+  "model_version": "eta-v1"
+}
+- DurationMs: 393
+Request #75
+- Method: POST
+- Path: /ai/eta
+- Headers: {
+  "Accept": "application/json",
+  "Content-Type": "application/json"
+}
+- Body: {
+  "distance_km": 5,
+  "traffic_level": 0.6
+}
+- ResponseStatus: 200
+- ResponseBody: {
+  "eta": 14,
+  "model_version": "eta-v1"
+}
+- DurationMs: 393
+Request #76
+- Method: POST
+- Path: /ai/eta
+- Headers: {
+  "Accept": "application/json",
+  "Content-Type": "application/json"
+}
+- Body: {
+  "distance_km": 5,
+  "traffic_level": 0.6
+}
+- ResponseStatus: 200
+- ResponseBody: {
+  "eta": 14,
+  "model_version": "eta-v1"
+}
+- DurationMs: 393
+Request #77
+- Method: POST
+- Path: /ai/eta
+- Headers: {
+  "Accept": "application/json",
+  "Content-Type": "application/json"
+}
+- Body: {
+  "distance_km": 5,
+  "traffic_level": 0.6
+}
+- ResponseStatus: 200
+- ResponseBody: {
+  "eta": 14,
+  "model_version": "eta-v1"
+}
+- DurationMs: 395
+Request #78
+- Method: POST
+- Path: /ai/eta
+- Headers: {
+  "Accept": "application/json",
+  "Content-Type": "application/json"
+}
+- Body: {
+  "distance_km": 5,
+  "traffic_level": 0.6
+}
+- ResponseStatus: 200
+- ResponseBody: {
+  "eta": 14,
+  "model_version": "eta-v1"
+}
+- DurationMs: 396
+Request #79
+- Method: POST
+- Path: /ai/eta
+- Headers: {
+  "Accept": "application/json",
+  "Content-Type": "application/json"
+}
+- Body: {
+  "distance_km": 5,
+  "traffic_level": 0.6
+}
+- ResponseStatus: 200
+- ResponseBody: {
+  "eta": 14,
+  "model_version": "eta-v1"
+}
+- DurationMs: 397
+Request #80
+- Method: POST
+- Path: /ai/eta
+- Headers: {
+  "Accept": "application/json",
+  "Content-Type": "application/json"
+}
+- Body: {
+  "distance_km": 5,
+  "traffic_level": 0.6
+}
+- ResponseStatus: 200
+- ResponseBody: {
+  "eta": 14,
+  "model_version": "eta-v1"
+}
+- DurationMs: 398
+----------------------------------------------------------------------------------------------------
+TC072 | Level 8 | BLOCKED
+Title: Pricing timeout -> retry/fallback
+Reason: no chaos injection available to validate retry path
+Elapsed(ms): 839
+Notes:
+- Cannot directly induce pricing timeout from public API. Need chaos (kill pricing service / inject delay).
+Request #1
+- Method: POST
+- Path: /booking
+- Headers: {
+  "Accept": "application/json",
+  "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI0ODk2ZDc0Ni1kMDkzLTQ4ODMtOWQ4MC03M2YzOWE2NTRlMTYiLCJ1c2VySWQiOiI0ODk2ZDc0Ni1kMDkzLTQ4ODMtOWQ4MC03M2YzOWE2NTRlMTYiLCJyb2xlIjoiQ1VTVE9NRVIiLCJqdGkiOiIzNDkzMDMwZS0zOTc0LTRlMzQtYTQwMC00NWU1YmY5ZjkxMWEiLCJpYXQiOjE3NzY3ODEyNTEsImV4cCI6MTc3Njc4NDg1MX0.BLJ5YKzWgaQBs8WMA6b2_4x8HOzR8doR6Mj1cUW84Do",
+  "Idempotency-Key": "pricing-probe-1776781393328",
+  "Content-Type": "application/json"
+}
+- Body: {
+  "pickup": {
+    "lat": 10.761,
+    "lng": 106.661
+  },
+  "dropoff": {
+    "lat": 10.772,
+    "lng": 106.672
+  },
+  "distanceKm": 5,
+  "durationMin": 10,
+  "vehicleType": "CAR"
+}
+- ResponseStatus: 201
+- ResponseBody: {
+  "booking_id": "69e7885d118742f07bf5b840",
+  "status": "REQUESTED",
+  "eta_min": 13,
+  "price": 90000,
+  "surge_multiplier": 1
+}
+- DurationMs: 839
+----------------------------------------------------------------------------------------------------
+TC075 | Level 8 | BLOCKED
+Title: Circuit breaker open
+Reason: internal breaker state not externally observable in current API
+Elapsed(ms): 46
+Notes:
+- Circuit breaker state is internal; cannot assert OPEN without forcing repeated downstream failures and observing internal metrics/logs.
+Request #1
+- Method: POST
+- Path: /booking
+- Headers: {
+  "Accept": "application/json",
+  "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI0ODk2ZDc0Ni1kMDkzLTQ4ODMtOWQ4MC03M2YzOWE2NTRlMTYiLCJ1c2VySWQiOiI0ODk2ZDc0Ni1kMDkzLTQ4ODMtOWQ4MC03M2YzOWE2NTRlMTYiLCJyb2xlIjoiQ1VTVE9NRVIiLCJqdGkiOiIzNDkzMDMwZS0zOTc0LTRlMzQtYTQwMC00NWU1YmY5ZjkxMWEiLCJpYXQiOjE3NzY3ODEyNTEsImV4cCI6MTc3Njc4NDg1MX0.BLJ5YKzWgaQBs8WMA6b2_4x8HOzR8doR6Mj1cUW84Do",
+  "Idempotency-Key": "cb-probe-1776781394167",
+  "Content-Type": "application/json"
+}
+- Body: {
+  "pickup": {
+    "lat": 10.7612,
+    "lng": 106.6612
+  },
+  "dropoff": {
+    "lat": 10.7722,
+    "lng": 106.6722
+  },
+  "distanceKm": 5,
+  "durationMin": 10,
+  "vehicleType": "CAR"
+}
+- ResponseStatus: 201
+- ResponseBody: {
+  "booking_id": "69e7885d118742f07bf5b843",
+  "status": "REQUESTED",
+  "eta_min": 13,
+  "price": 90000,
+  "surge_multiplier": 1
+}
+- DurationMs: 46
+----------------------------------------------------------------------------------------------------

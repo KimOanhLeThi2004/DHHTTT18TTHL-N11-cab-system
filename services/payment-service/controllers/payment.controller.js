@@ -2,6 +2,12 @@ const axios = require("../http-client");
 const jwt = require("jsonwebtoken");
 const { Payment } = require("../models/payment.model");
 const { publishPaymentSuccess } = require("../kafka/producer");
+const {
+  normalizeCardNumber,
+  getCardLast4,
+  maskCardLast4,
+  encryptCardNumber,
+} = require("../security/cardCrypto");
 
 const ALLOWED_PAYMENT_METHODS = ["CASH", "WALLET", "CARD"];
 const BOOKING_SERVICE_URL = process.env.BOOKING_SERVICE_URL || "http://booking-service:3004";
@@ -65,6 +71,19 @@ async function getRideByBookingId(bookingId) {
   }
 }
 
+function sanitizePayment(payment) {
+  if (!payment) return payment;
+  const raw = typeof payment.toJSON === "function" ? payment.toJSON() : { ...payment };
+  delete raw.cardNumberEncrypted;
+
+  if (raw.cardLast4) {
+    raw.card_last4 = raw.cardLast4;
+    raw.card_masked = maskCardLast4(raw.cardLast4);
+  }
+
+  return raw;
+}
+
 async function pay(req, res) {
   let bookingIdForCompensation = null;
   try {
@@ -73,6 +92,8 @@ async function pay(req, res) {
       method,
       payment_method,
       amount: inputAmount,
+      card_number,
+      cardNumber,
     } = req.body;
 
     if (!bookingId) {
@@ -84,13 +105,26 @@ async function pay(req, res) {
       where: { bookingId, status: "SUCCESS" },
     });
     if (existing) {
-      return res.json(existing);
+      return res.json(sanitizePayment(existing));
     }
 
     const finalMethod = (method || payment_method || "").toUpperCase();
     if (!ALLOWED_PAYMENT_METHODS.includes(finalMethod)) {
       await compensateCancelBooking(bookingId, req.headers.authorization);
       return res.status(400).json({ message: "Invalid payment method" });
+    }
+
+    let cardNumberEncrypted = null;
+    let cardLast4 = null;
+    if (finalMethod === "CARD") {
+      const normalizedCard = normalizeCardNumber(cardNumber || card_number);
+      if (!normalizedCard) {
+        await compensateCancelBooking(bookingId, req.headers.authorization);
+        return res.status(400).json({ message: "Missing or invalid card number" });
+      }
+
+      cardLast4 = getCardLast4(normalizedCard);
+      cardNumberEncrypted = encryptCardNumber(normalizedCard);
     }
 
     if (inputAmount !== undefined && inputAmount !== null) {
@@ -117,7 +151,7 @@ async function pay(req, res) {
         where: { bookingId, idempotencyKey },
       });
       if (existedByIdem) {
-        return res.json(existedByIdem);
+        return res.json(sanitizePayment(existedByIdem));
       }
     }
 
@@ -131,13 +165,15 @@ async function pay(req, res) {
         method: finalMethod,
         status: "SUCCESS",
         idempotencyKey,
+        cardNumberEncrypted,
+        cardLast4,
       });
     } catch (createErr) {
       // Handle race condition safely (duplicate create due retries/concurrency).
       if (createErr?.name === "SequelizeUniqueConstraintError") {
         const existedAfterRace = await Payment.findOne({ where: { bookingId } });
         if (existedAfterRace) {
-          return res.json(existedAfterRace);
+          return res.json(sanitizePayment(existedAfterRace));
         }
       }
       throw createErr;
@@ -150,7 +186,7 @@ async function pay(req, res) {
       console.warn("publishPaymentSuccess failed:", publishErr.message);
     }
 
-    return res.json(payment);
+    return res.json(sanitizePayment(payment));
   } catch (err) {
     console.error("PAYMENT ERROR:", err.message);
     await compensateCancelBooking(bookingIdForCompensation, req.headers.authorization);

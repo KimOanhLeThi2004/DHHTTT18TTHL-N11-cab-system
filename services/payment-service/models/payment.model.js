@@ -41,6 +41,16 @@ const Payment = sequelize.define("Payment", {
   idempotencyKey: {
     type: DataTypes.STRING,
     allowNull: true
+  },
+
+  cardNumberEncrypted: {
+    type: DataTypes.TEXT,
+    allowNull: true
+  },
+
+  cardLast4: {
+    type: DataTypes.STRING(4),
+    allowNull: true
   }
 }, {
   indexes: [

@@ -24,6 +24,11 @@ const OLLAMA_ERROR_LOG_COOLDOWN_MS = Math.max(
   1000,
   Number(process.env.OLLAMA_ERROR_LOG_COOLDOWN_MS || 10000)
 );
+const AGENT_ETA_RETRIES = Math.max(0, Number(process.env.AGENT_ETA_RETRIES || 2));
+const AGENT_ETA_RETRY_BACKOFF_MS = Math.max(
+  10,
+  Number(process.env.AGENT_ETA_RETRY_BACKOFF_MS || 120)
+);
 const MATCH_AUDIT_TOPIC = process.env.MATCH_AUDIT_TOPIC || "ai.matching.audit";
 const KAFKA_BOOTSTRAP_RETRY_MS = Math.max(
   1000,
@@ -93,22 +98,390 @@ function forecastPayload(input) {
   };
 }
 
+function toFiniteNumber(value) {
+  const num = Number(value);
+  return Number.isFinite(num) ? num : null;
+}
+
+function clampMin(value, floor = 0) {
+  const num = toFiniteNumber(value);
+  if (num === null) return floor;
+  return Math.max(floor, num);
+}
+
+function normalizeDistance(driver = {}) {
+  const distance = toFiniteNumber(driver.distanceKm ?? driver.distance ?? driver.distance_km);
+  return distance !== null ? Math.max(0, distance) : null;
+}
+
+function normalizeEta(driver = {}) {
+  const eta = toFiniteNumber(driver.eta ?? driver.etaMin ?? driver.eta_min);
+  return eta !== null ? Math.max(0, eta) : null;
+}
+
+function normalizePrice(driver = {}) {
+  const price = toFiniteNumber(driver.price ?? driver.estimatedPrice ?? driver.estimated_price);
+  return price !== null ? Math.max(0, price) : null;
+}
+
+function normalizeRating(driver = {}) {
+  const rating = toFiniteNumber(driver.rating);
+  return rating !== null ? Math.max(0, rating) : 0;
+}
+
+function normalizeDriverIdValue(driver = {}) {
+  return normalizeDriverId(driver.id ?? driver.driverId ?? driver.driver_id);
+}
+
+function isDriverOnline(driver = {}) {
+  if (typeof driver.online === "boolean") return driver.online;
+  if (typeof driver.isOnline === "boolean") return driver.isOnline;
+  if (typeof driver.available === "boolean") return driver.available;
+  const status = String(driver.status || "ONLINE").toUpperCase();
+  return !["OFFLINE", "INACTIVE", "DISCONNECTED", "BUSY"].includes(status);
+}
+
+function normalizeDriverForRanking(driver = {}) {
+  const normalizedId = normalizeDriverIdValue(driver);
+  return {
+    ...driver,
+    id: normalizedId || String(driver.id ?? driver.driverId ?? driver.driver_id ?? ""),
+    distanceKm: normalizeDistance(driver),
+    eta: normalizeEta(driver),
+    price: normalizePrice(driver),
+    rating: normalizeRating(driver),
+  };
+}
+
+function normalizeScore(value, minValue, maxValue, preferLower = false) {
+  if (!Number.isFinite(value)) return 0;
+  if (!Number.isFinite(minValue) || !Number.isFinite(maxValue) || maxValue <= minValue) {
+    return 1;
+  }
+  const ratio = (value - minValue) / (maxValue - minValue);
+  return preferLower ? 1 - ratio : ratio;
+}
+
+function estimatePriceForDriver({
+  distanceKm,
+  durationMin,
+  vehicleType,
+  demandIndex,
+  supplyIndex,
+  trafficLevel,
+}) {
+  const fareTable = {
+    CAR: { baseFare: 12000, perKm: 8000, perMin: 700 },
+    BIKE: { baseFare: 8000, perKm: 5000, perMin: 400 },
+    SUV: { baseFare: 18000, perKm: 10000, perMin: 900 },
+  };
+
+  const type = String(vehicleType || "CAR").toUpperCase();
+  const fare = fareTable[type] || fareTable.CAR;
+  const safeDistance = clampMin(distanceKm, 0);
+  const safeDuration =
+    toFiniteNumber(durationMin) !== null
+      ? clampMin(durationMin, 0)
+      : calcEta(safeDistance, clampMin(trafficLevel, 0));
+  const demand = clampMin(demandIndex, 0);
+  const supply = Math.max(1, clampMin(supplyIndex, 0));
+  const demandSurge = demand === 0 ? 1 : demand / supply;
+  const surge = Math.max(1, demandSurge);
+
+  return Math.max(
+    fare.baseFare,
+    Math.round((fare.baseFare + safeDistance * fare.perKm + safeDuration * fare.perMin) * surge)
+  );
+}
+
+function parseToolFailureConfig(input = {}) {
+  const etaFailures = toFiniteNumber(input?.eta);
+  const pricingFailures = toFiniteNumber(input?.pricing);
+  return {
+    eta: Math.max(0, etaFailures ?? 0),
+    pricing: Math.max(0, pricingFailures ?? 0),
+  };
+}
+
+function createNoDriverResponse(strategy, traceId, reason = "no_driver", extra = {}) {
+  return {
+    mode: "fallback",
+    selected_driver: null,
+    reason,
+    decision_log: {
+      strategy,
+      selection_reason: reason,
+      trace_id: traceId,
+      timestamp: new Date().toISOString(),
+      ...extra,
+    },
+  };
+}
+
+async function runEtaTool({
+  driver,
+  trafficLevel,
+  toolFailures,
+  toolCalls,
+  traceId,
+}) {
+  const distanceKm = normalizeDistance(driver);
+  if (distanceKm === null) {
+    return {
+      eta: null,
+      ok: false,
+      reason: "missing_distance",
+    };
+  }
+
+  let lastError = null;
+  const maxAttempts = AGENT_ETA_RETRIES + 1;
+  for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+    const startedAt = Date.now();
+    try {
+      if (toolFailures.eta > 0) {
+        toolFailures.eta -= 1;
+        throw new Error("simulated_eta_failure");
+      }
+
+      const eta = calcEta(distanceKm, trafficLevel);
+      toolCalls.push({
+        tool: "eta",
+        service: "eta-service",
+        attempt,
+        status: "ok",
+        latency_ms: Date.now() - startedAt,
+        trace_id: traceId,
+      });
+      return { eta, ok: true, reason: "eta_service" };
+    } catch (err) {
+      lastError = err;
+      toolCalls.push({
+        tool: "eta",
+        service: "eta-service",
+        attempt,
+        status: "error",
+        message: err?.message || "eta_tool_error",
+        latency_ms: Date.now() - startedAt,
+        trace_id: traceId,
+      });
+      if (attempt < maxAttempts) {
+        await sleep(AGENT_ETA_RETRY_BACKOFF_MS * attempt);
+      }
+    }
+  }
+
+  return {
+    eta: calcEta(distanceKm, trafficLevel),
+    ok: false,
+    reason: lastError?.message || "eta_tool_failed",
+  };
+}
+
+async function runPricingTool({
+  driver,
+  vehicleType,
+  demandIndex,
+  supplyIndex,
+  trafficLevel,
+  toolFailures,
+  toolCalls,
+  traceId,
+}) {
+  const startedAt = Date.now();
+  const distanceKm = normalizeDistance(driver);
+  if (distanceKm === null) {
+    return { price: null, ok: false, reason: "missing_distance" };
+  }
+
+  try {
+    if (toolFailures.pricing > 0) {
+      toolFailures.pricing -= 1;
+      throw new Error("simulated_pricing_failure");
+    }
+
+    const price = estimatePriceForDriver({
+      distanceKm,
+      durationMin: driver.durationMin ?? driver.duration_min,
+      vehicleType: driver.vehicleType || vehicleType,
+      demandIndex,
+      supplyIndex,
+      trafficLevel,
+    });
+
+    toolCalls.push({
+      tool: "pricing",
+      service: "pricing-service",
+      attempt: 1,
+      status: "ok",
+      latency_ms: Date.now() - startedAt,
+      trace_id: traceId,
+    });
+    return { price, ok: true, reason: "pricing_service" };
+  } catch (err) {
+    toolCalls.push({
+      tool: "pricing",
+      service: "pricing-service",
+      attempt: 1,
+      status: "error",
+      message: err?.message || "pricing_tool_error",
+      latency_ms: Date.now() - startedAt,
+      trace_id: traceId,
+    });
+
+    const fallbackPrice = estimatePriceForDriver({
+      distanceKm,
+      durationMin: driver.durationMin ?? driver.duration_min,
+      vehicleType: driver.vehicleType || vehicleType,
+      demandIndex,
+      supplyIndex,
+      trafficLevel,
+    });
+    return { price: fallbackPrice, ok: false, reason: err?.message || "pricing_tool_failed" };
+  }
+}
+
+async function enrichDriversForSelection({
+  drivers = [],
+  strategy = "balanced",
+  context = {},
+  traceId,
+  toolFailures = {},
+  toolCalls = [],
+}) {
+  const onlineDrivers = drivers
+    .filter((driver) => isDriverOnline(driver))
+    .map((driver) => ({ ...driver }));
+
+  const needEta = strategy === "balanced";
+  const needPricing = strategy === "balanced";
+  const trafficLevel = clampMin(context.trafficLevel ?? 0.5, 0);
+  const demandIndex = clampMin(context.demandIndex ?? 1, 0);
+  const supplyIndex = Math.max(1, clampMin(context.supplyIndex ?? 1, 0));
+  const vehicleType = context.vehicleType || "CAR";
+
+  const warnings = [];
+  for (const driver of onlineDrivers) {
+    if (needEta && normalizeEta(driver) === null) {
+      const etaResult = await runEtaTool({
+        driver,
+        trafficLevel,
+        toolFailures,
+        toolCalls,
+        traceId,
+      });
+      if (etaResult.eta !== null) {
+        driver.eta = etaResult.eta;
+      }
+      if (!etaResult.ok) {
+        warnings.push({
+          driver_id: normalizeDriverIdValue(driver),
+          tool: "eta",
+          reason: etaResult.reason,
+        });
+      }
+    }
+
+    if (needPricing && normalizePrice(driver) === null) {
+      const pricingResult = await runPricingTool({
+        driver,
+        vehicleType,
+        demandIndex,
+        supplyIndex,
+        trafficLevel,
+        toolFailures,
+        toolCalls,
+        traceId,
+      });
+      if (pricingResult.price !== null) {
+        driver.price = pricingResult.price;
+      }
+      if (!pricingResult.ok) {
+        warnings.push({
+          driver_id: normalizeDriverIdValue(driver),
+          tool: "pricing",
+          reason: pricingResult.reason,
+        });
+      }
+    }
+  }
+
+  return { drivers: onlineDrivers, warnings };
+}
+
 function rankDrivers(drivers = [], strategy = "balanced") {
-  const candidates = drivers.filter((d) => d.status !== "OFFLINE");
+  const candidates = drivers
+    .filter((driver) => isDriverOnline(driver))
+    .map((driver) => normalizeDriverForRanking(driver))
+    .filter((driver) => Boolean(driver.id));
   if (!candidates.length) return [];
+
   if (strategy === "nearest") {
     return [...candidates].sort(
-      (a, b) => (a.distanceKm || a.distance || 999) - (b.distanceKm || b.distance || 999)
+      (a, b) =>
+        (a.distanceKm ?? 999) - (b.distanceKm ?? 999) ||
+        (b.rating || 0) - (a.rating || 0) ||
+        String(a.id).localeCompare(String(b.id))
     );
   }
   if (strategy === "rating") {
-    return [...candidates].sort((a, b) => (b.rating || 0) - (a.rating || 0));
+    return [...candidates].sort(
+      (a, b) =>
+        (b.rating || 0) - (a.rating || 0) ||
+        (a.distanceKm ?? 999) - (b.distanceKm ?? 999) ||
+        String(a.id).localeCompare(String(b.id))
+    );
   }
-  return [...candidates].sort((a, b) => {
-    const aScore = (a.rating || 0) * 1.5 - (a.eta || 0) * 0.8 - (a.price || 0) * 0.2;
-    const bScore = (b.rating || 0) * 1.5 - (b.eta || 0) * 0.8 - (b.price || 0) * 0.2;
-    return bScore - aScore;
-  });
+
+  const enriched = candidates.map((driver) => ({
+    ...driver,
+    distanceKm: driver.distanceKm ?? 999,
+    eta:
+      driver.eta ??
+      (driver.distanceKm === null ? 999 : calcEta(driver.distanceKm ?? 0, 0.5)),
+    price:
+      driver.price ??
+      estimatePriceForDriver({
+        distanceKm: driver.distanceKm ?? 30,
+        durationMin: driver.durationMin ?? driver.duration_min,
+        vehicleType: driver.vehicleType || "CAR",
+        demandIndex: 1,
+        supplyIndex: 1,
+        trafficLevel: 0.5,
+      }),
+  }));
+
+  const ratings = enriched.map((driver) => driver.rating || 0);
+  const etas = enriched.map((driver) => driver.eta || 0);
+  const prices = enriched.map((driver) => driver.price || 0);
+  const distances = enriched.map((driver) => driver.distanceKm || 0);
+  const minRating = Math.min(...ratings);
+  const maxRating = Math.max(...ratings);
+  const minEta = Math.min(...etas);
+  const maxEta = Math.max(...etas);
+  const minPrice = Math.min(...prices);
+  const maxPrice = Math.max(...prices);
+  const minDistance = Math.min(...distances);
+  const maxDistance = Math.max(...distances);
+
+  return enriched
+    .map((driver) => {
+      const ratingNorm = normalizeScore(driver.rating || 0, minRating, maxRating, false);
+      const etaNorm = normalizeScore(driver.eta || 0, minEta, maxEta, true);
+      const priceNorm = normalizeScore(driver.price || 0, minPrice, maxPrice, true);
+      const distanceNorm = normalizeScore(driver.distanceKm || 0, minDistance, maxDistance, true);
+      const balancedScore =
+        ratingNorm * 0.55 + etaNorm * 0.15 + priceNorm * 0.25 + distanceNorm * 0.05;
+      return {
+        ...driver,
+        ranking_score: Number(balancedScore.toFixed(4)),
+      };
+    })
+    .sort(
+      (a, b) =>
+        (b.ranking_score || 0) - (a.ranking_score || 0) ||
+        String(a.id).localeCompare(String(b.id))
+    );
 }
 
 function chooseDriver(drivers = [], strategy = "balanced") {
@@ -130,7 +503,10 @@ function reorderDriversByPreferredId(drivers = [], preferredId) {
   return [preferred, ...drivers.filter((d) => String(d.id) !== target)];
 }
 
-async function selectDriverWithOllama(trip, scoredDrivers = []) {
+async function selectDriverWithOllama(trip, scoredDrivers = [], options = {}) {
+  if (options.forceFail) {
+    throw new Error("forced_ai_failure");
+  }
   if (!OLLAMA_ENABLED || !OLLAMA_MCP_ENABLED || !scoredDrivers.length) {
     return null;
   }
@@ -314,20 +690,35 @@ async function handleHttp(req, res) {
     ) {
       const body = await readJsonBody(req);
       const strategy = body.strategy || "balanced";
-      const rankedDrivers = rankDrivers(body.drivers || [], strategy);
+      const toolCalls = [];
+      const toolFailures = parseToolFailureConfig(body.tool_failures || body.toolFailures || {});
+      const forceAiFail = Boolean(body.force_ai_fail || body.forceAiFail || body.simulate_ai_fail);
+      const context = {
+        vehicleType: body.vehicleType ?? body.vehicle_type ?? "CAR",
+        demandIndex: body.demand_index ?? body.demandIndex ?? 1,
+        supplyIndex: body.supply_index ?? body.supplyIndex ?? 1,
+        trafficLevel: body.traffic_level ?? body.trafficLevel ?? 0.5,
+      };
+
+      const enriched = await enrichDriversForSelection({
+        drivers: body.drivers || [],
+        strategy,
+        context,
+        traceId,
+        toolFailures,
+        toolCalls,
+      });
+      const rankedDrivers = rankDrivers(enriched.drivers || [], strategy);
       if (!rankedDrivers.length) {
         metrics.fallbackCount += 1;
-        return json(res, 200, {
-          mode: "fallback",
-          selected_driver: null,
-          reason: "no_driver",
-          decision_log: {
-            strategy,
-            selection_reason: "no_driver",
-            trace_id: traceId,
-            timestamp: new Date().toISOString(),
-          },
-        });
+        return json(
+          res,
+          200,
+          createNoDriverResponse(strategy, traceId, "no_driver", {
+            tools_called: toolCalls,
+            warnings: enriched.warnings,
+          })
+        );
       }
 
       const trip = {
@@ -342,24 +733,27 @@ async function handleHttp(req, res) {
         estimatedPrice: Number(body.estimatedPrice ?? body.estimated_price ?? body.price ?? 0),
         strategy,
       };
-      const aiSelection = await selectDriverWithOllama(trip, rankedDrivers);
+      let aiSelection = null;
+      let aiError = null;
+      try {
+        aiSelection = await selectDriverWithOllama(trip, rankedDrivers, { forceFail: forceAiFail });
+      } catch (err) {
+        aiError = err?.message || "ai_selection_failed";
+      }
       const aiSelected = aiSelection
         ? rankedDrivers.find((d) => String(d.id) === String(aiSelection.driverId))
         : null;
       const selected = aiSelected || chooseDriver(rankedDrivers, strategy);
       if (!selected) {
         metrics.fallbackCount += 1;
-        return json(res, 200, {
-          mode: "fallback",
-          selected_driver: null,
-          reason: "no_driver",
-          decision_log: {
-            strategy,
-            selection_reason: "no_driver",
-            trace_id: traceId,
-            timestamp: new Date().toISOString(),
-          },
-        });
+        return json(
+          res,
+          200,
+          createNoDriverResponse(strategy, traceId, "no_driver", {
+            tools_called: toolCalls,
+            warnings: enriched.warnings,
+          })
+        );
       }
 
       if (aiSelected) {
@@ -373,9 +767,15 @@ async function handleHttp(req, res) {
         selected_driver: selected,
         decision_log: {
           strategy,
-          selection_reason: aiSelection?.reason || "rule_base_fallback",
+          selection_reason: aiSelection?.reason || aiError || "rule_base_fallback",
           trace_id: traceId,
           timestamp: new Date().toISOString(),
+          tools_called: toolCalls,
+          warnings: enriched.warnings,
+          candidate_count: rankedDrivers.length,
+          ai_enabled: OLLAMA_ENABLED && OLLAMA_MCP_ENABLED,
+          ai_selected: Boolean(aiSelected),
+          force_ai_fail: forceAiFail,
         },
       });
     }
