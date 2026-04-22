@@ -2,6 +2,25 @@ const { consumer } = require("./infra/kafka.consumer");
 const { producer, ensureConnected } = require("./infra/kafka.producer");
 const Booking = require("./models/booking.model");
 
+function normalizeStatus(value) {
+  if (typeof value !== "string") return null;
+  const normalized = value.trim().toUpperCase();
+  return normalized || null;
+}
+
+function mapRideStatusToBookingStatus(status) {
+  switch (status) {
+    case "ONGOING":
+      return "ACCEPTED";
+    case "COMPLETED":
+      return "COMPLETED";
+    case "CANCELLED":
+      return "CANCELLED";
+    default:
+      return null;
+  }
+}
+
 async function startDriverAcceptedConsumer() {
   await consumer.connect();
   await ensureConnected();
@@ -12,6 +31,10 @@ async function startDriverAcceptedConsumer() {
   });
   await consumer.subscribe({
     topic: "driver.rejected",
+    fromBeginning: false,
+  });
+  await consumer.subscribe({
+    topic: "ride.status.changed",
     fromBeginning: false,
   });
 
@@ -135,6 +158,46 @@ async function startDriverAcceptedConsumer() {
             ],
           });
           return;
+        }
+
+        if (topic === "ride.status.changed") {
+          const bookingId = data.bookingId || data.booking_id;
+          const rideStatus = normalizeStatus(data.status);
+          if (!bookingId || !rideStatus) {
+            console.log("ride.status.changed missing bookingId/status");
+            return;
+          }
+
+          const bookingStatus = mapRideStatusToBookingStatus(rideStatus);
+          if (!bookingStatus) {
+            return;
+          }
+
+          const allowedCurrentStatuses = ["REQUESTED", "CONFIRMED", "ACCEPTED"];
+
+          const updatePayload = {
+            status: bookingStatus,
+          };
+          const driverId = data.driverId || data.driver_id;
+          if (driverId) {
+            updatePayload.driverId = String(driverId);
+          }
+          if (bookingStatus === "ACCEPTED") {
+            updatePayload.acceptedAt = data.updatedAt ? new Date(data.updatedAt) : new Date();
+          }
+
+          const updatedBooking = await Booking.findOneAndUpdate(
+            {
+              _id: bookingId,
+              status: { $in: allowedCurrentStatuses },
+            },
+            { $set: updatePayload },
+            { new: true }
+          );
+
+          if (!updatedBooking) {
+            return;
+          }
         }
       } catch (err) {
         console.error(`Error processing ${topic || "driver-event"}:`, err.message);

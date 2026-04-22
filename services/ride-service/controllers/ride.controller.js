@@ -4,6 +4,14 @@ const { publishRideStatusChanged } = require("../kafka/producer");
 
 const ALLOWED_STATUSES = ["ONGOING", "COMPLETED", "CANCELLED"];
 
+function normalizeRideStatus(status) {
+  const normalized = String(status || "").trim().toUpperCase();
+  if (normalized === "DONE") {
+    return "COMPLETED";
+  }
+  return normalized;
+}
+
 async function createRide(req, res) {
   try {
     const { bookingId, user, driver, pickup, dropoff, price = 0 } = req.body;
@@ -42,7 +50,7 @@ async function createRide(req, res) {
 async function updateStatus(req, res) {
   try {
     const { rideId } = req.params;
-    const { status } = req.body;
+    const status = normalizeRideStatus(req.body?.status);
     if (!ALLOWED_STATUSES.includes(status)) {
       return res.status(400).json({ message: "Invalid status" });
     }

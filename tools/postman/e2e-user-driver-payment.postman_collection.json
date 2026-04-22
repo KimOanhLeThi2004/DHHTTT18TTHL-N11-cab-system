@@ -17,6 +17,10 @@
               "if (!pm.collectionVariables.get('baseUrl')) {",
               "  pm.collectionVariables.set('baseUrl', 'http://192.168.57.101:3000');",
               "}",
+              "if (!pm.collectionVariables.get('wsBaseUrl')) {",
+              "  const base = pm.collectionVariables.get('baseUrl') || 'http://192.168.57.101:3000';",
+              "  pm.collectionVariables.set('wsBaseUrl', String(base).replace(/^http/i, 'ws'));",
+              "}",
               "if (!pm.collectionVariables.get('userPassword')) {",
               "  pm.collectionVariables.set('userPassword', '123456');",
               "}",
@@ -246,6 +250,23 @@
           "path": [
             "drivers",
             "online"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Driver WS Listen Assignment",
+      "request": {
+        "method": "GET",
+        "description": "Manual step to watch realtime assignment via WebSocket.\\n1) Click Connect.\\n2) Send message: {\\\"type\\\":\\\"AUTH\\\",\\\"token\\\":\\\"{{driverToken}}\\\"}.\\n3) Keep this socket open, then run User Create Booking.\\nExpected incoming message: {\\\"type\\\":\\\"ASSIGN_RIDE\\\", ...}.",
+        "url": {
+          "raw": "{{wsBaseUrl}}/ws/drivers",
+          "host": [
+            "{{wsBaseUrl}}"
+          ],
+          "path": [
+            "ws",
+            "drivers"
           ]
         }
       }
@@ -519,6 +540,10 @@
     {
       "key": "baseUrl",
       "value": "http://192.168.57.101:3000"
+    },
+    {
+      "key": "wsBaseUrl",
+      "value": "ws://192.168.57.101:3000"
     },
     {
       "key": "userEmail",
