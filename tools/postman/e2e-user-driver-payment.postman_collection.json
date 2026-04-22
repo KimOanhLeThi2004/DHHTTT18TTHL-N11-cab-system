@@ -1,0 +1,572 @@
+{
+  "info": {
+    "_postman_id": "de0b53a2-3987-42a6-8fda-41b4f963e7c1",
+    "name": "Taxi E2E - User Driver Booking Payment",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "E2E flow: customer register/login -> driver register/login/online -> booking -> poll driver accept -> payment."
+  },
+  "item": [
+    {
+      "name": "User Register",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "if (!pm.collectionVariables.get('baseUrl')) {",
+              "  pm.collectionVariables.set('baseUrl', 'http://192.168.57.101:3000');",
+              "}",
+              "if (!pm.collectionVariables.get('userPassword')) {",
+              "  pm.collectionVariables.set('userPassword', '123456');",
+              "}",
+              "if (!pm.collectionVariables.get('driverPassword')) {",
+              "  pm.collectionVariables.set('driverPassword', '123456');",
+              "}",
+              "if (!pm.collectionVariables.get('userEmail')) {",
+              "  pm.collectionVariables.set('userEmail', `customer_e2e_${Date.now()}@test.com`);",
+              "}",
+              "if (!pm.collectionVariables.get('driverEmail')) {",
+              "  pm.collectionVariables.set('driverEmail', `driver_e2e_${Date.now()}@test.com`);",
+              "}",
+              "pm.collectionVariables.set('acceptMaxAttempts', pm.collectionVariables.get('acceptMaxAttempts') || '25');"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('User register status is 201', function () {",
+              "  pm.expect(pm.response.code).to.eql(201);",
+              "});",
+              "let body = {};",
+              "try { body = pm.response.json(); } catch (e) {}",
+              "if (body.user_id || body.userId) {",
+              "  pm.collectionVariables.set('userId', body.user_id || body.userId);",
+              "}"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"{{userEmail}}\",\n  \"password\": \"{{userPassword}}\",\n  \"role\": \"CUSTOMER\",\n  \"name\": \"E2E Customer\",\n  \"phone\": \"0900000001\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/auth/register",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "auth",
+            "register"
+          ]
+        }
+      }
+    },
+    {
+      "name": "User Login",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('User login status is 200', function () {",
+              "  pm.expect(pm.response.code).to.eql(200);",
+              "});",
+              "const body = pm.response.json();",
+              "const token = body.access_token || body.accessToken || body.token;",
+              "pm.expect(token, 'user token').to.be.a('string').and.not.empty;",
+              "pm.collectionVariables.set('userToken', token);",
+              "pm.collectionVariables.set('userId', body.user_id || body.userId || body.sub || '');"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"{{userEmail}}\",\n  \"password\": \"{{userPassword}}\",\n  \"role\": \"CUSTOMER\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/auth/login",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "auth",
+            "login"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Driver Register",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Driver register status is 201', function () {",
+              "  pm.expect(pm.response.code).to.eql(201);",
+              "});",
+              "let body = {};",
+              "try { body = pm.response.json(); } catch (e) {}",
+              "if (body.user_id || body.userId) {",
+              "  pm.collectionVariables.set('driverId', body.user_id || body.userId);",
+              "}"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"{{driverEmail}}\",\n  \"password\": \"{{driverPassword}}\",\n  \"role\": \"DRIVER\",\n  \"name\": \"E2E Driver\",\n  \"phone\": \"0900000002\",\n  \"vehicleType\": \"CAR\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/auth/register",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "auth",
+            "register"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Driver Login",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Driver login status is 200', function () {",
+              "  pm.expect(pm.response.code).to.eql(200);",
+              "});",
+              "const body = pm.response.json();",
+              "const token = body.access_token || body.accessToken || body.token;",
+              "pm.expect(token, 'driver token').to.be.a('string').and.not.empty;",
+              "pm.collectionVariables.set('driverToken', token);",
+              "pm.collectionVariables.set('driverId', body.user_id || body.userId || body.sub || pm.collectionVariables.get('driverId') || '');"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"{{driverEmail}}\",\n  \"password\": \"{{driverPassword}}\",\n  \"role\": \"DRIVER\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/auth/login",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "auth",
+            "login"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Driver Online",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Driver online status is 200', function () {",
+              "  pm.expect(pm.response.code).to.eql(200);",
+              "});",
+              "let body = {};",
+              "try { body = pm.response.json(); } catch (e) {}",
+              "pm.test('Driver is ONLINE', function () {",
+              "  pm.expect((body.status || '').toUpperCase()).to.eql('ONLINE');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"driverId\": \"{{driverId}}\",\n  \"lat\": 10.7601,\n  \"lng\": 106.6601,\n  \"vehicleType\": \"CAR\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/drivers/online",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "drivers",
+            "online"
+          ]
+        }
+      }
+    },
+    {
+      "name": "User Create Booking",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.collectionVariables.set('bookingIdempotencyKey', `booking-${Date.now()}`);",
+              "pm.collectionVariables.unset('acceptAttempt');"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Create booking status is 201', function () {",
+              "  pm.expect(pm.response.code).to.eql(201);",
+              "});",
+              "const body = pm.response.json();",
+              "pm.expect(body.booking_id, 'booking_id').to.be.a('string').and.not.empty;",
+              "pm.collectionVariables.set('bookingId', body.booking_id);",
+              "if (body.price !== undefined && body.price !== null) {",
+              "  pm.collectionVariables.set('bookingPrice', String(body.price));",
+              "} else {",
+              "  pm.collectionVariables.set('bookingPrice', '50000');",
+              "}"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{userToken}}"
+          },
+          {
+            "key": "Idempotency-Key",
+            "value": "{{bookingIdempotencyKey}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"pickup\": { \"lat\": 10.7602, \"lng\": 106.6602 },\n  \"dropoff\": { \"lat\": 10.7702, \"lng\": 106.6702 },\n  \"distanceKm\": 5,\n  \"durationMin\": 12,\n  \"vehicleType\": \"CAR\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/booking",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "booking"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Driver Accept (Poll Assignment)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const maxAttempts = Number(pm.collectionVariables.get('acceptMaxAttempts') || '25');",
+              "const currentAttempt = Number(pm.collectionVariables.get('acceptAttempt') || '0') + 1;",
+              "pm.collectionVariables.set('acceptAttempt', String(currentAttempt));",
+              "const code = pm.response.code;",
+              "if (code === 200) {",
+              "  pm.test('Driver accepted ride', function () {",
+              "    pm.expect(code).to.eql(200);",
+              "  });",
+              "  pm.collectionVariables.unset('acceptAttempt');",
+              "  postman.setNextRequest('User Pay');",
+              "} else {",
+              "  const retryable = [400, 403, 404, 409, 500].includes(code);",
+              "  if (retryable && currentAttempt < maxAttempts) {",
+              "    postman.setNextRequest('Driver Accept (Poll Assignment)');",
+              "  } else {",
+              "    pm.test('Driver accept should succeed before max attempts', function () {",
+              "      pm.expect.fail(`driver accept failed: status=${code}, attempts=${currentAttempt}`);",
+              "    });",
+              "    postman.setNextRequest(null);",
+              "  }",
+              "}"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{driverToken}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"bookingId\": \"{{bookingId}}\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/drivers/accept",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "drivers",
+            "accept"
+          ]
+        }
+      }
+    },
+    {
+      "name": "User Pay",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "if (!pm.collectionVariables.get('bookingPrice')) {",
+              "  pm.collectionVariables.set('bookingPrice', '50000');",
+              "}",
+              "pm.collectionVariables.set('payIdempotencyKey', `pay-${Date.now()}`);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Payment status is 200', function () {",
+              "  pm.expect(pm.response.code).to.eql(200);",
+              "});",
+              "const body = pm.response.json();",
+              "pm.test('Payment success', function () {",
+              "  pm.expect(String(body.status || '')).to.eql('SUCCESS');",
+              "  pm.expect(Number(body.amount || 0)).to.be.above(0);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{userToken}}"
+          },
+          {
+            "key": "Idempotency-Key",
+            "value": "{{payIdempotencyKey}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"bookingId\": \"{{bookingId}}\",\n  \"method\": \"CASH\",\n  \"amount\": {{bookingPrice}}\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/payments/pay",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "payments",
+            "pay"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Verify User Bookings",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Get bookings status is 200', function () {",
+              "  pm.expect(pm.response.code).to.eql(200);",
+              "});",
+              "const body = pm.response.json();",
+              "pm.test('Booking appears in list', function () {",
+              "  pm.expect(Array.isArray(body)).to.eql(true);",
+              "  const found = body.some((b) => String(b.booking_id || b._id || '') === String(pm.collectionVariables.get('bookingId')));",
+              "  pm.expect(found).to.eql(true);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{userToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/booking",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "booking"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Verify Driver Me",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Get driver me status is 200', function () {",
+              "  pm.expect(pm.response.code).to.eql(200);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{driverToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/drivers/me",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "drivers",
+            "me"
+          ]
+        }
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://192.168.57.101:3000"
+    },
+    {
+      "key": "userEmail",
+      "value": ""
+    },
+    {
+      "key": "userPassword",
+      "value": "123456"
+    },
+    {
+      "key": "userToken",
+      "value": ""
+    },
+    {
+      "key": "userId",
+      "value": ""
+    },
+    {
+      "key": "driverEmail",
+      "value": ""
+    },
+    {
+      "key": "driverPassword",
+      "value": "123456"
+    },
+    {
+      "key": "driverToken",
+      "value": ""
+    },
+    {
+      "key": "driverId",
+      "value": ""
+    },
+    {
+      "key": "bookingId",
+      "value": ""
+    },
+    {
+      "key": "bookingPrice",
+      "value": "50000"
+    },
+    {
+      "key": "acceptAttempt",
+      "value": "0"
+    },
+    {
+      "key": "acceptMaxAttempts",
+      "value": "25"
+    }
+  ]
+}

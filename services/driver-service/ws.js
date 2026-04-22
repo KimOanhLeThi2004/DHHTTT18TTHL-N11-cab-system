@@ -53,7 +53,7 @@ function setupDriverWS(server) {
     console.log("Driver WS connected");
     const cookieDriverId = resolveDriverIdFromCookie(req);
     if (cookieDriverId) {
-      ws.driverId = cookieDriverId;
+      ws.driverId = String(cookieDriverId);
       registerDriverSocket(ws.driverId, ws);
     }
 
@@ -68,7 +68,11 @@ function setupDriverWS(server) {
         if (data.type === "AUTH") {
           const payload = verifyDriverToken(data.token);
           if (payload?.userId || payload?.sub) {
-            ws.driverId = payload.userId || payload.sub;
+            const nextDriverId = String(payload.userId || payload.sub);
+            if (ws.driverId && ws.driverId !== nextDriverId) {
+              removeDriverSocket(ws.driverId, ws);
+            }
+            ws.driverId = nextDriverId;
             registerDriverSocket(ws.driverId, ws);
             return;
           }
@@ -125,7 +129,7 @@ function setupDriverWS(server) {
 
       await setDriverOffline(ws.driverId);
       await redis.del(`active_assignment:${ws.driverId}`);
-      removeDriverSocket(ws.driverId);
+      removeDriverSocket(ws.driverId, ws);
     });
   });
 }

@@ -1,14 +1,12 @@
 AI Agent Test Report (up to Level 11 scope)
-API_BASE_URL: http://192.168.57.101:3000
-GeneratedAt: 2026-04-21T14:23:14.213Z
-Summary: PASS=12 FAIL=11 BLOCKED=4 TOTAL=27
+API_BASE_URL: http://localhost:3000
+GeneratedAt: 2026-04-22T02:15:00.205Z
+Summary: PASS=18 FAIL=4 BLOCKED=5 TOTAL=27
 
-TC023 | Level 3 | FAIL
+TC023 | Level 3 | PASS
 Title: AI Agent chon driver tu Driver Service
-Reason: invalid selection: {
-  "error": "timeout"
-}
-Elapsed(ms): 15054
+Reason: selected_driver=DRV_AI_1776769528185
+Elapsed(ms): 11593
 Request #1
 - Method: GET
 - Path: /drivers/nearby?lat=10.7605&lng=106.6605&radiusKm=5&vehicleType=CAR
@@ -27,7 +25,15 @@ Request #1
     "distanceKm": 0.0779
   },
   {
-    "id": "DRV_AI_1776778884656",
+    "id": "DRV_TC5_1776823889710",
+    "status": "ONLINE",
+    "vehicleType": "CAR",
+    "lat": 10.76,
+    "lng": 106.66,
+    "distanceKm": 0.0779
+  },
+  {
+    "id": "DRV_AI_1776769528184",
     "status": "ONLINE",
     "vehicleType": "CAR",
     "lat": 10.7601,
@@ -35,7 +41,7 @@ Request #1
     "distanceKm": 0.0624
   },
   {
-    "id": "DRV_AI_1776779334259",
+    "id": "DRV_AI_1776770369037",
     "status": "ONLINE",
     "vehicleType": "CAR",
     "lat": 10.7601,
@@ -43,7 +49,7 @@ Request #1
     "distanceKm": 0.0624
   },
   {
-    "id": "DRV_AI_L11_1776781240765",
+    "id": "DRV_AI_1776770717324",
     "status": "ONLINE",
     "vehicleType": "CAR",
     "lat": 10.7601,
@@ -51,7 +57,63 @@ Request #1
     "distanceKm": 0.0624
   },
   {
-    "id": "DRV_AI_1776778884657",
+    "id": "DRV_AI_L11_1776824022966",
+    "status": "ONLINE",
+    "vehicleType": "CAR",
+    "lat": 10.7601,
+    "lng": 106.6601,
+    "distanceKm": 0.0624
+  },
+  {
+    "id": "DRV_LV11_1776823889242",
+    "status": "ONLINE",
+    "vehicleType": "CAR",
+    "lat": 10.7601,
+    "lng": 106.6601,
+    "distanceKm": 0.0624
+  },
+  {
+    "id": "DRV_DBG_1776776106164",
+    "status": "ONLINE",
+    "vehicleType": "CAR",
+    "lat": 10.7602,
+    "lng": 106.6602,
+    "distanceKm": 0.0468
+  },
+  {
+    "id": "DRV_DBG_1776776205969",
+    "status": "ONLINE",
+    "vehicleType": "CAR",
+    "lat": 10.7602,
+    "lng": 106.6602,
+    "distanceKm": 0.0468
+  },
+  {
+    "id": "DRV_TC_1776775990353",
+    "status": "ONLINE",
+    "vehicleType": "CAR",
+    "lat": 10.7602,
+    "lng": 106.6602,
+    "distanceKm": 0.0468
+  },
+  {
+    "id": "DRV_TC_1776776342846",
+    "status": "ONLINE",
+    "vehicleType": "CAR",
+    "lat": 10.7602,
+    "lng": 106.6602,
+    "distanceKm": 0.0468
+  },
+  {
+    "id": "e2e21a6a-17a3-45f9-9c77-821d2c5f1e9f",
+    "status": "ONLINE",
+    "vehicleType": "CAR",
+    "lat": 10.7602,
+    "lng": 106.6602,
+    "distanceKm": 0.0468
+  },
+  {
+    "id": "DRV_AI_1776769528185",
     "status": "ONLINE",
     "vehicleType": "CAR",
     "lat": 10.7606,
@@ -59,7 +121,7 @@ Request #1
     "distanceKm": 0.0154
   },
   {
-    "id": "DRV_AI_1776779334260",
+    "id": "DRV_AI_1776770369038",
     "status": "ONLINE",
     "vehicleType": "CAR",
     "lat": 10.7606,
@@ -67,7 +129,23 @@ Request #1
     "distanceKm": 0.0154
   },
   {
-    "id": "DRV_AI_L11_1776781240766",
+    "id": "DRV_AI_1776770717325",
+    "status": "ONLINE",
+    "vehicleType": "CAR",
+    "lat": 10.7606,
+    "lng": 106.6606,
+    "distanceKm": 0.0154
+  },
+  {
+    "id": "DRV_LV11_1776823889243",
+    "status": "ONLINE",
+    "vehicleType": "CAR",
+    "lat": 10.7607,
+    "lng": 106.6607,
+    "distanceKm": 0.0312
+  },
+  {
+    "id": "DRV_AI_L11_1776824022967",
     "status": "ONLINE",
     "vehicleType": "CAR",
     "lat": 10.7608,
@@ -75,7 +153,15 @@ Request #1
     "distanceKm": 0.0469
   },
   {
-    "id": "DRV_AI_L11_1776781240767",
+    "id": "DRV_LV11_1776823889244",
+    "status": "ONLINE",
+    "vehicleType": "CAR",
+    "lat": 10.7612,
+    "lng": 106.6612,
+    "distanceKm": 0.1091
+  },
+  {
+    "id": "DRV_AI_L11_1776824022968",
     "status": "ONLINE",
     "vehicleType": "CAR",
     "lat": 10.7615,
@@ -83,7 +169,7 @@ Request #1
     "distanceKm": 0.1558
   }
 ]
-- DurationMs: 51
+- DurationMs: 11
 Request #2
 - Method: POST
 - Path: /ai/agent/select-driver
@@ -103,7 +189,15 @@ Request #2
       "distanceKm": 0.0779
     },
     {
-      "id": "DRV_AI_1776778884656",
+      "id": "DRV_TC5_1776823889710",
+      "status": "ONLINE",
+      "vehicleType": "CAR",
+      "lat": 10.76,
+      "lng": 106.66,
+      "distanceKm": 0.0779
+    },
+    {
+      "id": "DRV_AI_1776769528184",
       "status": "ONLINE",
       "vehicleType": "CAR",
       "lat": 10.7601,
@@ -111,7 +205,7 @@ Request #2
       "distanceKm": 0.0624
     },
     {
-      "id": "DRV_AI_1776779334259",
+      "id": "DRV_AI_1776770369037",
       "status": "ONLINE",
       "vehicleType": "CAR",
       "lat": 10.7601,
@@ -119,7 +213,7 @@ Request #2
       "distanceKm": 0.0624
     },
     {
-      "id": "DRV_AI_L11_1776781240765",
+      "id": "DRV_AI_1776770717324",
       "status": "ONLINE",
       "vehicleType": "CAR",
       "lat": 10.7601,
@@ -127,7 +221,63 @@ Request #2
       "distanceKm": 0.0624
     },
     {
-      "id": "DRV_AI_1776778884657",
+      "id": "DRV_AI_L11_1776824022966",
+      "status": "ONLINE",
+      "vehicleType": "CAR",
+      "lat": 10.7601,
+      "lng": 106.6601,
+      "distanceKm": 0.0624
+    },
+    {
+      "id": "DRV_LV11_1776823889242",
+      "status": "ONLINE",
+      "vehicleType": "CAR",
+      "lat": 10.7601,
+      "lng": 106.6601,
+      "distanceKm": 0.0624
+    },
+    {
+      "id": "DRV_DBG_1776776106164",
+      "status": "ONLINE",
+      "vehicleType": "CAR",
+      "lat": 10.7602,
+      "lng": 106.6602,
+      "distanceKm": 0.0468
+    },
+    {
+      "id": "DRV_DBG_1776776205969",
+      "status": "ONLINE",
+      "vehicleType": "CAR",
+      "lat": 10.7602,
+      "lng": 106.6602,
+      "distanceKm": 0.0468
+    },
+    {
+      "id": "DRV_TC_1776775990353",
+      "status": "ONLINE",
+      "vehicleType": "CAR",
+      "lat": 10.7602,
+      "lng": 106.6602,
+      "distanceKm": 0.0468
+    },
+    {
+      "id": "DRV_TC_1776776342846",
+      "status": "ONLINE",
+      "vehicleType": "CAR",
+      "lat": 10.7602,
+      "lng": 106.6602,
+      "distanceKm": 0.0468
+    },
+    {
+      "id": "e2e21a6a-17a3-45f9-9c77-821d2c5f1e9f",
+      "status": "ONLINE",
+      "vehicleType": "CAR",
+      "lat": 10.7602,
+      "lng": 106.6602,
+      "distanceKm": 0.0468
+    },
+    {
+      "id": "DRV_AI_1776769528185",
       "status": "ONLINE",
       "vehicleType": "CAR",
       "lat": 10.7606,
@@ -135,7 +285,7 @@ Request #2
       "distanceKm": 0.0154
     },
     {
-      "id": "DRV_AI_1776779334260",
+      "id": "DRV_AI_1776770369038",
       "status": "ONLINE",
       "vehicleType": "CAR",
       "lat": 10.7606,
@@ -143,7 +293,23 @@ Request #2
       "distanceKm": 0.0154
     },
     {
-      "id": "DRV_AI_L11_1776781240766",
+      "id": "DRV_AI_1776770717325",
+      "status": "ONLINE",
+      "vehicleType": "CAR",
+      "lat": 10.7606,
+      "lng": 106.6606,
+      "distanceKm": 0.0154
+    },
+    {
+      "id": "DRV_LV11_1776823889243",
+      "status": "ONLINE",
+      "vehicleType": "CAR",
+      "lat": 10.7607,
+      "lng": 106.6607,
+      "distanceKm": 0.0312
+    },
+    {
+      "id": "DRV_AI_L11_1776824022967",
       "status": "ONLINE",
       "vehicleType": "CAR",
       "lat": 10.7608,
@@ -151,7 +317,15 @@ Request #2
       "distanceKm": 0.0469
     },
     {
-      "id": "DRV_AI_L11_1776781240767",
+      "id": "DRV_LV11_1776823889244",
+      "status": "ONLINE",
+      "vehicleType": "CAR",
+      "lat": 10.7612,
+      "lng": 106.6612,
+      "distanceKm": 0.1091
+    },
+    {
+      "id": "DRV_AI_L11_1776824022968",
       "status": "ONLINE",
       "vehicleType": "CAR",
       "lat": 10.7615,
@@ -160,16 +334,39 @@ Request #2
     }
   ]
 }
-- ResponseStatus: 0
+- ResponseStatus: 200
 - ResponseBody: {
-  "error": "timeout"
+  "mode": "ai",
+  "selected_driver": {
+    "id": "DRV_AI_1776769528185",
+    "status": "ONLINE",
+    "vehicleType": "CAR",
+    "lat": 10.7606,
+    "lng": 106.6606,
+    "distanceKm": 0.0154,
+    "eta": null,
+    "price": null,
+    "rating": 0
+  },
+  "decision_log": {
+    "strategy": "nearest",
+    "selection_reason": "The first ranked driver is the closest to the pickup location with a distance of 0.0154 km.",
+    "trace_id": "ba519fe2-62a8-4c67-b6ce-29d5e096c6a4",
+    "timestamp": "2026-04-22T02:13:54.580Z",
+    "tools_called": [],
+    "warnings": [],
+    "candidate_count": 19,
+    "ai_enabled": true,
+    "ai_selected": true,
+    "force_ai_fail": false
+  }
 }
-- DurationMs: 15002
+- DurationMs: 11582
 ----------------------------------------------------------------------------------------------------
-TC028 | Level 3 | FAIL
+TC028 | Level 3 | PASS
 Title: Agent du context (MCP-like) de quyet dinh
-Reason: unexpected response 0
-Elapsed(ms): 15003
+Reason: context accepted + decision_log present
+Elapsed(ms): 6100
 Request #1
 - Method: POST
 - Path: /ai/agent/select-driver
@@ -178,7 +375,7 @@ Request #1
   "Content-Type": "application/json"
 }
 - Body: {
-  "bookingId": "BK_CTX_1776781255906",
+  "bookingId": "BK_CTX_1776824034582",
   "strategy": "balanced",
   "pickup": {
     "lat": 10.7602,
@@ -210,16 +407,37 @@ Request #1
     }
   ]
 }
-- ResponseStatus: 0
+- ResponseStatus: 200
 - ResponseBody: {
-  "error": "timeout"
+  "mode": "ai",
+  "selected_driver": {
+    "id": "CTX1",
+    "status": "ONLINE",
+    "distanceKm": 2,
+    "rating": 4.6,
+    "eta": 6,
+    "price": 60000,
+    "ranking_score": 0.2
+  },
+  "decision_log": {
+    "strategy": "balanced",
+    "selection_reason": "CTX1 has a shorter distance (2 km) compared to CTX2 (3 km), making it more efficient for the current booking.",
+    "trace_id": "7f994144-8dd0-4973-bec6-deae399d65a3",
+    "timestamp": "2026-04-22T02:14:00.680Z",
+    "tools_called": [],
+    "warnings": [],
+    "candidate_count": 2,
+    "ai_enabled": true,
+    "ai_selected": true,
+    "force_ai_fail": false
+  }
 }
-- DurationMs: 15002
+- DurationMs: 6100
 ----------------------------------------------------------------------------------------------------
 TC036 | Level 4 | PASS
 Title: Saga success flow (Booking -> Payment -> Notification)
-Reason: booking=69e787e1118742f07bf5b837, payment=200, notify=200
-Elapsed(ms): 1253
+Reason: booking=69e82ee80ea6e423512d793f, payment=200, notify=200
+Elapsed(ms): 74
 Notes:
 - Saga dien giai: buoc Payment va Notification deu thanh cong o API boundary; event bus/internal state transition (Kafka spans) can xac nhan them qua logs cluster.
 Request #1
@@ -227,8 +445,8 @@ Request #1
 - Path: /booking
 - Headers: {
   "Accept": "application/json",
-  "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI0ODk2ZDc0Ni1kMDkzLTQ4ODMtOWQ4MC03M2YzOWE2NTRlMTYiLCJ1c2VySWQiOiI0ODk2ZDc0Ni1kMDkzLTQ4ODMtOWQ4MC03M2YzOWE2NTRlMTYiLCJyb2xlIjoiQ1VTVE9NRVIiLCJqdGkiOiIzNDkzMDMwZS0zOTc0LTRlMzQtYTQwMC00NWU1YmY5ZjkxMWEiLCJpYXQiOjE3NzY3ODEyNTEsImV4cCI6MTc3Njc4NDg1MX0.BLJ5YKzWgaQBs8WMA6b2_4x8HOzR8doR6Mj1cUW84Do",
-  "Idempotency-Key": "saga-ok-1776781270909",
+  "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlNTczOGFiNS03ODE4LTQwYzktOTRkYi1hYTFiYmZiMzdkNDMiLCJ1c2VySWQiOiJlNTczOGFiNS03ODE4LTQwYzktOTRkYi1hYTFiYmZiMzdkNDMiLCJyb2xlIjoiQ1VTVE9NRVIiLCJqdGkiOiI1YWZjYTdmYi05ZDU1LTQ0NDgtOTg3OS01ZTc3OWQwMWM5YmYiLCJpYXQiOjE3NzY4MjQwMjIsImV4cCI6MTc3NjgyNzYyMn0._QkNwEV7QRLOAIy2QIXAF5zNghRX6s-WtyNmoARgzDA",
+  "Idempotency-Key": "saga-ok-1776824040682",
   "Content-Type": "application/json"
 }
 - Body: {
@@ -246,70 +464,71 @@ Request #1
 }
 - ResponseStatus: 201
 - ResponseBody: {
-  "booking_id": "69e787e1118742f07bf5b837",
+  "booking_id": "69e82ee80ea6e423512d793f",
   "status": "REQUESTED",
   "eta_min": 11,
   "price": 78000,
   "surge_multiplier": 1
 }
-- DurationMs: 100
+- DurationMs: 28
 Request #2
 - Method: POST
 - Path: /payments/pay
 - Headers: {
   "Accept": "application/json",
-  "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI0ODk2ZDc0Ni1kMDkzLTQ4ODMtOWQ4MC03M2YzOWE2NTRlMTYiLCJ1c2VySWQiOiI0ODk2ZDc0Ni1kMDkzLTQ4ODMtOWQ4MC03M2YzOWE2NTRlMTYiLCJyb2xlIjoiQ1VTVE9NRVIiLCJqdGkiOiIzNDkzMDMwZS0zOTc0LTRlMzQtYTQwMC00NWU1YmY5ZjkxMWEiLCJpYXQiOjE3NzY3ODEyNTEsImV4cCI6MTc3Njc4NDg1MX0.BLJ5YKzWgaQBs8WMA6b2_4x8HOzR8doR6Mj1cUW84Do",
+  "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlNTczOGFiNS03ODE4LTQwYzktOTRkYi1hYTFiYmZiMzdkNDMiLCJ1c2VySWQiOiJlNTczOGFiNS03ODE4LTQwYzktOTRkYi1hYTFiYmZiMzdkNDMiLCJyb2xlIjoiQ1VTVE9NRVIiLCJqdGkiOiI1YWZjYTdmYi05ZDU1LTQ0NDgtOTg3OS01ZTc3OWQwMWM5YmYiLCJpYXQiOjE3NzY4MjQwMjIsImV4cCI6MTc3NjgyNzYyMn0._QkNwEV7QRLOAIy2QIXAF5zNghRX6s-WtyNmoARgzDA",
   "Content-Type": "application/json"
 }
 - Body: {
-  "bookingId": "69e787e1118742f07bf5b837",
+  "bookingId": "69e82ee80ea6e423512d793f",
   "method": "CASH",
   "amount": 80000
 }
 - ResponseStatus: 200
 - ResponseBody: {
-  "id": "63e39fd2-e6a7-46cb-9fe3-5114a3ebd8ed",
-  "bookingId": "69e787e1118742f07bf5b837",
-  "userId": "4896d746-d093-4883-9d80-73f39a654e16",
+  "id": "da0f1a73-45eb-4db4-9998-66230710dec1",
+  "bookingId": "69e82ee80ea6e423512d793f",
+  "userId": "e5738ab5-7818-40c9-94db-aa1bbfb37d43",
   "driverId": "UNKNOWN_DRIVER",
   "amount": 80000,
   "method": "CASH",
   "status": "SUCCESS",
   "idempotencyKey": null,
-  "updatedAt": "2026-04-21T14:21:23.108Z",
-  "createdAt": "2026-04-21T14:21:23.108Z"
+  "cardLast4": null,
+  "updatedAt": "2026-04-22T02:14:00.738Z",
+  "createdAt": "2026-04-22T02:14:00.738Z"
 }
-- DurationMs: 1133
+- DurationMs: 35
 Request #3
 - Method: POST
 - Path: /notifications
 - Headers: {
   "Accept": "application/json",
-  "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI0ODk2ZDc0Ni1kMDkzLTQ4ODMtOWQ4MC03M2YzOWE2NTRlMTYiLCJ1c2VySWQiOiI0ODk2ZDc0Ni1kMDkzLTQ4ODMtOWQ4MC03M2YzOWE2NTRlMTYiLCJyb2xlIjoiQ1VTVE9NRVIiLCJqdGkiOiIzNDkzMDMwZS0zOTc0LTRlMzQtYTQwMC00NWU1YmY5ZjkxMWEiLCJpYXQiOjE3NzY3ODEyNTEsImV4cCI6MTc3Njc4NDg1MX0.BLJ5YKzWgaQBs8WMA6b2_4x8HOzR8doR6Mj1cUW84Do",
+  "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlNTczOGFiNS03ODE4LTQwYzktOTRkYi1hYTFiYmZiMzdkNDMiLCJ1c2VySWQiOiJlNTczOGFiNS03ODE4LTQwYzktOTRkYi1hYTFiYmZiMzdkNDMiLCJyb2xlIjoiQ1VTVE9NRVIiLCJqdGkiOiI1YWZjYTdmYi05ZDU1LTQ0NDgtOTg3OS01ZTc3OWQwMWM5YmYiLCJpYXQiOjE3NzY4MjQwMjIsImV4cCI6MTc3NjgyNzYyMn0._QkNwEV7QRLOAIy2QIXAF5zNghRX6s-WtyNmoARgzDA",
   "Content-Type": "application/json"
 }
 - Body: {
-  "userId": "4896d746-d093-4883-9d80-73f39a654e16",
-  "message": "Saga success for 69e787e1118742f07bf5b837"
+  "userId": "e5738ab5-7818-40c9-94db-aa1bbfb37d43",
+  "message": "Saga success for 69e82ee80ea6e423512d793f"
 }
 - ResponseStatus: 200
 - ResponseBody: {
-  "userId": "4896d746-d093-4883-9d80-73f39a654e16",
+  "userId": "e5738ab5-7818-40c9-94db-aa1bbfb37d43",
   "type": "SYSTEM",
   "title": "Notification",
-  "message": "Saga success for 69e787e1118742f07bf5b837",
+  "message": "Saga success for 69e82ee80ea6e423512d793f",
   "isRead": false,
-  "_id": "69e787e38de50a39bd0f84b0",
-  "createdAt": "2026-04-21T14:21:23.160Z",
-  "updatedAt": "2026-04-21T14:21:23.160Z",
+  "_id": "69e82ee80798a1f1fd1b08d0",
+  "createdAt": "2026-04-22T02:14:00.752Z",
+  "updatedAt": "2026-04-22T02:14:00.752Z",
   "__v": 0
 }
-- DurationMs: 19
+- DurationMs: 10
 ----------------------------------------------------------------------------------------------------
 TC037 | Level 4 | PASS
 Title: Saga failure + compensation
 Reason: payment=400, booking_status=CANCELLED
-Elapsed(ms): 151
+Elapsed(ms): 54
 Notes:
 - Saga dien giai: compensation duoc xem la hop ly neu sau payment fail, booking khong con o trang thai dang do (CANCELLED/FAILED). Khong verify refund event do khong co endpoint cong khai.
 Request #1
@@ -317,8 +536,8 @@ Request #1
 - Path: /booking
 - Headers: {
   "Accept": "application/json",
-  "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI0ODk2ZDc0Ni1kMDkzLTQ4ODMtOWQ4MC03M2YzOWE2NTRlMTYiLCJ1c2VySWQiOiI0ODk2ZDc0Ni1kMDkzLTQ4ODMtOWQ4MC03M2YzOWE2NTRlMTYiLCJyb2xlIjoiQ1VTVE9NRVIiLCJqdGkiOiIzNDkzMDMwZS0zOTc0LTRlMzQtYTQwMC00NWU1YmY5ZjkxMWEiLCJpYXQiOjE3NzY3ODEyNTEsImV4cCI6MTc3Njc4NDg1MX0.BLJ5YKzWgaQBs8WMA6b2_4x8HOzR8doR6Mj1cUW84Do",
-  "Idempotency-Key": "saga-fail-1776781272162",
+  "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlNTczOGFiNS03ODE4LTQwYzktOTRkYi1hYTFiYmZiMzdkNDMiLCJ1c2VySWQiOiJlNTczOGFiNS03ODE4LTQwYzktOTRkYi1hYTFiYmZiMzdkNDMiLCJyb2xlIjoiQ1VTVE9NRVIiLCJqdGkiOiI1YWZjYTdmYi05ZDU1LTQ0NDgtOTg3OS01ZTc3OWQwMWM5YmYiLCJpYXQiOjE3NzY4MjQwMjIsImV4cCI6MTc3NjgyNzYyMn0._QkNwEV7QRLOAIy2QIXAF5zNghRX6s-WtyNmoARgzDA",
+  "Idempotency-Key": "saga-fail-1776824040757",
   "Content-Type": "application/json"
 }
 - Body: {
@@ -336,23 +555,23 @@ Request #1
 }
 - ResponseStatus: 201
 - ResponseBody: {
-  "booking_id": "69e787e3118742f07bf5b83a",
+  "booking_id": "69e82ee80ea6e423512d7942",
   "status": "REQUESTED",
   "eta_min": 11,
   "price": 78000,
   "surge_multiplier": 1
 }
-- DurationMs: 53
+- DurationMs: 24
 Request #2
 - Method: POST
 - Path: /payments/pay
 - Headers: {
   "Accept": "application/json",
-  "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI0ODk2ZDc0Ni1kMDkzLTQ4ODMtOWQ4MC03M2YzOWE2NTRlMTYiLCJ1c2VySWQiOiI0ODk2ZDc0Ni1kMDkzLTQ4ODMtOWQ4MC03M2YzOWE2NTRlMTYiLCJyb2xlIjoiQ1VTVE9NRVIiLCJqdGkiOiIzNDkzMDMwZS0zOTc0LTRlMzQtYTQwMC00NWU1YmY5ZjkxMWEiLCJpYXQiOjE3NzY3ODEyNTEsImV4cCI6MTc3Njc4NDg1MX0.BLJ5YKzWgaQBs8WMA6b2_4x8HOzR8doR6Mj1cUW84Do",
+  "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlNTczOGFiNS03ODE4LTQwYzktOTRkYi1hYTFiYmZiMzdkNDMiLCJ1c2VySWQiOiJlNTczOGFiNS03ODE4LTQwYzktOTRkYi1hYTFiYmZiMzdkNDMiLCJyb2xlIjoiQ1VTVE9NRVIiLCJqdGkiOiI1YWZjYTdmYi05ZDU1LTQ0NDgtOTg3OS01ZTc3OWQwMWM5YmYiLCJpYXQiOjE3NzY4MjQwMjIsImV4cCI6MTc3NjgyNzYyMn0._QkNwEV7QRLOAIy2QIXAF5zNghRX6s-WtyNmoARgzDA",
   "Content-Type": "application/json"
 }
 - Body: {
-  "bookingId": "69e787e3118742f07bf5b83a",
+  "bookingId": "69e82ee80ea6e423512d7942",
   "payment_method": "invalid_card",
   "amount": 50000
 }
@@ -360,42 +579,42 @@ Request #2
 - ResponseBody: {
   "message": "Invalid payment method"
 }
-- DurationMs: 72
+- DurationMs: 22
 Request #3
 - Method: GET
 - Path: /booking
 - Headers: {
   "Accept": "application/json",
-  "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI0ODk2ZDc0Ni1kMDkzLTQ4ODMtOWQ4MC03M2YzOWE2NTRlMTYiLCJ1c2VySWQiOiI0ODk2ZDc0Ni1kMDkzLTQ4ODMtOWQ4MC03M2YzOWE2NTRlMTYiLCJyb2xlIjoiQ1VTVE9NRVIiLCJqdGkiOiIzNDkzMDMwZS0zOTc0LTRlMzQtYTQwMC00NWU1YmY5ZjkxMWEiLCJpYXQiOjE3NzY3ODEyNTEsImV4cCI6MTc3Njc4NDg1MX0.BLJ5YKzWgaQBs8WMA6b2_4x8HOzR8doR6Mj1cUW84Do"
+  "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlNTczOGFiNS03ODE4LTQwYzktOTRkYi1hYTFiYmZiMzdkNDMiLCJ1c2VySWQiOiJlNTczOGFiNS03ODE4LTQwYzktOTRkYi1hYTFiYmZiMzdkNDMiLCJyb2xlIjoiQ1VTVE9NRVIiLCJqdGkiOiI1YWZjYTdmYi05ZDU1LTQ0NDgtOTg3OS01ZTc3OWQwMWM5YmYiLCJpYXQiOjE3NzY4MjQwMjIsImV4cCI6MTc3NjgyNzYyMn0._QkNwEV7QRLOAIy2QIXAF5zNghRX6s-WtyNmoARgzDA"
 }
 - Body: null
 - ResponseStatus: 200
 - ResponseBody: [
   {
-    "booking_id": "69e787e3118742f07bf5b83a",
+    "booking_id": "69e82ee80ea6e423512d7942",
     "status": "CANCELLED",
     "vehicle_type": "CAR",
     "estimated_price": 78000,
     "driver_id": null,
-    "created_at": "2026-04-21T14:21:23.211Z",
-    "updated_at": "2026-04-21T14:21:23.281Z"
+    "created_at": "2026-04-22T02:14:00.775Z",
+    "updated_at": "2026-04-22T02:14:00.794Z"
   },
   {
-    "booking_id": "69e787e1118742f07bf5b837",
+    "booking_id": "69e82ee80ea6e423512d793f",
     "status": "REQUESTED",
     "vehicle_type": "CAR",
     "estimated_price": 78000,
     "driver_id": null,
-    "created_at": "2026-04-21T14:21:21.982Z",
-    "updated_at": "2026-04-21T14:21:21.982Z"
+    "created_at": "2026-04-22T02:14:00.705Z",
+    "updated_at": "2026-04-22T02:14:00.705Z"
   }
 ]
-- DurationMs: 26
+- DurationMs: 8
 ----------------------------------------------------------------------------------------------------
 TC041 | Level 5 | PASS
 Title: ETA output in valid range
 Reason: eta=15
-Elapsed(ms): 9
+Elapsed(ms): 7
 Request #1
 - Method: POST
 - Path: /ai/eta
@@ -412,12 +631,12 @@ Request #1
   "eta": 15,
   "model_version": "eta-v1"
 }
-- DurationMs: 9
+- DurationMs: 6
 ----------------------------------------------------------------------------------------------------
 TC042 | Level 5 | PASS
 Title: Pricing surge > 1 when high demand
 Reason: surge=2.5
-Elapsed(ms): 12
+Elapsed(ms): 6
 Request #1
 - Method: POST
 - Path: /pricing/calculate
@@ -441,12 +660,12 @@ Request #1
   "etaMin": 13,
   "modelVersion": "pricing-v2"
 }
-- DurationMs: 12
+- DurationMs: 6
 ----------------------------------------------------------------------------------------------------
 TC043 | Level 5 | PASS
 Title: Fraud score threshold
 Reason: flagged=false, score=0.4
-Elapsed(ms): 19
+Elapsed(ms): 6
 Request #1
 - Method: POST
 - Path: /ai/fraud
@@ -468,12 +687,12 @@ Request #1
   "flagged": false,
   "model_version": "fraud-v1"
 }
-- DurationMs: 19
+- DurationMs: 6
 ----------------------------------------------------------------------------------------------------
 TC044 | Level 5 | PASS
 Title: Recommendation top-3
 Reason: top3=R2,R3,R1
-Elapsed(ms): 15
+Elapsed(ms): 6
 Request #1
 - Method: POST
 - Path: /ai/recommendations
@@ -519,12 +738,12 @@ Request #1
   ],
   "model_version": "recommend-v1"
 }
-- DurationMs: 15
+- DurationMs: 6
 ----------------------------------------------------------------------------------------------------
 TC045 | Level 5 | PASS
 Title: Forecast schema
 Reason: forecast schema ok
-Elapsed(ms): 13
+Elapsed(ms): 6
 Request #1
 - Method: POST
 - Path: /ai/forecast
@@ -541,12 +760,12 @@ Request #1
   "demand_index": 1.2,
   "model_version": "forecast-v1"
 }
-- DurationMs: 13
+- DurationMs: 6
 ----------------------------------------------------------------------------------------------------
 TC046 | Level 5 | PASS
 Title: Model version output
 Reason: eta_model=eta-v1
-Elapsed(ms): 18
+Elapsed(ms): 6
 Request #1
 - Method: GET
 - Path: /ai/model-info
@@ -565,12 +784,12 @@ Request #1
   "ollama_model": "qwen2.5:3b",
   "ollama_mcp_tool": "ollama.generate"
 }
-- DurationMs: 18
+- DurationMs: 6
 ----------------------------------------------------------------------------------------------------
 TC047 | Level 5 | PASS
 Title: AI latency under 200ms
-Reason: latency=21ms
-Elapsed(ms): 21
+Reason: latency=6ms
+Elapsed(ms): 6
 Request #1
 - Method: POST
 - Path: /ai/eta
@@ -587,12 +806,12 @@ Request #1
   "eta": 10,
   "model_version": "eta-v1"
 }
-- DurationMs: 21
+- DurationMs: 6
 ----------------------------------------------------------------------------------------------------
 TC048 | Level 5 | BLOCKED
 Title: Drift detection trigger
 Reason: no explicit drift endpoint/metric exposed
-Elapsed(ms): 16
+Elapsed(ms): 4
 Notes:
 - No dedicated drift API in current gateway surface; check based on exposed metrics only.
 Request #1
@@ -604,16 +823,14 @@ Request #1
 - Body: null
 - ResponseStatus: 200
 - ResponseBody: {
-  "raw": "requests_total 1099\nresponses_2xx 799\nresponses_4xx 287\nresponses_5xx 0\nuptime_ms 2649023"
+  "raw": "requests_total 994\nresponses_2xx 619\nresponses_4xx 347\nresponses_5xx 0\nuptime_ms 272462"
 }
-- DurationMs: 16
+- DurationMs: 4
 ----------------------------------------------------------------------------------------------------
-TC049 | Level 5 | FAIL
+TC049 | Level 5 | PASS
 Title: Model fallback when AI error
-Reason: unexpected fallback behavior: {
-  "error": "timeout"
-}
-Elapsed(ms): 15001
+Reason: mode=fallback, selected=F2
+Elapsed(ms): 6857
 Request #1
 - Method: POST
 - Path: /ai/agent/select-driver
@@ -642,11 +859,32 @@ Request #1
     }
   ]
 }
-- ResponseStatus: 0
+- ResponseStatus: 200
 - ResponseBody: {
-  "error": "timeout"
+  "mode": "fallback",
+  "selected_driver": {
+    "id": "F2",
+    "status": "ONLINE",
+    "distanceKm": 2.4,
+    "rating": 4.7,
+    "eta": 7,
+    "price": 50000,
+    "ranking_score": 0.8
+  },
+  "decision_log": {
+    "strategy": "balanced",
+    "selection_reason": "rule_base_fallback",
+    "trace_id": "cfe5ee94-979b-44fd-88c5-e82923d785ef",
+    "timestamp": "2026-04-22T02:14:07.715Z",
+    "tools_called": [],
+    "warnings": [],
+    "candidate_count": 2,
+    "ai_enabled": true,
+    "ai_selected": false,
+    "force_ai_fail": false
+  }
 }
-- DurationMs: 15001
+- DurationMs: 6857
 ----------------------------------------------------------------------------------------------------
 TC050 | Level 5 | PASS
 Title: Outlier input no crash
@@ -654,7 +892,7 @@ Reason: status=200, body={
   "eta": 2667,
   "model_version": "eta-v1"
 }
-Elapsed(ms): 141
+Elapsed(ms): 6
 Request #1
 - Method: POST
 - Path: /ai/eta
@@ -671,12 +909,12 @@ Request #1
   "eta": 2667,
   "model_version": "eta-v1"
 }
-- DurationMs: 141
+- DurationMs: 6
 ----------------------------------------------------------------------------------------------------
 TC051 | Level 6 | FAIL
 Title: Agent picks nearest driver
-Reason: selected=
-Elapsed(ms): 15001
+Reason: selected=D3
+Elapsed(ms): 5594
 Request #1
 - Method: POST
 - Path: /ai/agent/select-driver
@@ -713,16 +951,36 @@ Request #1
     }
   ]
 }
-- ResponseStatus: 0
+- ResponseStatus: 200
 - ResponseBody: {
-  "error": "timeout"
+  "mode": "ai",
+  "selected_driver": {
+    "id": "D3",
+    "status": "ONLINE",
+    "distanceKm": 3,
+    "rating": 4.8,
+    "eta": 7,
+    "price": 51000
+  },
+  "decision_log": {
+    "strategy": "nearest",
+    "selection_reason": "The second ranked driver has the shortest distance (3 km) and highest rating (4.8), making them the best fit for this booking.",
+    "trace_id": "584a0232-efc7-4da0-ae85-88e865581820",
+    "timestamp": "2026-04-22T02:14:13.315Z",
+    "tools_called": [],
+    "warnings": [],
+    "candidate_count": 3,
+    "ai_enabled": true,
+    "ai_selected": true,
+    "force_ai_fail": false
+  }
 }
-- DurationMs: 15001
+- DurationMs: 5594
 ----------------------------------------------------------------------------------------------------
-TC052 | Level 6 | FAIL
+TC052 | Level 6 | PASS
 Title: Agent can prioritize rating
-Reason: selected=
-Elapsed(ms): 15001
+Reason: selected D2 by rating strategy
+Elapsed(ms): 5087
 Request #1
 - Method: POST
 - Path: /ai/agent/select-driver
@@ -751,18 +1009,36 @@ Request #1
     }
   ]
 }
-- ResponseStatus: 0
+- ResponseStatus: 200
 - ResponseBody: {
-  "error": "timeout"
+  "mode": "ai",
+  "selected_driver": {
+    "id": "D2",
+    "status": "ONLINE",
+    "distanceKm": 3,
+    "rating": 4.9,
+    "eta": 8,
+    "price": 40000
+  },
+  "decision_log": {
+    "strategy": "rating",
+    "selection_reason": "The driver with driverId 'D2' has the highest rating (4.9) and is ranked first, making them the best choice for this booking.",
+    "trace_id": "5c99618b-aded-4665-b853-89e39b0ade80",
+    "timestamp": "2026-04-22T02:14:18.402Z",
+    "tools_called": [],
+    "warnings": [],
+    "candidate_count": 2,
+    "ai_enabled": true,
+    "ai_selected": true,
+    "force_ai_fail": false
+  }
 }
-- DurationMs: 15001
+- DurationMs: 5087
 ----------------------------------------------------------------------------------------------------
-TC053 | Level 6 | FAIL
+TC053 | Level 6 | PASS
 Title: Agent balances ETA vs price
-Reason: unexpected body={
-  "error": "timeout"
-}
-Elapsed(ms): 15001
+Reason: selected=A
+Elapsed(ms): 4137
 Request #1
 - Method: POST
 - Path: /ai/agent/select-driver
@@ -791,16 +1067,37 @@ Request #1
     }
   ]
 }
-- ResponseStatus: 0
+- ResponseStatus: 200
 - ResponseBody: {
-  "error": "timeout"
+  "mode": "ai",
+  "selected_driver": {
+    "id": "A",
+    "status": "ONLINE",
+    "eta": 5,
+    "price": 50000,
+    "rating": 4.5,
+    "distanceKm": 2,
+    "ranking_score": 0.2
+  },
+  "decision_log": {
+    "strategy": "balanced",
+    "selection_reason": "Driver A has a lower distance and higher rating, making them the best choice for this balanced strategy.",
+    "trace_id": "320bbae9-bbd6-4476-a200-3bd8bbf9b7d4",
+    "timestamp": "2026-04-22T02:14:22.539Z",
+    "tools_called": [],
+    "warnings": [],
+    "candidate_count": 2,
+    "ai_enabled": true,
+    "ai_selected": true,
+    "force_ai_fail": false
+  }
 }
-- DurationMs: 15001
+- DurationMs: 4137
 ----------------------------------------------------------------------------------------------------
-TC054 | Level 6 | FAIL
+TC054 | Level 6 | BLOCKED
 Title: Agent calls correct tools/sequence
-Reason: model-info/select-driver unavailable
-Elapsed(ms): 15123
+Reason: insufficient observability to assert call order
+Elapsed(ms): 3244
 Notes:
 - Tool call order cannot be proven only from public API response. Need internal logs/traces for strict order assertion.
 Request #1
@@ -821,7 +1118,7 @@ Request #1
   "ollama_model": "qwen2.5:3b",
   "ollama_mcp_tool": "ollama.generate"
 }
-- DurationMs: 122
+- DurationMs: 8
 Request #2
 - Method: POST
 - Path: /ai/agent/select-driver
@@ -842,16 +1139,37 @@ Request #2
     }
   ]
 }
-- ResponseStatus: 0
+- ResponseStatus: 200
 - ResponseBody: {
-  "error": "timeout"
+  "mode": "ai",
+  "selected_driver": {
+    "id": "T1",
+    "status": "ONLINE",
+    "distanceKm": 2,
+    "rating": 4.7,
+    "eta": 6,
+    "price": 51000,
+    "ranking_score": 1
+  },
+  "decision_log": {
+    "strategy": "balanced",
+    "selection_reason": "Driver T1 has the highest rank and is available for immediate service.",
+    "trace_id": "af68ec83-bd5a-4802-829c-278b8e3acb80",
+    "timestamp": "2026-04-22T02:14:25.783Z",
+    "tools_called": [],
+    "warnings": [],
+    "candidate_count": 1,
+    "ai_enabled": true,
+    "ai_selected": true,
+    "force_ai_fail": false
+  }
 }
-- DurationMs: 15001
+- DurationMs: 3236
 ----------------------------------------------------------------------------------------------------
 TC055 | Level 6 | PASS
 Title: Missing context fallback
 Reason: fallback no_driver
-Elapsed(ms): 147
+Elapsed(ms): 6
 Request #1
 - Method: POST
 - Path: /ai/agent/select-driver
@@ -871,16 +1189,18 @@ Request #1
   "decision_log": {
     "strategy": "balanced",
     "selection_reason": "no_driver",
-    "trace_id": "bb3e8687-c679-4f80-bbbb-292bb7d7f37a",
-    "timestamp": "2026-04-21T14:22:38.830Z"
+    "trace_id": "57ad3d21-2992-41df-ad8f-dfff39163687",
+    "timestamp": "2026-04-22T02:14:25.789Z",
+    "tools_called": [],
+    "warnings": []
   }
 }
-- DurationMs: 147
+- DurationMs: 6
 ----------------------------------------------------------------------------------------------------
 TC056 | Level 6 | BLOCKED
 Title: Retry when ETA service fails
 Reason: no fault-injection path to verify retry logic
-Elapsed(ms): 29
+Elapsed(ms): 6
 Notes:
 - Cannot inject ETA downstream failure from black-box HTTP only; retry behavior requires chaos/fault injection.
 Request #1
@@ -899,12 +1219,12 @@ Request #1
   "eta": 13,
   "model_version": "eta-v1"
 }
-- DurationMs: 29
+- DurationMs: 6
 ----------------------------------------------------------------------------------------------------
 TC057 | Level 6 | PASS
 Title: Do not select offline driver
 Reason: offline drivers filtered out
-Elapsed(ms): 24
+Elapsed(ms): 6
 Request #1
 - Method: POST
 - Path: /ai/agent/select-driver
@@ -941,24 +1261,24 @@ Request #1
   "decision_log": {
     "strategy": "nearest",
     "selection_reason": "no_driver",
-    "trace_id": "c8bb1066-62fe-4cd0-9d06-69a8667e56e6",
-    "timestamp": "2026-04-21T14:22:38.905Z"
+    "trace_id": "c430b8e9-7ca4-42ad-bdc2-98df41438404",
+    "timestamp": "2026-04-22T02:14:25.802Z",
+    "tools_called": [],
+    "warnings": []
   }
 }
-- DurationMs: 24
+- DurationMs: 6
 ----------------------------------------------------------------------------------------------------
-TC058 | Level 6 | FAIL
+TC058 | Level 6 | PASS
 Title: Decision log completeness
-Reason: missing decision log fields: {
-  "error": "timeout"
-}
-Elapsed(ms): 15001
+Reason: trace_id + selection_reason present
+Elapsed(ms): 4005
 Request #1
 - Method: POST
 - Path: /ai/agent/select-driver
 - Headers: {
   "Accept": "application/json",
-  "x-request-id": "trace-1776781347905",
+  "x-request-id": "trace-1776824065804",
   "Content-Type": "application/json"
 }
 - Body: {
@@ -982,16 +1302,37 @@ Request #1
     }
   ]
 }
-- ResponseStatus: 0
+- ResponseStatus: 200
 - ResponseBody: {
-  "error": "timeout"
+  "mode": "ai",
+  "selected_driver": {
+    "id": "L1",
+    "status": "ONLINE",
+    "distanceKm": 2.1,
+    "rating": 4.7,
+    "eta": 6,
+    "price": 52000,
+    "ranking_score": 0.85
+  },
+  "decision_log": {
+    "strategy": "balanced",
+    "selection_reason": "Driver L1 has a higher rank and is closer to the pickup location compared to Driver L2.",
+    "trace_id": "trace-1776824065804",
+    "timestamp": "2026-04-22T02:14:29.807Z",
+    "tools_called": [],
+    "warnings": [],
+    "candidate_count": 2,
+    "ai_enabled": true,
+    "ai_selected": true,
+    "force_ai_fail": false
+  }
 }
-- DurationMs: 15001
+- DurationMs: 4005
 ----------------------------------------------------------------------------------------------------
 TC059 | Level 6 | FAIL
 Title: Concurrent requests handling
-Reason: success_rate=0.0%
-Elapsed(ms): 15013
+Reason: success_rate=7.5%
+Elapsed(ms): 15022
 Request #1
 - Method: POST
 - Path: /ai/agent/select-driver
@@ -1028,11 +1369,32 @@ Request #1
     }
   ]
 }
-- ResponseStatus: 0
+- ResponseStatus: 200
 - ResponseBody: {
-  "error": "timeout"
+  "mode": "ai",
+  "selected_driver": {
+    "id": "C1",
+    "status": "ONLINE",
+    "distanceKm": 2,
+    "rating": 4.7,
+    "eta": 6,
+    "price": 51000,
+    "ranking_score": 0.6502
+  },
+  "decision_log": {
+    "strategy": "balanced",
+    "selection_reason": "Driver C1 has the closest distance (2 km) and a higher rating of 4.7 compared to other candidates.",
+    "trace_id": "2e1ed367-e07b-4e96-855f-fd3bcb8420dd",
+    "timestamp": "2026-04-22T02:14:36.671Z",
+    "tools_called": [],
+    "warnings": [],
+    "candidate_count": 3,
+    "ai_enabled": true,
+    "ai_selected": true,
+    "force_ai_fail": false
+  }
 }
-- DurationMs: 15000
+- DurationMs: 6867
 Request #2
 - Method: POST
 - Path: /ai/agent/select-driver
@@ -1069,11 +1431,32 @@ Request #2
     }
   ]
 }
-- ResponseStatus: 0
+- ResponseStatus: 200
 - ResponseBody: {
-  "error": "timeout"
+  "mode": "ai",
+  "selected_driver": {
+    "id": "C1",
+    "status": "ONLINE",
+    "distanceKm": 2,
+    "rating": 4.7,
+    "eta": 6,
+    "price": 51000,
+    "ranking_score": 0.6502
+  },
+  "decision_log": {
+    "strategy": "balanced",
+    "selection_reason": "Driver C1 has the closest distance (2 km) and a higher rating of 4.7 compared to other candidates.",
+    "trace_id": "3c992e7b-507d-44af-abe5-18bbdde12c01",
+    "timestamp": "2026-04-22T02:14:40.051Z",
+    "tools_called": [],
+    "warnings": [],
+    "candidate_count": 3,
+    "ai_enabled": true,
+    "ai_selected": true,
+    "force_ai_fail": false
+  }
 }
-- DurationMs: 15000
+- DurationMs: 10246
 Request #3
 - Method: POST
 - Path: /ai/agent/select-driver
@@ -1110,11 +1493,32 @@ Request #3
     }
   ]
 }
-- ResponseStatus: 0
+- ResponseStatus: 200
 - ResponseBody: {
-  "error": "timeout"
+  "mode": "ai",
+  "selected_driver": {
+    "id": "C1",
+    "status": "ONLINE",
+    "distanceKm": 2,
+    "rating": 4.7,
+    "eta": 6,
+    "price": 51000,
+    "ranking_score": 0.6502
+  },
+  "decision_log": {
+    "strategy": "balanced",
+    "selection_reason": "Driver C1 has the closest distance (2 km) and a higher rating of 4.7 compared to other candidates.",
+    "trace_id": "3b8341d1-b102-465f-a148-6fc05179a3f0",
+    "timestamp": "2026-04-22T02:14:43.205Z",
+    "tools_called": [],
+    "warnings": [],
+    "candidate_count": 3,
+    "ai_enabled": true,
+    "ai_selected": true,
+    "force_ai_fail": false
+  }
 }
-- DurationMs: 15001
+- DurationMs: 13401
 Request #4
 - Method: POST
 - Path: /ai/agent/select-driver
@@ -1155,7 +1559,7 @@ Request #4
 - ResponseBody: {
   "error": "timeout"
 }
-- DurationMs: 15001
+- DurationMs: 15004
 Request #5
 - Method: POST
 - Path: /ai/agent/select-driver
@@ -1196,7 +1600,7 @@ Request #5
 - ResponseBody: {
   "error": "timeout"
 }
-- DurationMs: 15001
+- DurationMs: 15005
 Request #6
 - Method: POST
 - Path: /ai/agent/select-driver
@@ -1237,7 +1641,7 @@ Request #6
 - ResponseBody: {
   "error": "timeout"
 }
-- DurationMs: 15001
+- DurationMs: 15006
 Request #7
 - Method: POST
 - Path: /ai/agent/select-driver
@@ -1278,7 +1682,7 @@ Request #7
 - ResponseBody: {
   "error": "timeout"
 }
-- DurationMs: 15001
+- DurationMs: 15007
 Request #8
 - Method: POST
 - Path: /ai/agent/select-driver
@@ -1319,7 +1723,7 @@ Request #8
 - ResponseBody: {
   "error": "timeout"
 }
-- DurationMs: 15001
+- DurationMs: 15008
 Request #9
 - Method: POST
 - Path: /ai/agent/select-driver
@@ -1360,7 +1764,7 @@ Request #9
 - ResponseBody: {
   "error": "timeout"
 }
-- DurationMs: 15002
+- DurationMs: 15008
 Request #10
 - Method: POST
 - Path: /ai/agent/select-driver
@@ -1401,7 +1805,7 @@ Request #10
 - ResponseBody: {
   "error": "timeout"
 }
-- DurationMs: 15002
+- DurationMs: 15008
 Request #11
 - Method: POST
 - Path: /ai/agent/select-driver
@@ -1442,7 +1846,7 @@ Request #11
 - ResponseBody: {
   "error": "timeout"
 }
-- DurationMs: 15002
+- DurationMs: 15008
 Request #12
 - Method: POST
 - Path: /ai/agent/select-driver
@@ -1483,7 +1887,7 @@ Request #12
 - ResponseBody: {
   "error": "timeout"
 }
-- DurationMs: 15002
+- DurationMs: 15009
 Request #13
 - Method: POST
 - Path: /ai/agent/select-driver
@@ -1524,7 +1928,7 @@ Request #13
 - ResponseBody: {
   "error": "timeout"
 }
-- DurationMs: 15002
+- DurationMs: 15009
 Request #14
 - Method: POST
 - Path: /ai/agent/select-driver
@@ -1565,7 +1969,7 @@ Request #14
 - ResponseBody: {
   "error": "timeout"
 }
-- DurationMs: 15002
+- DurationMs: 15009
 Request #15
 - Method: POST
 - Path: /ai/agent/select-driver
@@ -1606,7 +2010,7 @@ Request #15
 - ResponseBody: {
   "error": "timeout"
 }
-- DurationMs: 15003
+- DurationMs: 15009
 Request #16
 - Method: POST
 - Path: /ai/agent/select-driver
@@ -1647,7 +2051,7 @@ Request #16
 - ResponseBody: {
   "error": "timeout"
 }
-- DurationMs: 15003
+- DurationMs: 15009
 Request #17
 - Method: POST
 - Path: /ai/agent/select-driver
@@ -1688,7 +2092,7 @@ Request #17
 - ResponseBody: {
   "error": "timeout"
 }
-- DurationMs: 15003
+- DurationMs: 15009
 Request #18
 - Method: POST
 - Path: /ai/agent/select-driver
@@ -1729,7 +2133,7 @@ Request #18
 - ResponseBody: {
   "error": "timeout"
 }
-- DurationMs: 15003
+- DurationMs: 15009
 Request #19
 - Method: POST
 - Path: /ai/agent/select-driver
@@ -1770,7 +2174,7 @@ Request #19
 - ResponseBody: {
   "error": "timeout"
 }
-- DurationMs: 15003
+- DurationMs: 15010
 Request #20
 - Method: POST
 - Path: /ai/agent/select-driver
@@ -1811,7 +2215,7 @@ Request #20
 - ResponseBody: {
   "error": "timeout"
 }
-- DurationMs: 15003
+- DurationMs: 15010
 Request #21
 - Method: POST
 - Path: /ai/agent/select-driver
@@ -1852,7 +2256,7 @@ Request #21
 - ResponseBody: {
   "error": "timeout"
 }
-- DurationMs: 15003
+- DurationMs: 15010
 Request #22
 - Method: POST
 - Path: /ai/agent/select-driver
@@ -1893,7 +2297,7 @@ Request #22
 - ResponseBody: {
   "error": "timeout"
 }
-- DurationMs: 15003
+- DurationMs: 15010
 Request #23
 - Method: POST
 - Path: /ai/agent/select-driver
@@ -1934,7 +2338,7 @@ Request #23
 - ResponseBody: {
   "error": "timeout"
 }
-- DurationMs: 15003
+- DurationMs: 15011
 Request #24
 - Method: POST
 - Path: /ai/agent/select-driver
@@ -1975,7 +2379,7 @@ Request #24
 - ResponseBody: {
   "error": "timeout"
 }
-- DurationMs: 15003
+- DurationMs: 15011
 Request #25
 - Method: POST
 - Path: /ai/agent/select-driver
@@ -2016,7 +2420,7 @@ Request #25
 - ResponseBody: {
   "error": "timeout"
 }
-- DurationMs: 15003
+- DurationMs: 15011
 Request #26
 - Method: POST
 - Path: /ai/agent/select-driver
@@ -2057,7 +2461,7 @@ Request #26
 - ResponseBody: {
   "error": "timeout"
 }
-- DurationMs: 15003
+- DurationMs: 15012
 Request #27
 - Method: POST
 - Path: /ai/agent/select-driver
@@ -2098,7 +2502,7 @@ Request #27
 - ResponseBody: {
   "error": "timeout"
 }
-- DurationMs: 15003
+- DurationMs: 15012
 Request #28
 - Method: POST
 - Path: /ai/agent/select-driver
@@ -2139,7 +2543,7 @@ Request #28
 - ResponseBody: {
   "error": "timeout"
 }
-- DurationMs: 15003
+- DurationMs: 15012
 Request #29
 - Method: POST
 - Path: /ai/agent/select-driver
@@ -2180,7 +2584,7 @@ Request #29
 - ResponseBody: {
   "error": "timeout"
 }
-- DurationMs: 15003
+- DurationMs: 15012
 Request #30
 - Method: POST
 - Path: /ai/agent/select-driver
@@ -2221,7 +2625,7 @@ Request #30
 - ResponseBody: {
   "error": "timeout"
 }
-- DurationMs: 15003
+- DurationMs: 15013
 Request #31
 - Method: POST
 - Path: /ai/agent/select-driver
@@ -2262,7 +2666,7 @@ Request #31
 - ResponseBody: {
   "error": "timeout"
 }
-- DurationMs: 15003
+- DurationMs: 15013
 Request #32
 - Method: POST
 - Path: /ai/agent/select-driver
@@ -2303,7 +2707,7 @@ Request #32
 - ResponseBody: {
   "error": "timeout"
 }
-- DurationMs: 15003
+- DurationMs: 15013
 Request #33
 - Method: POST
 - Path: /ai/agent/select-driver
@@ -2344,7 +2748,7 @@ Request #33
 - ResponseBody: {
   "error": "timeout"
 }
-- DurationMs: 15007
+- DurationMs: 15014
 Request #34
 - Method: POST
 - Path: /ai/agent/select-driver
@@ -2385,7 +2789,7 @@ Request #34
 - ResponseBody: {
   "error": "timeout"
 }
-- DurationMs: 15007
+- DurationMs: 15014
 Request #35
 - Method: POST
 - Path: /ai/agent/select-driver
@@ -2426,7 +2830,7 @@ Request #35
 - ResponseBody: {
   "error": "timeout"
 }
-- DurationMs: 15007
+- DurationMs: 15014
 Request #36
 - Method: POST
 - Path: /ai/agent/select-driver
@@ -2467,7 +2871,7 @@ Request #36
 - ResponseBody: {
   "error": "timeout"
 }
-- DurationMs: 15007
+- DurationMs: 15014
 Request #37
 - Method: POST
 - Path: /ai/agent/select-driver
@@ -2508,7 +2912,7 @@ Request #37
 - ResponseBody: {
   "error": "timeout"
 }
-- DurationMs: 15007
+- DurationMs: 15014
 Request #38
 - Method: POST
 - Path: /ai/agent/select-driver
@@ -2549,7 +2953,7 @@ Request #38
 - ResponseBody: {
   "error": "timeout"
 }
-- DurationMs: 15007
+- DurationMs: 15015
 Request #39
 - Method: POST
 - Path: /ai/agent/select-driver
@@ -2590,7 +2994,7 @@ Request #39
 - ResponseBody: {
   "error": "timeout"
 }
-- DurationMs: 15007
+- DurationMs: 15015
 Request #40
 - Method: POST
 - Path: /ai/agent/select-driver
@@ -2631,14 +3035,14 @@ Request #40
 - ResponseBody: {
   "error": "timeout"
 }
-- DurationMs: 15007
+- DurationMs: 15016
 ----------------------------------------------------------------------------------------------------
 TC060 | Level 6 | FAIL
 Title: Rule-based fallback when AI fails
 Reason: unexpected body={
   "error": "timeout"
 }
-Elapsed(ms): 15001
+Elapsed(ms): 15002
 Notes:
 - Mode=ai means model path healthy; fallback path not forced in this run.
 Request #1
@@ -2673,30 +3077,13 @@ Request #1
 - ResponseBody: {
   "error": "timeout"
 }
-- DurationMs: 15001
+- DurationMs: 15002
 ----------------------------------------------------------------------------------------------------
 TC062 | Level 7 | FAIL
 Title: ETA service under load
-Reason: ok=80/80, p95=393ms
-Elapsed(ms): 408
+Reason: ok=80/80, p95=266ms
+Elapsed(ms): 297
 Request #1
-- Method: POST
-- Path: /ai/eta
-- Headers: {
-  "Accept": "application/json",
-  "Content-Type": "application/json"
-}
-- Body: {
-  "distance_km": 5,
-  "traffic_level": 0.6
-}
-- ResponseStatus: 200
-- ResponseBody: {
-  "eta": 14,
-  "model_version": "eta-v1"
-}
-- DurationMs: 118
-Request #2
 - Method: POST
 - Path: /ai/eta
 - Headers: {
@@ -2713,6 +3100,23 @@ Request #2
   "model_version": "eta-v1"
 }
 - DurationMs: 121
+Request #2
+- Method: POST
+- Path: /ai/eta
+- Headers: {
+  "Accept": "application/json",
+  "Content-Type": "application/json"
+}
+- Body: {
+  "distance_km": 5,
+  "traffic_level": 0.6
+}
+- ResponseStatus: 200
+- ResponseBody: {
+  "eta": 14,
+  "model_version": "eta-v1"
+}
+- DurationMs: 124
 Request #3
 - Method: POST
 - Path: /ai/eta
@@ -2729,7 +3133,7 @@ Request #3
   "eta": 14,
   "model_version": "eta-v1"
 }
-- DurationMs: 122
+- DurationMs: 124
 Request #4
 - Method: POST
 - Path: /ai/eta
@@ -2746,7 +3150,7 @@ Request #4
   "eta": 14,
   "model_version": "eta-v1"
 }
-- DurationMs: 122
+- DurationMs: 125
 Request #5
 - Method: POST
 - Path: /ai/eta
@@ -2763,7 +3167,7 @@ Request #5
   "eta": 14,
   "model_version": "eta-v1"
 }
-- DurationMs: 134
+- DurationMs: 125
 Request #6
 - Method: POST
 - Path: /ai/eta
@@ -2780,7 +3184,7 @@ Request #6
   "eta": 14,
   "model_version": "eta-v1"
 }
-- DurationMs: 135
+- DurationMs: 126
 Request #7
 - Method: POST
 - Path: /ai/eta
@@ -2797,7 +3201,7 @@ Request #7
   "eta": 14,
   "model_version": "eta-v1"
 }
-- DurationMs: 135
+- DurationMs: 127
 Request #8
 - Method: POST
 - Path: /ai/eta
@@ -2814,7 +3218,7 @@ Request #8
   "eta": 14,
   "model_version": "eta-v1"
 }
-- DurationMs: 147
+- DurationMs: 128
 Request #9
 - Method: POST
 - Path: /ai/eta
@@ -2831,7 +3235,7 @@ Request #9
   "eta": 14,
   "model_version": "eta-v1"
 }
-- DurationMs: 152
+- DurationMs: 128
 Request #10
 - Method: POST
 - Path: /ai/eta
@@ -2848,7 +3252,7 @@ Request #10
   "eta": 14,
   "model_version": "eta-v1"
 }
-- DurationMs: 153
+- DurationMs: 131
 Request #11
 - Method: POST
 - Path: /ai/eta
@@ -2865,7 +3269,7 @@ Request #11
   "eta": 14,
   "model_version": "eta-v1"
 }
-- DurationMs: 159
+- DurationMs: 132
 Request #12
 - Method: POST
 - Path: /ai/eta
@@ -2882,7 +3286,7 @@ Request #12
   "eta": 14,
   "model_version": "eta-v1"
 }
-- DurationMs: 167
+- DurationMs: 132
 Request #13
 - Method: POST
 - Path: /ai/eta
@@ -2899,7 +3303,7 @@ Request #13
   "eta": 14,
   "model_version": "eta-v1"
 }
-- DurationMs: 175
+- DurationMs: 132
 Request #14
 - Method: POST
 - Path: /ai/eta
@@ -2916,7 +3320,7 @@ Request #14
   "eta": 14,
   "model_version": "eta-v1"
 }
-- DurationMs: 179
+- DurationMs: 135
 Request #15
 - Method: POST
 - Path: /ai/eta
@@ -2933,7 +3337,7 @@ Request #15
   "eta": 14,
   "model_version": "eta-v1"
 }
-- DurationMs: 194
+- DurationMs: 137
 Request #16
 - Method: POST
 - Path: /ai/eta
@@ -2950,7 +3354,7 @@ Request #16
   "eta": 14,
   "model_version": "eta-v1"
 }
-- DurationMs: 197
+- DurationMs: 136
 Request #17
 - Method: POST
 - Path: /ai/eta
@@ -2967,7 +3371,7 @@ Request #17
   "eta": 14,
   "model_version": "eta-v1"
 }
-- DurationMs: 197
+- DurationMs: 142
 Request #18
 - Method: POST
 - Path: /ai/eta
@@ -2984,7 +3388,7 @@ Request #18
   "eta": 14,
   "model_version": "eta-v1"
 }
-- DurationMs: 198
+- DurationMs: 143
 Request #19
 - Method: POST
 - Path: /ai/eta
@@ -3001,7 +3405,7 @@ Request #19
   "eta": 14,
   "model_version": "eta-v1"
 }
-- DurationMs: 204
+- DurationMs: 139
 Request #20
 - Method: POST
 - Path: /ai/eta
@@ -3018,7 +3422,7 @@ Request #20
   "eta": 14,
   "model_version": "eta-v1"
 }
-- DurationMs: 208
+- DurationMs: 140
 Request #21
 - Method: POST
 - Path: /ai/eta
@@ -3035,7 +3439,7 @@ Request #21
   "eta": 14,
   "model_version": "eta-v1"
 }
-- DurationMs: 214
+- DurationMs: 141
 Request #22
 - Method: POST
 - Path: /ai/eta
@@ -3052,7 +3456,7 @@ Request #22
   "eta": 14,
   "model_version": "eta-v1"
 }
-- DurationMs: 226
+- DurationMs: 142
 Request #23
 - Method: POST
 - Path: /ai/eta
@@ -3069,7 +3473,7 @@ Request #23
   "eta": 14,
   "model_version": "eta-v1"
 }
-- DurationMs: 246
+- DurationMs: 145
 Request #24
 - Method: POST
 - Path: /ai/eta
@@ -3086,7 +3490,7 @@ Request #24
   "eta": 14,
   "model_version": "eta-v1"
 }
-- DurationMs: 251
+- DurationMs: 145
 Request #25
 - Method: POST
 - Path: /ai/eta
@@ -3103,7 +3507,7 @@ Request #25
   "eta": 14,
   "model_version": "eta-v1"
 }
-- DurationMs: 252
+- DurationMs: 151
 Request #26
 - Method: POST
 - Path: /ai/eta
@@ -3120,7 +3524,7 @@ Request #26
   "eta": 14,
   "model_version": "eta-v1"
 }
-- DurationMs: 260
+- DurationMs: 153
 Request #27
 - Method: POST
 - Path: /ai/eta
@@ -3137,7 +3541,7 @@ Request #27
   "eta": 14,
   "model_version": "eta-v1"
 }
-- DurationMs: 260
+- DurationMs: 153
 Request #28
 - Method: POST
 - Path: /ai/eta
@@ -3154,7 +3558,7 @@ Request #28
   "eta": 14,
   "model_version": "eta-v1"
 }
-- DurationMs: 279
+- DurationMs: 154
 Request #29
 - Method: POST
 - Path: /ai/eta
@@ -3171,7 +3575,7 @@ Request #29
   "eta": 14,
   "model_version": "eta-v1"
 }
-- DurationMs: 280
+- DurationMs: 156
 Request #30
 - Method: POST
 - Path: /ai/eta
@@ -3188,7 +3592,7 @@ Request #30
   "eta": 14,
   "model_version": "eta-v1"
 }
-- DurationMs: 284
+- DurationMs: 158
 Request #31
 - Method: POST
 - Path: /ai/eta
@@ -3205,7 +3609,7 @@ Request #31
   "eta": 14,
   "model_version": "eta-v1"
 }
-- DurationMs: 285
+- DurationMs: 155
 Request #32
 - Method: POST
 - Path: /ai/eta
@@ -3222,7 +3626,7 @@ Request #32
   "eta": 14,
   "model_version": "eta-v1"
 }
-- DurationMs: 296
+- DurationMs: 157
 Request #33
 - Method: POST
 - Path: /ai/eta
@@ -3239,7 +3643,7 @@ Request #33
   "eta": 14,
   "model_version": "eta-v1"
 }
-- DurationMs: 296
+- DurationMs: 157
 Request #34
 - Method: POST
 - Path: /ai/eta
@@ -3256,7 +3660,7 @@ Request #34
   "eta": 14,
   "model_version": "eta-v1"
 }
-- DurationMs: 300
+- DurationMs: 159
 Request #35
 - Method: POST
 - Path: /ai/eta
@@ -3273,7 +3677,7 @@ Request #35
   "eta": 14,
   "model_version": "eta-v1"
 }
-- DurationMs: 302
+- DurationMs: 161
 Request #36
 - Method: POST
 - Path: /ai/eta
@@ -3290,7 +3694,7 @@ Request #36
   "eta": 14,
   "model_version": "eta-v1"
 }
-- DurationMs: 306
+- DurationMs: 158
 Request #37
 - Method: POST
 - Path: /ai/eta
@@ -3307,7 +3711,7 @@ Request #37
   "eta": 14,
   "model_version": "eta-v1"
 }
-- DurationMs: 309
+- DurationMs: 163
 Request #38
 - Method: POST
 - Path: /ai/eta
@@ -3324,7 +3728,7 @@ Request #38
   "eta": 14,
   "model_version": "eta-v1"
 }
-- DurationMs: 311
+- DurationMs: 165
 Request #39
 - Method: POST
 - Path: /ai/eta
@@ -3341,7 +3745,7 @@ Request #39
   "eta": 14,
   "model_version": "eta-v1"
 }
-- DurationMs: 314
+- DurationMs: 165
 Request #40
 - Method: POST
 - Path: /ai/eta
@@ -3358,7 +3762,7 @@ Request #40
   "eta": 14,
   "model_version": "eta-v1"
 }
-- DurationMs: 320
+- DurationMs: 167
 Request #41
 - Method: POST
 - Path: /ai/eta
@@ -3375,7 +3779,7 @@ Request #41
   "eta": 14,
   "model_version": "eta-v1"
 }
-- DurationMs: 321
+- DurationMs: 174
 Request #42
 - Method: POST
 - Path: /ai/eta
@@ -3392,7 +3796,7 @@ Request #42
   "eta": 14,
   "model_version": "eta-v1"
 }
-- DurationMs: 329
+- DurationMs: 175
 Request #43
 - Method: POST
 - Path: /ai/eta
@@ -3409,7 +3813,7 @@ Request #43
   "eta": 14,
   "model_version": "eta-v1"
 }
-- DurationMs: 335
+- DurationMs: 177
 Request #44
 - Method: POST
 - Path: /ai/eta
@@ -3426,7 +3830,7 @@ Request #44
   "eta": 14,
   "model_version": "eta-v1"
 }
-- DurationMs: 336
+- DurationMs: 180
 Request #45
 - Method: POST
 - Path: /ai/eta
@@ -3443,7 +3847,7 @@ Request #45
   "eta": 14,
   "model_version": "eta-v1"
 }
-- DurationMs: 337
+- DurationMs: 187
 Request #46
 - Method: POST
 - Path: /ai/eta
@@ -3460,7 +3864,7 @@ Request #46
   "eta": 14,
   "model_version": "eta-v1"
 }
-- DurationMs: 337
+- DurationMs: 190
 Request #47
 - Method: POST
 - Path: /ai/eta
@@ -3477,7 +3881,7 @@ Request #47
   "eta": 14,
   "model_version": "eta-v1"
 }
-- DurationMs: 343
+- DurationMs: 192
 Request #48
 - Method: POST
 - Path: /ai/eta
@@ -3494,7 +3898,7 @@ Request #48
   "eta": 14,
   "model_version": "eta-v1"
 }
-- DurationMs: 343
+- DurationMs: 199
 Request #49
 - Method: POST
 - Path: /ai/eta
@@ -3511,7 +3915,7 @@ Request #49
   "eta": 14,
   "model_version": "eta-v1"
 }
-- DurationMs: 344
+- DurationMs: 203
 Request #50
 - Method: POST
 - Path: /ai/eta
@@ -3528,7 +3932,7 @@ Request #50
   "eta": 14,
   "model_version": "eta-v1"
 }
-- DurationMs: 347
+- DurationMs: 206
 Request #51
 - Method: POST
 - Path: /ai/eta
@@ -3545,7 +3949,7 @@ Request #51
   "eta": 14,
   "model_version": "eta-v1"
 }
-- DurationMs: 347
+- DurationMs: 210
 Request #52
 - Method: POST
 - Path: /ai/eta
@@ -3562,7 +3966,7 @@ Request #52
   "eta": 14,
   "model_version": "eta-v1"
 }
-- DurationMs: 349
+- DurationMs: 212
 Request #53
 - Method: POST
 - Path: /ai/eta
@@ -3579,7 +3983,7 @@ Request #53
   "eta": 14,
   "model_version": "eta-v1"
 }
-- DurationMs: 364
+- DurationMs: 214
 Request #54
 - Method: POST
 - Path: /ai/eta
@@ -3596,7 +4000,7 @@ Request #54
   "eta": 14,
   "model_version": "eta-v1"
 }
-- DurationMs: 365
+- DurationMs: 216
 Request #55
 - Method: POST
 - Path: /ai/eta
@@ -3613,7 +4017,7 @@ Request #55
   "eta": 14,
   "model_version": "eta-v1"
 }
-- DurationMs: 366
+- DurationMs: 217
 Request #56
 - Method: POST
 - Path: /ai/eta
@@ -3630,7 +4034,7 @@ Request #56
   "eta": 14,
   "model_version": "eta-v1"
 }
-- DurationMs: 366
+- DurationMs: 219
 Request #57
 - Method: POST
 - Path: /ai/eta
@@ -3647,7 +4051,7 @@ Request #57
   "eta": 14,
   "model_version": "eta-v1"
 }
-- DurationMs: 367
+- DurationMs: 220
 Request #58
 - Method: POST
 - Path: /ai/eta
@@ -3664,7 +4068,7 @@ Request #58
   "eta": 14,
   "model_version": "eta-v1"
 }
-- DurationMs: 367
+- DurationMs: 223
 Request #59
 - Method: POST
 - Path: /ai/eta
@@ -3681,7 +4085,7 @@ Request #59
   "eta": 14,
   "model_version": "eta-v1"
 }
-- DurationMs: 367
+- DurationMs: 225
 Request #60
 - Method: POST
 - Path: /ai/eta
@@ -3698,7 +4102,7 @@ Request #60
   "eta": 14,
   "model_version": "eta-v1"
 }
-- DurationMs: 368
+- DurationMs: 226
 Request #61
 - Method: POST
 - Path: /ai/eta
@@ -3715,7 +4119,7 @@ Request #61
   "eta": 14,
   "model_version": "eta-v1"
 }
-- DurationMs: 369
+- DurationMs: 229
 Request #62
 - Method: POST
 - Path: /ai/eta
@@ -3732,7 +4136,7 @@ Request #62
   "eta": 14,
   "model_version": "eta-v1"
 }
-- DurationMs: 369
+- DurationMs: 232
 Request #63
 - Method: POST
 - Path: /ai/eta
@@ -3749,7 +4153,7 @@ Request #63
   "eta": 14,
   "model_version": "eta-v1"
 }
-- DurationMs: 372
+- DurationMs: 233
 Request #64
 - Method: POST
 - Path: /ai/eta
@@ -3766,7 +4170,7 @@ Request #64
   "eta": 14,
   "model_version": "eta-v1"
 }
-- DurationMs: 374
+- DurationMs: 236
 Request #65
 - Method: POST
 - Path: /ai/eta
@@ -3783,7 +4187,7 @@ Request #65
   "eta": 14,
   "model_version": "eta-v1"
 }
-- DurationMs: 375
+- DurationMs: 238
 Request #66
 - Method: POST
 - Path: /ai/eta
@@ -3800,7 +4204,7 @@ Request #66
   "eta": 14,
   "model_version": "eta-v1"
 }
-- DurationMs: 378
+- DurationMs: 241
 Request #67
 - Method: POST
 - Path: /ai/eta
@@ -3817,7 +4221,7 @@ Request #67
   "eta": 14,
   "model_version": "eta-v1"
 }
-- DurationMs: 380
+- DurationMs: 242
 Request #68
 - Method: POST
 - Path: /ai/eta
@@ -3834,7 +4238,7 @@ Request #68
   "eta": 14,
   "model_version": "eta-v1"
 }
-- DurationMs: 382
+- DurationMs: 247
 Request #69
 - Method: POST
 - Path: /ai/eta
@@ -3851,7 +4255,7 @@ Request #69
   "eta": 14,
   "model_version": "eta-v1"
 }
-- DurationMs: 382
+- DurationMs: 248
 Request #70
 - Method: POST
 - Path: /ai/eta
@@ -3868,7 +4272,7 @@ Request #70
   "eta": 14,
   "model_version": "eta-v1"
 }
-- DurationMs: 385
+- DurationMs: 254
 Request #71
 - Method: POST
 - Path: /ai/eta
@@ -3885,7 +4289,7 @@ Request #71
   "eta": 14,
   "model_version": "eta-v1"
 }
-- DurationMs: 386
+- DurationMs: 255
 Request #72
 - Method: POST
 - Path: /ai/eta
@@ -3902,7 +4306,7 @@ Request #72
   "eta": 14,
   "model_version": "eta-v1"
 }
-- DurationMs: 388
+- DurationMs: 256
 Request #73
 - Method: POST
 - Path: /ai/eta
@@ -3919,7 +4323,7 @@ Request #73
   "eta": 14,
   "model_version": "eta-v1"
 }
-- DurationMs: 390
+- DurationMs: 260
 Request #74
 - Method: POST
 - Path: /ai/eta
@@ -3936,7 +4340,7 @@ Request #74
   "eta": 14,
   "model_version": "eta-v1"
 }
-- DurationMs: 393
+- DurationMs: 263
 Request #75
 - Method: POST
 - Path: /ai/eta
@@ -3953,7 +4357,7 @@ Request #75
   "eta": 14,
   "model_version": "eta-v1"
 }
-- DurationMs: 393
+- DurationMs: 264
 Request #76
 - Method: POST
 - Path: /ai/eta
@@ -3970,7 +4374,7 @@ Request #76
   "eta": 14,
   "model_version": "eta-v1"
 }
-- DurationMs: 393
+- DurationMs: 266
 Request #77
 - Method: POST
 - Path: /ai/eta
@@ -3987,7 +4391,7 @@ Request #77
   "eta": 14,
   "model_version": "eta-v1"
 }
-- DurationMs: 395
+- DurationMs: 271
 Request #78
 - Method: POST
 - Path: /ai/eta
@@ -4004,7 +4408,7 @@ Request #78
   "eta": 14,
   "model_version": "eta-v1"
 }
-- DurationMs: 396
+- DurationMs: 274
 Request #79
 - Method: POST
 - Path: /ai/eta
@@ -4021,7 +4425,7 @@ Request #79
   "eta": 14,
   "model_version": "eta-v1"
 }
-- DurationMs: 397
+- DurationMs: 275
 Request #80
 - Method: POST
 - Path: /ai/eta
@@ -4038,12 +4442,12 @@ Request #80
   "eta": 14,
   "model_version": "eta-v1"
 }
-- DurationMs: 398
+- DurationMs: 276
 ----------------------------------------------------------------------------------------------------
 TC072 | Level 8 | BLOCKED
 Title: Pricing timeout -> retry/fallback
 Reason: no chaos injection available to validate retry path
-Elapsed(ms): 839
+Elapsed(ms): 43
 Notes:
 - Cannot directly induce pricing timeout from public API. Need chaos (kill pricing service / inject delay).
 Request #1
@@ -4051,8 +4455,8 @@ Request #1
 - Path: /booking
 - Headers: {
   "Accept": "application/json",
-  "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI0ODk2ZDc0Ni1kMDkzLTQ4ODMtOWQ4MC03M2YzOWE2NTRlMTYiLCJ1c2VySWQiOiI0ODk2ZDc0Ni1kMDkzLTQ4ODMtOWQ4MC03M2YzOWE2NTRlMTYiLCJyb2xlIjoiQ1VTVE9NRVIiLCJqdGkiOiIzNDkzMDMwZS0zOTc0LTRlMzQtYTQwMC00NWU1YmY5ZjkxMWEiLCJpYXQiOjE3NzY3ODEyNTEsImV4cCI6MTc3Njc4NDg1MX0.BLJ5YKzWgaQBs8WMA6b2_4x8HOzR8doR6Mj1cUW84Do",
-  "Idempotency-Key": "pricing-probe-1776781393328",
+  "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlNTczOGFiNS03ODE4LTQwYzktOTRkYi1hYTFiYmZiMzdkNDMiLCJ1c2VySWQiOiJlNTczOGFiNS03ODE4LTQwYzktOTRkYi1hYTFiYmZiMzdkNDMiLCJyb2xlIjoiQ1VTVE9NRVIiLCJqdGkiOiI1YWZjYTdmYi05ZDU1LTQ0NDgtOTg3OS01ZTc3OWQwMWM5YmYiLCJpYXQiOjE3NzY4MjQwMjIsImV4cCI6MTc3NjgyNzYyMn0._QkNwEV7QRLOAIy2QIXAF5zNghRX6s-WtyNmoARgzDA",
+  "Idempotency-Key": "pricing-probe-1776824100130",
   "Content-Type": "application/json"
 }
 - Body: {
@@ -4070,18 +4474,18 @@ Request #1
 }
 - ResponseStatus: 201
 - ResponseBody: {
-  "booking_id": "69e7885d118742f07bf5b840",
+  "booking_id": "69e82f240ea6e423512d7948",
   "status": "REQUESTED",
   "eta_min": 13,
   "price": 90000,
   "surge_multiplier": 1
 }
-- DurationMs: 839
+- DurationMs: 43
 ----------------------------------------------------------------------------------------------------
 TC075 | Level 8 | BLOCKED
 Title: Circuit breaker open
 Reason: internal breaker state not externally observable in current API
-Elapsed(ms): 46
+Elapsed(ms): 32
 Notes:
 - Circuit breaker state is internal; cannot assert OPEN without forcing repeated downstream failures and observing internal metrics/logs.
 Request #1
@@ -4089,8 +4493,8 @@ Request #1
 - Path: /booking
 - Headers: {
   "Accept": "application/json",
-  "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI0ODk2ZDc0Ni1kMDkzLTQ4ODMtOWQ4MC03M2YzOWE2NTRlMTYiLCJ1c2VySWQiOiI0ODk2ZDc0Ni1kMDkzLTQ4ODMtOWQ4MC03M2YzOWE2NTRlMTYiLCJyb2xlIjoiQ1VTVE9NRVIiLCJqdGkiOiIzNDkzMDMwZS0zOTc0LTRlMzQtYTQwMC00NWU1YmY5ZjkxMWEiLCJpYXQiOjE3NzY3ODEyNTEsImV4cCI6MTc3Njc4NDg1MX0.BLJ5YKzWgaQBs8WMA6b2_4x8HOzR8doR6Mj1cUW84Do",
-  "Idempotency-Key": "cb-probe-1776781394167",
+  "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlNTczOGFiNS03ODE4LTQwYzktOTRkYi1hYTFiYmZiMzdkNDMiLCJ1c2VySWQiOiJlNTczOGFiNS03ODE4LTQwYzktOTRkYi1hYTFiYmZiMzdkNDMiLCJyb2xlIjoiQ1VTVE9NRVIiLCJqdGkiOiI1YWZjYTdmYi05ZDU1LTQ0NDgtOTg3OS01ZTc3OWQwMWM5YmYiLCJpYXQiOjE3NzY4MjQwMjIsImV4cCI6MTc3NjgyNzYyMn0._QkNwEV7QRLOAIy2QIXAF5zNghRX6s-WtyNmoARgzDA",
+  "Idempotency-Key": "cb-probe-1776824100173",
   "Content-Type": "application/json"
 }
 - Body: {
@@ -4108,11 +4512,11 @@ Request #1
 }
 - ResponseStatus: 201
 - ResponseBody: {
-  "booking_id": "69e7885d118742f07bf5b843",
+  "booking_id": "69e82f240ea6e423512d794b",
   "status": "REQUESTED",
   "eta_min": 13,
   "price": 90000,
   "surge_multiplier": 1
 }
-- DurationMs: 46
+- DurationMs: 32
 ----------------------------------------------------------------------------------------------------

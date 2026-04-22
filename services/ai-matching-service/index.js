@@ -495,6 +495,18 @@ function normalizeDriverId(value) {
   return id || null;
 }
 
+function normalizeDriverIdList(values = []) {
+  if (!Array.isArray(values)) return [];
+  const seen = new Set();
+  for (const value of values) {
+    const id = normalizeDriverId(value);
+    if (id) {
+      seen.add(id);
+    }
+  }
+  return Array.from(seen);
+}
+
 function reorderDriversByPreferredId(drivers = [], preferredId) {
   if (!preferredId) return drivers;
   const target = String(preferredId);
@@ -803,7 +815,17 @@ async function handleHttp(req, res) {
 }
 
 async function handleTripMessage(trip) {
-  const drivers = await findNearbyDrivers(trip.pickup.lat, trip.pickup.lng, trip.vehicleType);
+  const excludedDriverIds = normalizeDriverIdList([
+    ...(Array.isArray(trip.excludedDriverIds) ? trip.excludedDriverIds : []),
+    trip.rejectedDriverId,
+    trip.rejected_driver_id,
+  ]);
+
+  const nearbyDrivers = await findNearbyDrivers(trip.pickup.lat, trip.pickup.lng, trip.vehicleType);
+  const drivers = nearbyDrivers.filter((driver) => {
+    const driverId = normalizeDriverId(driver.id);
+    return driverId && !excludedDriverIds.includes(driverId);
+  });
   if (!drivers.length) {
     return;
   }
@@ -885,6 +907,13 @@ async function startKafka() {
         }
 
         if (topic === "ride_events" && data.event_type === "ride_requested") {
+          const excludedDriverIds = normalizeDriverIdList([
+            ...(Array.isArray(data.excluded_driver_ids) ? data.excluded_driver_ids : []),
+            ...(Array.isArray(data.excludedDriverIds) ? data.excludedDriverIds : []),
+            data.rejected_driver_id,
+            data.rejectedDriverId,
+          ]);
+
           await handleTripMessage({
             bookingId: data.booking_id,
             userId: data.user_id,
@@ -892,6 +921,7 @@ async function startKafka() {
             dropoff: data.dropoff,
             vehicleType: data.vehicle_type,
             estimatedPrice: data.estimated_price,
+            excludedDriverIds,
           });
         }
       } catch (err) {

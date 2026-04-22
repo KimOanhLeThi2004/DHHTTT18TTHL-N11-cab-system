@@ -304,7 +304,16 @@ const proxyTo = (target, options = {}) => {
       }
 
       // Keep body forwarding consistent across proxied methods.
-      fixRequestBody(proxyReq, req);
+      // Guard against body-rewrite runtime errors that can break POST proxying.
+      if (req.method !== "GET" && req.method !== "HEAD" && req.body !== undefined) {
+        try {
+          fixRequestBody(proxyReq, req);
+        } catch (err) {
+          console.error(
+            `[proxy:fix-body-error] target=${target} path=${req?.originalUrl || req?.url || "unknown"} message=${err?.message || "unknown_error"}`
+          );
+        }
+      }
     },
     onError: (err, req, resOrSocket) => {
       const isWebSocketUpgrade =

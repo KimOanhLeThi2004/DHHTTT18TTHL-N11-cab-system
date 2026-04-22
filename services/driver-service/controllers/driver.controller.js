@@ -137,9 +137,25 @@ async function acceptRide(req, res) {
 async function rejectRide(req, res) {
   try {
     const { bookingId, reason = "driver_rejected" } = req.body;
-    const driverId = req.user.userId;
+    const driverId = resolveTokenUserId(req.user);
     if (!bookingId) {
       return res.status(400).json({ message: "bookingId is required" });
+    }
+    if (!driverId) {
+      return res.status(401).json({ message: "Invalid token payload" });
+    }
+
+    const assignmentRaw = await redis.get(`assignment:${bookingId}`);
+    if (assignmentRaw) {
+      const parsed = JSON.parse(assignmentRaw);
+      const assignedDriverId = parsed?.driverId || parsed?.driver_id || null;
+      if (
+        assignedDriverId &&
+        normalizeIdentity(assignedDriverId) !== normalizeIdentity(driverId)
+      ) {
+        return res.status(403).json({ message: "Not your assignment" });
+      }
+      await redis.del(`assignment:${bookingId}`);
     }
 
     await publishRejected(bookingId, driverId, reason);
